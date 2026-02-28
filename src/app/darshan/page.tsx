@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Info, Loader2 } from "lucide-react";
+import { ShieldCheck, Info, Loader2, LogOut } from "lucide-react";
 import { 
   useAuth, 
   useUser, 
@@ -14,8 +14,8 @@ import {
   useMemoFirebase,
   addDocumentNonBlocking 
 } from "@/firebase";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { collection, query, where } from "firebase/firestore";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { collection } from "firebase/firestore";
 
 export default function DarshanPage() {
   const { toast } = useToast();
@@ -36,6 +36,9 @@ export default function DarshanPage() {
   const handleLogin = async () => {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
+    // Prompting for account selection can help if the user has multiple accounts
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
     try {
       await signInWithPopup(auth, provider);
       toast({
@@ -43,13 +46,33 @@ export default function DarshanPage() {
         description: "Welcome! You can now register for Darshan.",
       });
     } catch (error: any) {
+      console.error("Login error:", error);
+      let errorMessage = "Could not sign in with Google.";
+      
+      if (error.code === 'auth/popup-blocked') {
+        errorMessage = "The login popup was blocked by your browser. Please allow popups for this site.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google login is not enabled in the Firebase Console. Please contact the administrator.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized for Google Login. Please check Firebase Console > Authentication > Settings.";
+      }
+      
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "Could not sign in with Google.",
+        description: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      toast({ title: "Signed Out", description: "You have been logged out successfully." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: "Could not sign out." });
     }
   };
 
@@ -59,7 +82,7 @@ export default function DarshanPage() {
     
     const regData = {
       externalAuthUserId: user.uid,
-      userName: user.displayName || "Anonymous",
+      userName: user.displayName || "Devotee",
       userEmail: user.email || "No Email",
       registrationDate: new Date().toISOString(),
       status: "Confirmed"
@@ -68,11 +91,6 @@ export default function DarshanPage() {
     const userRegRef = collection(db, "users", user.uid, "darshan_registrations");
     
     addDocumentNonBlocking(userRegRef, regData);
-    
-    // Also add to a global collection for easier admin viewing if allowed, 
-    // but based on rules we use the nested path. 
-    // For the admin to see everything, we'd ideally use a collection group query or a flat collection.
-    // Given the current backend.json, we'll stick to the nested path.
     
     setTimeout(() => {
       setIsSubmitting(false);
@@ -151,12 +169,24 @@ export default function DarshanPage() {
                 <p>Location: Aggarwal Bhavan, Ambala. Date: 9th March. Timing: 9:00 AM onwards.</p>
               </div>
             </CardContent>
+            <CardFooter className="flex justify-center border-t pt-4">
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
+                <LogOut className="h-4 w-4 mr-2" /> Sign out ({user.email})
+              </Button>
+            </CardFooter>
           </Card>
         ) : (
           <Card className="max-w-xl mx-auto shadow-2xl border-primary/20">
             <CardHeader>
-              <CardTitle>Confirm Your Darshan</CardTitle>
-              <CardDescription>You are logged in as {user.email}. Click the button below to confirm your registration for 9th March.</CardDescription>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle>Confirm Your Darshan</CardTitle>
+                  <CardDescription>Logged in as {user.email}</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  Change Account
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-muted p-4 rounded-lg">

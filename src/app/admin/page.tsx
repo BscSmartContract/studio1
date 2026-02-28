@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -199,7 +200,7 @@ export default function AdminPanel() {
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="font-bold text-lg border-b pb-2">Step 3: Enable Google</h3>
+                    <h3 className="font-bold text-lg border-b pb-2">Step 3: Enable Google Provider</h3>
                     <p className="text-sm text-muted-foreground">Click <strong>Authentication</strong>, then the <strong>Sign-in method</strong> tab.</p>
                     <ul className="text-sm list-disc pl-5 space-y-1 text-muted-foreground">
                       <li>Click "Add new provider"</li>
@@ -210,15 +211,15 @@ export default function AdminPanel() {
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="font-bold text-lg border-b pb-2">Step 4: Verify Authorized Domains</h3>
-                    <p className="text-sm text-muted-foreground">In the same Authentication section, scroll down to <strong>Authorized domains</strong>.</p>
-                    <p className="text-sm text-muted-foreground">Ensure your current website URL is listed there. If not, add it.</p>
+                    <h3 className="font-bold text-lg border-b pb-2">Step 4: CRITICAL - Authorized Domains</h3>
+                    <p className="text-sm text-muted-foreground">In Authentication, click the <strong>Settings</strong> tab, then <strong>Authorized domains</strong>.</p>
+                    <p className="text-sm text-muted-foreground">Ensure your current website URL (the one you see in the browser address bar) is added here. If it's not listed, Google will block the login.</p>
                   </div>
                 </div>
 
                 <div className="mt-8 p-4 bg-primary/5 rounded-xl border border-primary/20">
-                  <p className="text-sm font-medium">Why is this needed?</p>
-                  <p className="text-xs text-muted-foreground mt-1">Google Authentication requires explicit permission from your Firebase project settings to allow users to sign in securely. Once enabled, the "Login" buttons on the Darshan and Volunteer pages will start working immediately.</p>
+                  <p className="text-sm font-medium">Common Login Issue: "auth/unauthorized-domain"</p>
+                  <p className="text-xs text-muted-foreground mt-1">If devotees see an error saying the domain is unauthorized, it means you haven't completed Step 4 above. Firebase only allows logins from domains you specifically list for security reasons.</p>
                 </div>
               </CardContent>
             </Card>
