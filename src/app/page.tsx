@@ -53,10 +53,10 @@ export default function Home() {
             src={config?.heroImageUrl || heroPlaceholder} 
             alt="Hero Background" 
             fill 
-            className="object-cover opacity-40 scale-105"
+            className="object-cover opacity-30 scale-100"
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/60 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/40 to-background" />
         </div>
         
         <div className="relative z-10 container px-4 py-20 flex flex-col items-center">
@@ -98,7 +98,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Divine Presence Section - Optimized for FULL Vertical Portrait */}
+      {/* Divine Presence Section - EXACT 3:4 Aspect Ratio, NO CROPPING */}
       <section className="py-24 bg-white relative">
         <div className="container px-4">
           <div className="max-w-7xl mx-auto space-y-16">
@@ -137,26 +137,23 @@ export default function Home() {
 
               {/* 
                 THE SACRED FRAME: 
-                - Using aspect-ratio and object-contain to ENSURE NO CROPPING.
-                - Max-height ensures the image doesn't blow up too much but stays tall.
+                - Using aspect-[3/4] as provided.
+                - object-contain ensures ZERO cropping.
               */}
-              <div className="relative w-full max-w-2xl bg-muted/20 rounded-[4rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border-[16px] border-primary/5 group transition-all duration-700 hover:shadow-primary/20">
-                <div className="aspect-[2/3] relative w-full h-full min-h-[600px] md:min-h-[800px]">
+              <div className="relative w-full max-w-2xl bg-muted/10 rounded-[2rem] overflow-hidden shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] border-[8px] border-primary/5 group">
+                <div className="aspect-[3/4] relative w-full h-full">
                   <Image
                     src={todayBlessing?.imageUrl || portraitPlaceholder}
                     alt="Shri Shirdi Sai Baba"
                     fill
                     unoptimized={true}
-                    className="object-contain p-4 md:p-8"
+                    className="object-contain"
                     priority
                     data-ai-hint="shirdi portrait"
                   />
                   {/* Decorative corner elements */}
-                  <div className="absolute top-10 right-10 p-4 bg-white/40 backdrop-blur-xl rounded-3xl border border-white/60 z-10 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Sparkles className="h-8 w-8 text-primary animate-pulse" />
-                  </div>
-                  <div className="absolute bottom-10 left-10 p-4 bg-white/40 backdrop-blur-xl rounded-3xl border border-white/60 z-10 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl pb-0.5">ॐ</div>
+                  <div className="absolute top-6 right-6 p-3 bg-white/40 backdrop-blur-xl rounded-2xl border border-white/60 z-10 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                   </div>
                 </div>
               </div>
