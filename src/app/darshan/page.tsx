@@ -1,12 +1,26 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Info, Loader2, LogOut, Mail, Send, Sparkles, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { 
+  ShieldCheck, 
+  Loader2, 
+  LogOut, 
+  Mail, 
+  Send, 
+  Sparkles, 
+  ArrowLeft, 
+  CheckCircle2, 
+  Phone, 
+  User as UserIcon,
+  Smartphone,
+  Check
+} from "lucide-react";
 import { 
   useAuth, 
   useUser, 
@@ -16,7 +30,14 @@ import {
   addDocumentNonBlocking 
 } from "@/firebase";
 import { sendLoginLink } from "@/firebase/non-blocking-login";
-import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult
+} from "firebase/auth";
 import { collection } from "firebase/firestore";
 
 export default function DarshanPage() {
@@ -24,10 +45,21 @@ export default function DarshanPage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const db = useFirestore();
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loginMethod, setLoginMethod] = useState<'options' | 'email'>('options');
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
+
+  // New states for Name & Phone verification
+  const [registrationStep, setRegistrationStep] = useState<'details' | 'otp' | 'confirm'>('details');
+  const [devoteeName, setDevoteeName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('+91');
+  const [otp, setOtp] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  
+  const recaptchaRef = useRef<HTMLDivElement>(null);
+  const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
   const registrationsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -36,6 +68,21 @@ export default function DarshanPage() {
 
   const { data: registrations, isLoading: isRegLoading } = useCollection(registrationsQuery);
   const isRegistered = registrations && registrations.length > 0;
+
+  useEffect(() => {
+    if (user && !isRegistered && !recaptchaVerifier.current && typeof window !== 'undefined') {
+      try {
+        recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          size: 'invisible',
+          callback: () => {
+            console.log('Recaptcha resolved');
+          }
+        });
+      } catch (e) {
+        console.error("Recaptcha init error", e);
+      }
+    }
+  }, [user, isRegistered, auth]);
 
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
@@ -46,16 +93,13 @@ export default function DarshanPage() {
       await signInWithPopup(auth, provider);
       toast({
         title: "Authenticated Successfully",
-        description: "Welcome! You can now register for Darshan.",
+        description: "Welcome! Please provide your contact details to continue.",
       });
     } catch (error: any) {
-      console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.code === 'auth/operation-not-allowed' 
-          ? "Google login is not enabled. Please contact administrator." 
-          : error.message,
+        description: error.message,
       });
     } finally {
       setIsSubmitting(false);
@@ -85,11 +129,53 @@ export default function DarshanPage() {
     }
   };
 
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phoneNumber || phoneNumber.length < 10) {
+      toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid phone number with country code." });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (!recaptchaVerifier.current) throw new Error("Recaptcha not initialized");
+      
+      const result = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier.current);
+      setConfirmationResult(result);
+      setRegistrationStep('otp');
+      toast({ title: "OTP Sent", description: "Verification code sent to your phone." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+      // Reset recaptcha if it fails
+      if (typeof window !== 'undefined') window.location.reload();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp || !confirmationResult) return;
+
+    setIsSubmitting(true);
+    try {
+      await confirmationResult.confirm(otp);
+      setRegistrationStep('confirm');
+      toast({ title: "Phone Verified", description: "Divine blessing awaits!" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Invalid OTP", description: "The code you entered is incorrect." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);
       setEmailSent(false);
       setLoginMethod('options');
+      setRegistrationStep('details');
+      setConfirmationResult(null);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: "Could not sign out." });
     }
@@ -101,8 +187,9 @@ export default function DarshanPage() {
     
     const regData = {
       externalAuthUserId: user.uid,
-      userName: user.displayName || user.email?.split('@')[0] || "Devotee",
+      userName: devoteeName || user.displayName || "Devotee",
       userEmail: user.email || "No Email",
+      userPhone: phoneNumber,
       registrationDate: new Date().toISOString(),
       status: "Confirmed"
     };
@@ -146,7 +233,7 @@ export default function DarshanPage() {
               </div>
               <CardTitle className="text-2xl font-headline">Verify Identity</CardTitle>
               <CardDescription>
-                Choose a method to identify yourself.
+                Step 1: Authenticate with Google or Email
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pb-12">
@@ -207,13 +294,9 @@ export default function DarshanPage() {
                   <div className="space-y-2">
                     <h3 className="text-2xl font-headline font-bold text-foreground">Link Sent!</h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      We have sent a secure login link to:<br />
+                      Check your inbox at:<br />
                       <strong className="text-foreground">{email}</strong>
                     </p>
-                  </div>
-                  <div className="p-4 bg-yellow-50/50 border border-yellow-100 rounded-xl text-xs text-yellow-800 text-left">
-                    <p className="font-bold mb-1">Divine Note:</p>
-                    <p>Please check your <strong>Spam</strong> folder if you don't see the link in 2 minutes. The link is valid for 1 hour.</p>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => setEmailSent(false)} className="text-xs">
                     Try different email
@@ -230,7 +313,7 @@ export default function DarshanPage() {
               </div>
               <CardTitle className="text-2xl font-headline text-green-800">Registration Confirmed!</CardTitle>
               <CardDescription>
-                Om Sai Ram, {user.displayName || user.email?.split('@')[0] || "Devotee"}.
+                Om Sai Ram, {registrations[0].userName}.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pb-10 px-8">
@@ -238,49 +321,146 @@ export default function DarshanPage() {
                 <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-2">Divine Entry Pass ID</span>
                 <span className="text-3xl font-mono font-bold text-foreground">SAI-{registrations[0].id.substring(0, 8).toUpperCase()}</span>
               </div>
-              <p className="text-center text-xs text-muted-foreground">Please show this ID at the entry gate on 9th March.</p>
+              <div className="text-center text-xs text-muted-foreground space-y-1">
+                <p>Registered Phone: {registrations[0].userPhone}</p>
+                <p>Please show this ID at the entry gate.</p>
+              </div>
             </CardContent>
             <CardFooter className="flex justify-center border-t bg-muted/20 py-4">
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
-                <LogOut className="h-4 w-4 mr-2" /> Sign out ({user.email})
+                <LogOut className="h-4 w-4 mr-2" /> Sign out ({user.email || 'Devotee'})
               </Button>
             </CardFooter>
           </Card>
         ) : (
           <Card className="max-w-xl mx-auto shadow-2xl border-primary/20 overflow-hidden">
             <div className="h-2 bg-primary w-full" />
-            <CardHeader className="pt-10">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-3xl font-headline">Final Confirmation</CardTitle>
-                  <CardDescription className="text-lg">Registering for {user.email}</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs">
-                  Change Account
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="pb-12 pt-4 px-8">
-              <div className="bg-primary/5 p-6 rounded-2xl mb-8 border border-primary/10">
-                <ul className="space-y-3 text-sm">
-                  <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-accent" />
-                    <span>Special Sai Paduka Darshan access</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-accent" />
-                    <span>Holy Prasad at Bhandara</span>
-                  </li>
-                </ul>
-              </div>
-              <Button 
-                onClick={handleRegister} 
-                disabled={isSubmitting}
-                className="w-full bg-primary hover:bg-primary/90 h-16 text-xl shadow-lg rounded-full font-headline font-bold"
-              >
-                {isSubmitting ? "Generating Entry Pass..." : "Confirm & Register"}
-              </Button>
-            </CardContent>
+            
+            {registrationStep === 'details' && (
+              <>
+                <CardHeader className="pt-10">
+                  <CardTitle className="text-3xl font-headline">Devotee Details</CardTitle>
+                  <CardDescription className="text-lg">Step 2: Enter your name and phone for verification</CardDescription>
+                </CardHeader>
+                <form onSubmit={handleSendOtp}>
+                  <CardContent className="space-y-6 pb-6 pt-4 px-8">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2"><UserIcon className="h-4 w-4 text-primary" /> Full Name</Label>
+                      <Input 
+                        placeholder="Enter your name" 
+                        value={devoteeName} 
+                        onChange={(e) => setDevoteeName(e.target.value)} 
+                        required 
+                        className="h-12"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> Phone Number (with Country Code)</Label>
+                      <Input 
+                        placeholder="+91 9876543210" 
+                        value={phoneNumber} 
+                        onChange={(e) => setPhoneNumber(e.target.value)} 
+                        required 
+                        className="h-12"
+                      />
+                      <p className="text-[10px] text-muted-foreground">Example: +91 for India, +1 for USA</p>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="px-8 pb-12 pt-0 flex flex-col gap-4">
+                    <div id="recaptcha-container"></div>
+                    <Button 
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-primary hover:bg-primary/90 h-14 text-lg rounded-full font-headline font-bold shadow-lg"
+                    >
+                      {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : "Verify Phone via OTP"}
+                    </Button>
+                    <Button variant="ghost" onClick={handleSignOut} className="text-xs text-muted-foreground">
+                      Cancel & Sign Out
+                    </Button>
+                  </CardFooter>
+                </form>
+              </>
+            )}
+
+            {registrationStep === 'otp' && (
+              <>
+                <CardHeader className="pt-10">
+                  <CardTitle className="text-3xl font-headline">Verify OTP</CardTitle>
+                  <CardDescription className="text-lg">Step 3: Enter the 6-digit code sent to {phoneNumber}</CardDescription>
+                </CardHeader>
+                <form onSubmit={handleVerifyOtp}>
+                  <CardContent className="space-y-6 pb-6 pt-4 px-8">
+                    <div className="space-y-4">
+                      <div className="flex justify-center">
+                        <Smartphone className="h-16 w-16 text-primary/20" />
+                      </div>
+                      <Input 
+                        placeholder="000000" 
+                        value={otp} 
+                        onChange={(e) => setOtp(e.target.value)} 
+                        required 
+                        maxLength={6}
+                        className="h-16 text-center text-3xl tracking-[0.5em] font-mono"
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="px-8 pb-12 pt-0 flex flex-col gap-4">
+                    <Button 
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-primary hover:bg-primary/90 h-14 text-lg rounded-full font-headline font-bold shadow-lg"
+                    >
+                      {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : "Verify & Continue"}
+                    </Button>
+                    <Button variant="ghost" onClick={() => setRegistrationStep('details')} className="text-xs text-muted-foreground">
+                      <ArrowLeft className="h-3 w-3 mr-1" /> Edit phone number
+                    </Button>
+                  </CardFooter>
+                </form>
+              </>
+            )}
+
+            {registrationStep === 'confirm' && (
+              <>
+                <CardHeader className="pt-10">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-3xl font-headline">Final Confirmation</CardTitle>
+                      <CardDescription className="text-lg">Registering devotee: {devoteeName}</CardDescription>
+                    </div>
+                    <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                      <Check className="h-3 w-3" /> Verified
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-12 pt-4 px-8">
+                  <div className="bg-primary/5 p-6 rounded-2xl mb-8 border border-primary/10">
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-accent" />
+                        <span>Special Sai Paduka Darshan access</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-accent" />
+                        <span>Holy Prasad at Bhandara</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                        <span>SMS confirmation to {phoneNumber}</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <Button 
+                    onClick={handleRegister} 
+                    disabled={isSubmitting}
+                    className="w-full bg-primary hover:bg-primary/90 h-16 text-xl shadow-lg rounded-full font-headline font-bold"
+                  >
+                    {isSubmitting ? "Generating Entry Pass..." : "Confirm & Register"}
+                  </Button>
+                </CardContent>
+              </>
+            )}
           </Card>
         )}
       </div>

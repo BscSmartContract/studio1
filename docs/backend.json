@@ -147,6 +147,10 @@
           "description": "The email of the user.",
           "format": "email"
         },
+        "userPhone": {
+          "type": "string",
+          "description": "The verified phone number of the user."
+        },
         "registrationDate": {
           "type": "string",
           "description": "The timestamp when the user registered for Darshan.",
@@ -156,7 +160,9 @@
       "required": [
         "id",
         "externalAuthUserId",
-        "registrationDate"
+        "registrationDate",
+        "userName",
+        "userPhone"
       ]
     },
     "DonationPurpose": {
@@ -319,7 +325,8 @@
     "providers": [
       "google",
       "password",
-      "anonymous"
+      "anonymous",
+      "phone"
     ]
   },
   "firestore": {
