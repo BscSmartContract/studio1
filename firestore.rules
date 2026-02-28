@@ -70,10 +70,13 @@ service cloud.firestore {
     }
 
     match /gallery_images/{imageId} {
-      // Separated rules to ensure admin access isn't blocked by resource evaluation errors
-      allow list, get: if isAdmin();
-      allow list, get: if resource.data.isVisible == true;
-      allow write: if isAdmin();
+      // Rule 1: Admin has full read/write access
+      allow read, write: if isAdmin();
+      
+      // Rule 2: Public can only see visible images
+      // We use 'get' and 'list' separately to be explicit for the rules engine
+      allow get: if resource.data.isVisible == true;
+      allow list: if resource.data.isVisible == true;
     }
 
     match /daily_blessing_photos/{photoId} {
