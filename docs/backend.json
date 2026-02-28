@@ -128,7 +128,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "DarshanRegistration",
       "type": "object",
-      "description": "Represents a user's registration for Darshan.",
+      "description": "Represents a user's registration for Darshan with group details.",
       "properties": {
         "id": {
           "type": "string",
@@ -136,20 +136,36 @@
         },
         "externalAuthUserId": {
           "type": "string",
-          "description": "Reference to the unique identifier of the user from the external authentication system (e.g., Google). (Relationship: ExternalAuthUser 1:N DarshanRegistration)"
+          "description": "Reference to the unique identifier of the user from the external authentication system."
         },
         "userName": {
           "type": "string",
-          "description": "The display name of the user."
+          "description": "The name of the primary contact person."
         },
         "userEmail": {
           "type": "string",
-          "description": "The email of the user.",
+          "description": "The email of the primary contact person.",
           "format": "email"
         },
         "userPhone": {
           "type": "string",
-          "description": "The verified phone number of the user."
+          "description": "The contact phone number of the primary contact person."
+        },
+        "totalPeople": {
+          "type": "number",
+          "description": "The total number of people in the group."
+        },
+        "devotees": {
+          "type": "array",
+          "description": "List of all individuals (including the primary contact) attending.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "age": { "type": "number" }
+            },
+            "required": ["name", "age"]
+          }
         },
         "registrationDate": {
           "type": "string",
@@ -162,7 +178,9 @@
         "externalAuthUserId",
         "registrationDate",
         "userName",
-        "userPhone"
+        "userPhone",
+        "totalPeople",
+        "devotees"
       ]
     },
     "DonationPurpose": {

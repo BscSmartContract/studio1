@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,9 @@ import {
   CheckCircle2, 
   Phone, 
   User as UserIcon,
-  Check
+  Users as UsersIcon,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { 
   useAuth, 
@@ -46,9 +49,10 @@ export default function DarshanPage() {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
 
-  // States for Name & Phone
-  const [devoteeName, setDevoteeName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  // States for Devotee Group Details
+  const [contactPhone, setContactPhone] = useState('');
+  const [totalPeople, setTotalPeople] = useState(1);
+  const [attendees, setAttendees] = useState<{name: string, age: string}[]>([{name: '', age: ''}]);
 
   const registrationsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -57,6 +61,27 @@ export default function DarshanPage() {
 
   const { data: registrations, isLoading: isRegLoading } = useCollection(registrationsQuery);
   const isRegistered = registrations && registrations.length > 0;
+
+  // Sync attendees array size with totalPeople
+  useEffect(() => {
+    setAttendees(prev => {
+      const newAttendees = [...prev];
+      if (totalPeople > prev.length) {
+        for (let i = prev.length; i < totalPeople; i++) {
+          newAttendees.push({ name: '', age: '' });
+        }
+      } else if (totalPeople < prev.length) {
+        return newAttendees.slice(0, totalPeople);
+      }
+      return newAttendees;
+    });
+  }, [totalPeople]);
+
+  const handleAttendeeChange = (index: number, field: 'name' | 'age', value: string) => {
+    const newAttendees = [...attendees];
+    newAttendees[index][field] = value;
+    setAttendees(newAttendees);
+  };
 
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
@@ -67,7 +92,7 @@ export default function DarshanPage() {
       await signInWithPopup(auth, provider);
       toast({
         title: "Authenticated Successfully",
-        description: "Welcome! Please provide your contact details to complete registration.",
+        description: "Please enter details of all members attending Darshan.",
       });
     } catch (error: any) {
       toast({
@@ -108,8 +133,9 @@ export default function DarshanPage() {
       await signOut(auth);
       setEmailSent(false);
       setLoginMethod('options');
-      setDevoteeName('');
-      setPhoneNumber('');
+      setAttendees([{name: '', age: ''}]);
+      setContactPhone('');
+      setTotalPeople(1);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: "Could not sign out." });
     }
@@ -119,8 +145,15 @@ export default function DarshanPage() {
     e.preventDefault();
     if (!db || !user) return;
     
-    if (!devoteeName || !phoneNumber) {
-      toast({ variant: "destructive", title: "Missing Info", description: "Please enter your name and phone number." });
+    // Validation
+    if (!contactPhone) {
+      toast({ variant: "destructive", title: "Missing Phone", description: "Contact number is required." });
+      return;
+    }
+
+    const invalidAttendee = attendees.find(a => !a.name || !a.age);
+    if (invalidAttendee) {
+      toast({ variant: "destructive", title: "Missing Info", description: "Please enter name and age for all members." });
       return;
     }
 
@@ -128,11 +161,12 @@ export default function DarshanPage() {
     
     const regData = {
       externalAuthUserId: user.uid,
-      userName: devoteeName || user.displayName || "Devotee",
+      userName: attendees[0].name, // Use first attendee as primary contact name
       userEmail: user.email || "No Email",
-      userPhone: phoneNumber,
-      registrationDate: new Date().toISOString(),
-      status: "Confirmed"
+      userPhone: contactPhone,
+      totalPeople: totalPeople,
+      devotees: attendees.map(a => ({ name: a.name, age: parseInt(a.age) })),
+      registrationDate: new Date().toISOString()
     };
 
     const userRegRef = collection(db, "users", user.uid, "darshan_registrations");
@@ -142,7 +176,7 @@ export default function DarshanPage() {
       setIsSubmitting(false);
       toast({
         title: "Registration Complete",
-        description: "You have been registered for Sai Paduka Darshan.",
+        description: "Your group has been registered for Sai Paduka Darshan.",
       });
     }, 1000);
   };
@@ -161,7 +195,7 @@ export default function DarshanPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4">Darshan Registration</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Book your slot for the divine Sai Paduka Darshan.
+            Book your divine slot. Please tell us how many people are coming.
           </p>
         </div>
 
@@ -174,7 +208,7 @@ export default function DarshanPage() {
               </div>
               <CardTitle className="text-2xl font-headline">Verify Identity</CardTitle>
               <CardDescription>
-                Step 1: Authenticate with Google or Email
+                Authenticate to start registration
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pb-12">
@@ -239,15 +273,12 @@ export default function DarshanPage() {
                       <strong className="text-foreground">{email}</strong>
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => setEmailSent(false)} className="text-xs">
-                    Try different email
-                  </Button>
                 </div>
               )}
             </CardContent>
           </Card>
         ) : isRegistered ? (
-          <Card className="max-w-md mx-auto shadow-2xl border-accent/20 bg-green-50/50">
+          <Card className="max-w-2xl mx-auto shadow-2xl border-accent/20 bg-green-50/50">
             <CardHeader className="text-center pt-10">
               <div className="mx-auto bg-green-100 p-4 rounded-full w-fit mb-4">
                 <CheckCircle2 className="h-10 w-10 text-green-600" />
@@ -257,15 +288,34 @@ export default function DarshanPage() {
                 Om Sai Ram, {registrations[0].userName}.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 pb-10 px-8">
-              <div className="p-6 bg-white rounded-2xl border border-dashed border-green-300 text-center shadow-inner">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-2">Divine Entry Pass ID</span>
-                <span className="text-3xl font-mono font-bold text-foreground">SAI-{registrations[0].id.substring(0, 8).toUpperCase()}</span>
+            <CardContent className="space-y-6 pb-10 px-8">
+              <div className="bg-white rounded-2xl border border-dashed border-green-300 p-6 shadow-sm">
+                <h3 className="text-center font-bold text-lg mb-4 text-primary">Group Summary</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground font-medium">Total People:</span>
+                    <span className="font-bold text-foreground bg-primary/10 px-3 py-1 rounded-full">{registrations[0].totalPeople}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground font-medium">Contact Phone:</span>
+                    <span className="font-bold text-foreground">{registrations[0].userPhone}</span>
+                  </div>
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Devotee List</p>
+                    <div className="space-y-2">
+                      {registrations[0].devotees?.map((dev: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center bg-muted/30 p-2 rounded-lg text-sm">
+                          <span>{idx + 1}. {dev.name}</span>
+                          <span className="text-xs font-bold">Age: {dev.age}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="text-center text-xs text-muted-foreground space-y-1">
-                <p>Registered Phone: {registrations[0].userPhone}</p>
-                <p>Please show this ID at the entry gate.</p>
-              </div>
+              <p className="text-center text-xs text-muted-foreground">
+                Please provide this contact phone or primary name at the entry gate.
+              </p>
             </CardContent>
             <CardFooter className="flex justify-center border-t bg-muted/20 py-4">
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
@@ -274,43 +324,99 @@ export default function DarshanPage() {
             </CardFooter>
           </Card>
         ) : (
-          <Card className="max-w-xl mx-auto shadow-2xl border-primary/20 overflow-hidden">
+          <Card className="max-w-2xl mx-auto shadow-2xl border-primary/20 overflow-hidden">
             <div className="h-2 bg-primary w-full" />
             
-            <CardHeader className="pt-10">
-              <CardTitle className="text-3xl font-headline">Devotee Details</CardTitle>
-              <CardDescription className="text-lg">Step 2: Enter your name and phone for our records</CardDescription>
+            <CardHeader className="pt-10 px-8">
+              <CardTitle className="text-3xl font-headline">Devotee Group Details</CardTitle>
+              <CardDescription className="text-lg">Please provide details of all individuals attending Darshan.</CardDescription>
             </CardHeader>
             <form onSubmit={handleRegister}>
-              <CardContent className="space-y-6 pb-6 pt-4 px-8">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><UserIcon className="h-4 w-4 text-primary" /> Full Name</Label>
-                  <Input 
-                    placeholder="Enter your name" 
-                    value={devoteeName} 
-                    onChange={(e) => setDevoteeName(e.target.value)} 
-                    required 
-                    className="h-12"
-                  />
+              <CardContent className="space-y-8 pb-6 pt-4 px-8">
+                {/* Contact Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-muted/30 rounded-2xl border">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> Contact Phone</Label>
+                    <Input 
+                      placeholder="e.g. +91 9876543210" 
+                      value={contactPhone} 
+                      onChange={(e) => setContactPhone(e.target.value)} 
+                      required 
+                      className="h-12 bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><UsersIcon className="h-4 w-4 text-primary" /> Total People</Label>
+                    <div className="flex items-center gap-3">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setTotalPeople(Math.max(1, totalPeople - 1))}
+                        className="rounded-full h-10 w-10 border-primary/20"
+                      >
+                        -
+                      </Button>
+                      <span className="text-xl font-bold w-8 text-center">{totalPeople}</span>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setTotalPeople(totalPeople + 1)}
+                        className="rounded-full h-10 w-10 border-primary/20"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> Phone Number</Label>
-                  <Input 
-                    placeholder="e.g. +91 9876543210" 
-                    value={phoneNumber} 
-                    onChange={(e) => setPhoneNumber(e.target.value)} 
-                    required 
-                    className="h-12"
-                  />
+
+                {/* Attendee Details */}
+                <div className="space-y-6">
+                  <h3 className="font-bold text-lg flex items-center gap-2 text-primary">
+                    <UserIcon className="h-5 w-5" /> Devotee Information
+                  </h3>
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    {attendees.map((attendee, index) => (
+                      <div key={index} className="p-5 border rounded-2xl space-y-4 bg-muted/5">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                            Person {index + 1} {index === 0 && "(Primary)"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="sm:col-span-2 space-y-1.5">
+                            <Label className="text-xs">Full Name</Label>
+                            <Input 
+                              placeholder="Name" 
+                              value={attendee.name}
+                              onChange={(e) => handleAttendeeChange(index, 'name', e.target.value)}
+                              required
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Age</Label>
+                            <Input 
+                              type="number" 
+                              placeholder="Age" 
+                              value={attendee.age}
+                              onChange={(e) => handleAttendeeChange(index, 'age', e.target.value)}
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
-              <CardFooter className="px-8 pb-12 pt-0 flex flex-col gap-4">
+              <CardFooter className="px-8 pb-12 pt-6 flex flex-col gap-4">
                 <Button 
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full bg-primary hover:bg-primary/90 h-16 text-xl shadow-lg rounded-full font-headline font-bold"
                 >
-                  {isSubmitting ? "Generating Entry Pass..." : "Confirm & Register"}
+                  {isSubmitting ? "Submitting Registration..." : "Complete Registration"}
                 </Button>
                 <Button variant="ghost" onClick={handleSignOut} className="text-xs text-muted-foreground">
                   Cancel & Sign Out

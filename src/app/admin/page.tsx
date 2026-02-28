@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -27,7 +28,8 @@ import {
   Mail,
   Smartphone,
   Lock,
-  Copy
+  Copy,
+  Info
 } from "lucide-react";
 import { 
   useAuth,
@@ -42,6 +44,14 @@ import {
 } from "@/firebase";
 import { doc, collection, collectionGroup, query, orderBy } from "firebase/firestore";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function AdminPanel() {
   const { toast } = useToast();
@@ -378,20 +388,50 @@ export default function AdminPanel() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>Name</TableHead>
+                        <TableHead>Contact Person</TableHead>
                         <TableHead>Phone</TableHead>
+                        <TableHead>Total People</TableHead>
                         <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Details</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {allRegistrations.map((reg) => (
                         <TableRow key={reg.id}>
-                          <TableCell className="font-mono text-xs">SAI-{reg.id.substring(0,8).toUpperCase()}</TableCell>
-                          <TableCell>{reg.userName || "N/A"}</TableCell>
+                          <TableCell className="font-medium">{reg.userName || "N/A"}</TableCell>
                           <TableCell>{reg.userPhone || "N/A"}</TableCell>
+                          <TableCell>
+                             <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs">
+                               {reg.totalPeople || 0}
+                             </span>
+                          </TableCell>
                           <TableCell className="text-xs">
                             {reg.registrationDate ? new Date(reg.registrationDate).toLocaleDateString() : "N/A"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button size="sm" variant="outline" className="h-8">
+                                  <Info className="h-3.5 w-3.5 mr-1" /> View List
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-md">
+                                <DialogHeader>
+                                  <DialogTitle>Devotee List</DialogTitle>
+                                  <DialogDescription>
+                                    Group members registered by {reg.userName}
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="mt-4 space-y-2">
+                                  {reg.devotees?.map((dev: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center p-3 bg-muted rounded-lg border">
+                                      <span className="font-medium">{dev.name}</span>
+                                      <span className="text-xs bg-white px-2 py-1 rounded border">Age: {dev.age}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           </TableCell>
                         </TableRow>
                       ))}
