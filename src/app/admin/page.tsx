@@ -19,15 +19,18 @@ import {
   Trash2,
   Video,
   Sparkles,
-  Loader2
+  Loader2,
+  AlertCircle,
+  ExternalLink,
+  ShieldCheck
 } from "lucide-react";
 import { 
   useFirestore, 
   useDoc, 
   useCollection, 
   useMemoFirebase,
-  addDocumentNonBlocking,
   updateDocumentNonBlocking,
+  addDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from "@/firebase";
 import { doc, collection, collectionGroup, query, orderBy } from "firebase/firestore";
@@ -42,9 +45,7 @@ export default function AdminPanel() {
   const configRef = useMemoFirebase(() => db ? doc(db, "app_configuration", "main") : null, [db]);
   const blessingsRef = useMemoFirebase(() => db ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db]);
   
-  // Note: Collection Group queries require indexes to be created in the Firebase Console.
-  // In a real app, you'd likely use a flat collection for admins or set up the index.
-  // For this prototype, we'll try to list them if indexes exist or show a message.
+  // Collection Group queries for all nested registrations
   const allRegistrationsQuery = useMemoFirebase(() => db ? collectionGroup(db, "darshan_registrations") : null, [db]);
   const allVolunteersQuery = useMemoFirebase(() => db ? collectionGroup(db, "volunteers") : null, [db]);
 
@@ -145,7 +146,7 @@ export default function AdminPanel() {
         </div>
 
         <Tabs defaultValue="live-darshan" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-6 h-auto p-1 bg-muted rounded-xl mb-8">
+          <TabsList className="grid grid-cols-2 md:grid-cols-7 h-auto p-1 bg-muted rounded-xl mb-8">
             <TabsTrigger value="live-darshan" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Video className="h-4 w-4 mr-2" /> Live
             </TabsTrigger>
@@ -164,7 +165,65 @@ export default function AdminPanel() {
             <TabsTrigger value="settings" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Settings className="h-4 w-4 mr-2" /> Details
             </TabsTrigger>
+            <TabsTrigger value="setup" className="py-3 data-[state=active]:bg-accent data-[state=active]:text-white">
+              <ShieldCheck className="h-4 w-4 mr-2" /> Setup Guide
+            </TabsTrigger>
           </TabsList>
+
+          {/* Setup Guide Tab */}
+          <TabsContent value="setup">
+            <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
+              <CardHeader className="bg-accent/5">
+                <CardTitle className="flex items-center gap-2 text-accent">
+                  <AlertCircle className="h-6 w-6" /> Google Authentication Setup Guide
+                </CardTitle>
+                <CardDescription className="text-foreground">Follow these steps to enable Google Login for your devotees.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg border-b pb-2">Step 1: Open Firebase Console</h3>
+                    <p className="text-sm text-muted-foreground">Go to your project dashboard on the Firebase website.</p>
+                    <Button variant="outline" className="w-full gap-2" asChild>
+                      <a href="https://console.firebase.google.com/" target="_blank">
+                        Open Firebase Console <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg border-b pb-2">Step 2: Find the "Build" Menu</h3>
+                    <p className="text-sm text-muted-foreground">On the left sidebar, look for the <strong>Build</strong> category. Click it to expand.</p>
+                    <div className="p-3 bg-muted rounded border text-xs font-mono">
+                      Sidebar > Build > Authentication
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg border-b pb-2">Step 3: Enable Google</h3>
+                    <p className="text-sm text-muted-foreground">Click <strong>Authentication</strong>, then the <strong>Sign-in method</strong> tab.</p>
+                    <ul className="text-sm list-disc pl-5 space-y-1 text-muted-foreground">
+                      <li>Click "Add new provider"</li>
+                      <li>Select "Google"</li>
+                      <li>Enable it and select your support email</li>
+                      <li>Click "Save"</li>
+                    </ul>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg border-b pb-2">Step 4: Verify Authorized Domains</h3>
+                    <p className="text-sm text-muted-foreground">In the same Authentication section, scroll down to <strong>Authorized domains</strong>.</p>
+                    <p className="text-sm text-muted-foreground">Ensure your current website URL is listed there. If not, add it.</p>
+                  </div>
+                </div>
+
+                <div className="mt-8 p-4 bg-primary/5 rounded-xl border border-primary/20">
+                  <p className="text-sm font-medium">Why is this needed?</p>
+                  <p className="text-xs text-muted-foreground mt-1">Google Authentication requires explicit permission from your Firebase project settings to allow users to sign in securely. Once enabled, the "Login" buttons on the Darshan and Volunteer pages will start working immediately.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Live Darshan Tab */}
           <TabsContent value="live-darshan">
