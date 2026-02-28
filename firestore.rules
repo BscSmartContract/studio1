@@ -16,7 +16,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && request.auth.token.email == "theroasterop1@gmail.com";
+      return isSignedIn() && 
+             request.auth.token.email_verified == true && 
+             request.auth.token.email == "theroasterop1@gmail.com";
     }
 
     function isOwner(userId) {
@@ -63,18 +65,14 @@ service cloud.firestore {
       allow list: if isAdmin();
     }
 
-    match /donation_purposes/{purposeId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-
     match /prominent_donors/{donorId} {
       allow get, list: if true;
       allow write: if isAdmin();
     }
 
     match /gallery_images/{imageId} {
-      allow get, list: if (resource == null || resource.data.isVisible == true) || isAdmin();
+      // Allow read if user is admin OR if the document exists and is visible
+      allow read: if isAdmin() || (resource != null && resource.data.isVisible == true);
       allow write: if isAdmin();
     }
 

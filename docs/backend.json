@@ -2,314 +2,101 @@
 {
   "entities": {
     "AppConfiguration": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AppConfiguration",
       "type": "object",
-      "description": "Stores global configuration settings and static content for the Sai Paduka Portal, manageable via the Admin Panel.",
+      "description": "Stores global configuration settings.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the AppConfiguration entity. This is typically a singleton entity with one record."
-        },
-        "eventName": {
-          "type": "string",
-          "description": "The official name of the event or portal (e.g., 'Sai Paduka')."
-        },
-        "organizerName": {
-          "type": "string",
-          "description": "The name of the organization hosting the event (e.g., 'Sai Parivar Ambala')."
-        },
-        "locationDescription": {
-          "type": "string",
-          "description": "A descriptive text for the event's physical location (e.g., 'Aggarwal Bhavan')."
-        },
-        "eventDate": {
-          "type": "string",
-          "description": "The primary date of the event.",
-          "format": "date"
-        },
-        "contactEmail": {
-          "type": "string",
-          "description": "The primary contact email for the event.",
-          "format": "email"
-        },
-        "contactPhone": {
-          "type": "string",
-          "description": "The primary contact phone number for the event."
-        },
-        "heroImageUrl": {
-          "type": "string",
-          "description": "The URL for the background image on the homepage hero section.",
-          "format": "uri"
-        },
-        "instagramLink": {
-          "type": "string",
-          "description": "Link to the event's or organization's Instagram profile.",
-          "format": "uri"
-        },
-        "facebookLink": {
-          "type": "string",
-          "description": "Link to the event's or organization's Facebook page.",
-          "format": "uri"
-        },
-        "venueAddressGoogleMapEmbedLink": {
-          "type": "string",
-          "description": "An embeddable URL for the venue's location on Google Maps, editable via the Admin Panel.",
-          "format": "uri"
-        },
-        "liveDarshanYoutubeLink": {
-          "type": "string",
-          "description": "The URL for the live Darshan stream on YouTube, to be embedded on the website and editable via the Admin Panel.",
-          "format": "uri"
-        },
-        "lastUpdatedAt": {
-          "type": "string",
-          "description": "Timestamp of the last update to this configuration.",
-          "format": "date-time"
-        }
+        "heroImageUrl": { "type": "string", "format": "uri" },
+        "eventName": { "type": "string" },
+        "eventDate": { "type": "string", "format": "date" },
+        "organizerName": { "type": "string" },
+        "liveDarshanYoutubeLink": { "type": "string", "format": "uri" },
+        "lastUpdatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "eventName",
-        "organizerName",
-        "locationDescription",
-        "eventDate",
-        "contactEmail",
-        "contactPhone",
-        "venueAddressGoogleMapEmbedLink",
-        "lastUpdatedAt"
-      ]
+      "required": ["eventName", "organizerName", "lastUpdatedAt"]
     },
     "Volunteer": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Volunteer",
       "type": "object",
-      "description": "Represents a volunteer registration for the event.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Volunteer registration."
-        },
-        "externalAuthUserId": {
-          "type": "string",
-          "description": "Reference to the unique identifier of the user from the external authentication system (e.g., Google). (Relationship: ExternalAuthUser 1:N Volunteer)"
-        },
-        "name": {
-          "type": "string",
-          "description": "The full name of the volunteer."
-        },
-        "email": {
-          "type": "string",
-          "description": "The email of the volunteer from auth.",
-          "format": "email"
-        },
-        "phoneNumber": {
-          "type": "string",
-          "description": "The contact phone number of the volunteer."
-        },
-        "areaOfService": {
-          "type": "array",
-          "description": "The specific area(s) where the volunteer wishes to serve (e.g., Crowd Management, Prasad Distribution, Cleanliness, Medical Help).",
-          "items": {
-            "type": "string"
-          }
-        },
-        "registrationDate": {
-          "type": "string",
-          "description": "The timestamp when the volunteer registered.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "externalAuthUserId",
-        "name",
-        "phoneNumber",
-        "areaOfService",
-        "registrationDate"
-      ]
-    },
-    "DarshanRegistration": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "DarshanRegistration",
-      "type": "object",
-      "description": "Represents a user's registration for Darshan with group details.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Darshan registration."
-        },
-        "externalAuthUserId": {
-          "type": "string",
-          "description": "Reference to the unique identifier of the user from the external authentication system."
-        },
-        "userName": {
-          "type": "string",
-          "description": "The name of the primary contact person."
-        },
-        "userEmail": {
-          "type": "string",
-          "description": "The email of the primary contact person.",
-          "format": "email"
-        },
-        "userPhone": {
-          "type": "string",
-          "description": "The contact phone number of the primary contact person."
-        },
-        "totalPeople": {
-          "type": "number",
-          "description": "The total number of people in the group."
-        },
-        "devotees": {
-          "type": "array",
-          "description": "List of all individuals (including the primary contact) attending.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": { "type": "string" },
-              "age": { "type": "number" },
-              "isCheckedIn": { "type": "boolean", "default": false },
-              "checkInTime": { "type": "string", "format": "date-time" }
-            },
-            "required": ["name", "age"]
-          }
-        },
-        "registrationDate": {
-          "type": "string",
-          "description": "The timestamp when the user registered for Darshan.",
-          "format": "date-time"
-        },
-        "isCheckedIn": {
-          "type": "boolean",
-          "description": "Whether the group as a whole has started check-in."
-        }
-      },
-      "required": [
-        "id",
-        "externalAuthUserId",
-        "registrationDate",
-        "userName",
-        "userPhone",
-        "totalPeople",
-        "devotees"
-      ]
-    },
-    "MailMessage": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "MailMessage",
-      "type": "object",
-      "description": "A document structure compatible with the 'Trigger Email' Firebase Extension.",
-      "properties": {
-        "to": { "type": "string", "format": "email" },
-        "message": {
-          "type": "object",
-          "properties": {
-            "subject": { "type": "string" },
-            "text": { "type": "string" }
-          },
-          "required": ["subject", "text"]
-        }
-      },
-      "required": ["to", "message"]
-    },
-    "Donor": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Donor",
-      "type": "object",
-      "description": "Represents a prominent donor to be displayed on the Wall of Gratitude.",
+      "description": "Volunteer registration details.",
       "properties": {
         "id": { "type": "string" },
-        "name": { "type": "string", "description": "Full name of the donor." },
-        "city": { "type": "string", "description": "City of the donor." },
-        "category": { "type": "string", "description": "Category like 'Gold Member', 'Premium Contributor', etc." },
-        "displayOrder": { "type": "number", "description": "Numerical value to sort donors." },
+        "externalAuthUserId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phoneNumber": { "type": "string" },
+        "areaOfService": { "type": "array", "items": { "type": "string" } },
+        "registrationDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["externalAuthUserId", "name", "phoneNumber", "registrationDate"]
+    },
+    "DarshanRegistration": {
+      "title": "DarshanRegistration",
+      "type": "object",
+      "description": "Darshan group registration.",
+      "properties": {
+        "id": { "type": "string" },
+        "externalAuthUserId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "totalPeople": { "type": "number" },
+        "devotees": { "type": "array", "items": { "type": "object" } },
+        "registrationDate": { "type": "string", "format": "date-time" },
+        "isCheckedIn": { "type": "boolean" }
+      },
+      "required": ["externalAuthUserId", "userName", "totalPeople", "registrationDate"]
+    },
+    "Donor": {
+      "title": "Donor",
+      "type": "object",
+      "description": "Prominent donor details.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "city": { "type": "string" },
+        "category": { "type": "string" },
+        "displayOrder": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "name", "city", "category"]
+      "required": ["name", "category"]
     },
     "GalleryImage": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "GalleryImage",
       "type": "object",
-      "description": "An image for the public Photo Gallery.",
+      "description": "An image for the public gallery.",
       "properties": {
         "id": { "type": "string" },
         "imageUrl": { "type": "string", "format": "uri" },
         "description": { "type": "string" },
-        "isVisible": { "type": "boolean", "default": true },
+        "isVisible": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "imageUrl", "description"]
+      "required": ["imageUrl", "description", "createdAt"]
     }
   },
   "auth": {
-    "providers": [
-      "google",
-      "password",
-      "anonymous",
-      "phone"
-    ]
+    "providers": ["google", "password"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/app_configuration/main",
-        "definition": {
-          "entityName": "AppConfiguration",
-          "schema": {
-            "$ref": "#/backend/entities/AppConfiguration"
-          },
-          "description": "Stores a singleton document for global application configuration settings."
-        }
-      },
-      {
-        "path": "/users/{userId}/volunteers/{volunteerId}",
-        "definition": {
-          "entityName": "Volunteer",
-          "schema": {
-            "$ref": "#/backend/entities/Volunteer"
-          }
-        }
-      },
-      {
-        "path": "/users/{userId}/darshan_registrations/{registrationId}",
-        "definition": {
-          "entityName": "DarshanRegistration",
-          "schema": {
-            "$ref": "#/backend/entities/DarshanRegistration"
-          }
-        }
-      },
-      {
-        "path": "/mail/{mailId}",
-        "definition": {
-          "entityName": "MailMessage",
-          "schema": {
-            "$ref": "#/backend/entities/MailMessage"
-          },
-          "description": "Collection monitored by the 'Trigger Email' Extension."
-        }
-      },
-      {
-        "path": "/prominent_donors/{donorId}",
-        "definition": {
-          "entityName": "Donor",
-          "schema": {
-            "$ref": "#/backend/entities/Donor"
-          },
-          "description": "Public collection of prominent donors for the Wall of Gratitude."
-        }
-      },
-      {
-        "path": "/gallery_images/{imageId}",
-        "definition": {
-          "entityName": "GalleryImage",
-          "schema": {
-            "$ref": "#/backend/entities/GalleryImage"
-          },
-          "description": "Public collection of images for the photo gallery."
-        }
-      }
-    ]
+    "/app_configuration/main": {
+      "schema": "AppConfiguration",
+      "description": "Global config singleton."
+    },
+    "/users/{userId}/volunteers/{volunteerId}": {
+      "schema": "Volunteer",
+      "description": "Volunteer records."
+    },
+    "/users/{userId}/darshan_registrations/{registrationId}": {
+      "schema": "DarshanRegistration",
+      "description": "Darshan records."
+    },
+    "/prominent_donors/{donorId}": {
+      "schema": "Donor",
+      "description": "Wall of Gratitude donors."
+    },
+    "/gallery_images/{imageId}": {
+      "schema": "GalleryImage",
+      "description": "Public photo gallery."
+    }
   }
 }
