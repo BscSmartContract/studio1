@@ -1,0 +1,420 @@
+{
+  "entities": {
+    "AppConfiguration": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AppConfiguration",
+      "type": "object",
+      "description": "Stores global configuration settings and static content for the Sai Paduka Portal, manageable via the Admin Panel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AppConfiguration entity. This is typically a singleton entity with one record."
+        },
+        "eventName": {
+          "type": "string",
+          "description": "The official name of the event or portal (e.g., 'Sai Paduka')."
+        },
+        "organizerName": {
+          "type": "string",
+          "description": "The name of the organization hosting the event (e.g., 'Sai Parivar Ambala')."
+        },
+        "locationDescription": {
+          "type": "string",
+          "description": "A descriptive text for the event's physical location (e.g., 'Aggarwal Bhavan')."
+        },
+        "eventDate": {
+          "type": "string",
+          "description": "The primary date of the event.",
+          "format": "date"
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "The primary contact email for the event.",
+          "format": "email"
+        },
+        "contactPhone": {
+          "type": "string",
+          "description": "The primary contact phone number for the event."
+        },
+        "instagramLink": {
+          "type": "string",
+          "description": "Link to the event's or organization's Instagram profile.",
+          "format": "uri"
+        },
+        "facebookLink": {
+          "type": "string",
+          "description": "Link to the event's or organization's Facebook page.",
+          "format": "uri"
+        },
+        "venueAddressGoogleMapEmbedLink": {
+          "type": "string",
+          "description": "An embeddable URL for the venue's location on Google Maps, editable via the Admin Panel.",
+          "format": "uri"
+        },
+        "liveDarshanYoutubeLink": {
+          "type": "string",
+          "description": "The URL for the live Darshan stream on YouTube, to be embedded on the website and editable via the Admin Panel.",
+          "format": "uri"
+        },
+        "lastUpdatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last update to this configuration.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "eventName",
+        "organizerName",
+        "locationDescription",
+        "eventDate",
+        "contactEmail",
+        "contactPhone",
+        "venueAddressGoogleMapEmbedLink",
+        "lastUpdatedAt"
+      ]
+    },
+    "Volunteer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Volunteer",
+      "type": "object",
+      "description": "Represents a volunteer registration for the event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Volunteer registration."
+        },
+        "externalAuthUserId": {
+          "type": "string",
+          "description": "Reference to the unique identifier of the user from the external authentication system (e.g., Google). (Relationship: ExternalAuthUser 1:N Volunteer)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the volunteer."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The contact phone number of the volunteer."
+        },
+        "areaOfService": {
+          "type": "array",
+          "description": "The specific area(s) where the volunteer wishes to serve (e.g., Crowd Management, Prasad Distribution, Cleanliness, Medical Help).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The timestamp when the volunteer registered.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "externalAuthUserId",
+        "name",
+        "phoneNumber",
+        "areaOfService",
+        "registrationDate"
+      ]
+    },
+    "DarshanRegistration": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DarshanRegistration",
+      "type": "object",
+      "description": "Represents a user's registration for Darshan.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Darshan registration."
+        },
+        "externalAuthUserId": {
+          "type": "string",
+          "description": "Reference to the unique identifier of the user from the external authentication system (e.g., Google). (Relationship: ExternalAuthUser 1:N DarshanRegistration)"
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The timestamp when the user registered for Darshan.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "externalAuthUserId",
+        "registrationDate"
+      ]
+    },
+    "DonationPurpose": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DonationPurpose",
+      "type": "object",
+      "description": "Defines different categories or reasons for making a donation, editable via the Admin Panel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the donation purpose."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title or name of the donation purpose (e.g., 'Event Arrangements')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of what the donation purpose supports."
+        },
+        "displayOrder": {
+          "type": "number",
+          "description": "An integer indicating the order in which this purpose should be displayed on the frontend."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Indicates if this donation purpose is currently active and visible on the frontend."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "displayOrder",
+        "isActive"
+      ]
+    },
+    "ProminentDonor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProminentDonor",
+      "type": "object",
+      "description": "Stores details of prominent donors to be displayed on the website, manageable via the Admin Panel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the prominent donor entry."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the prominent donor or donor entity."
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description or acknowledgement for the donor (e.g., 'Generous contribution to event arrangements')."
+        },
+        "displayOrder": {
+          "type": "number",
+          "description": "An integer indicating the order in which this donor should be displayed on the frontend."
+        },
+        "contributionDetails": {
+          "type": "string",
+          "description": "Further details about the donor's contribution, if any."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "displayOrder"
+      ]
+    },
+    "GalleryImage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GalleryImage",
+      "type": "object",
+      "description": "Represents an image in the event's photo gallery, editable via the Admin Panel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the gallery image."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "The URL of the high-resolution image file.",
+          "format": "uri"
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "description": "The URL of a smaller thumbnail version of the image for efficient loading.",
+          "format": "uri"
+        },
+        "caption": {
+          "type": "string",
+          "description": "A descriptive caption for the image."
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "The timestamp when the image was uploaded.",
+          "format": "date-time"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Keywords or categories associated with the image for filtering or search purposes.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isVisible": {
+          "type": "boolean",
+          "description": "Indicates if the image is currently visible in the public gallery."
+        }
+      },
+      "required": [
+        "id",
+        "imageUrl",
+        "caption",
+        "uploadDate",
+        "isVisible"
+      ]
+    },
+    "DailyBlessingPhoto": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DailyBlessingPhoto",
+      "type": "object",
+      "description": "Stores photos of Sai Baba for 'Today's Darshan in Blessing Column', updated daily via the Admin Panel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the daily blessing photo."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "The URL of the photo of Sai Baba for daily blessings.",
+          "format": "uri"
+        },
+        "blessingDate": {
+          "type": "string",
+          "description": "The specific calendar date for which this blessing photo is designated.",
+          "format": "date"
+        },
+        "caption": {
+          "type": "string",
+          "description": "A short message or blessing text accompanying the photo."
+        },
+        "uploadedAt": {
+          "type": "string",
+          "description": "The timestamp when the photo was uploaded to the system.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "imageUrl",
+        "blessingDate",
+        "uploadedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/app_configuration/main",
+        "definition": {
+          "entityName": "AppConfiguration",
+          "schema": {
+            "$ref": "#/backend/entities/AppConfiguration"
+          },
+          "description": "Stores a singleton document for global application configuration settings. Publicly readable, writable only by authenticated administrators. Includes `liveDarshanYoutubeLink` and `venueAddressGoogleMapEmbedLink` for dynamic updates via the admin panel. The fixed ID 'main' ensures a single configuration instance."
+        }
+      },
+      {
+        "path": "/users/{userId}/volunteers/{volunteerId}",
+        "definition": {
+          "entityName": "Volunteer",
+          "schema": {
+            "$ref": "#/backend/entities/Volunteer"
+          },
+          "description": "Stores individual volunteer registrations. Each document is uniquely identified by `volunteerId` and nested under the `userId` of the registering user. Only the owning user (`request.auth.uid == userId`) can create, read, update, or delete their own registration. Administrators can read all volunteer registrations.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the Firebase authenticated user who registered as a volunteer."
+            },
+            {
+              "name": "volunteerId",
+              "description": "The unique ID of the volunteer registration document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/darshan_registrations/{registrationId}",
+        "definition": {
+          "entityName": "DarshanRegistration",
+          "schema": {
+            "$ref": "#/backend/entities/DarshanRegistration"
+          },
+          "description": "Stores individual Darshan registrations. Each document is uniquely identified by `registrationId` and nested under the `userId` of the registering user. Only the owning user (`request.auth.uid == userId`) can create, read, update, or delete their own registration. Administrators can read all Darshan registrations.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the Firebase authenticated user who registered for Darshan."
+            },
+            {
+              "name": "registrationId",
+              "description": "The unique ID of the Darshan registration document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/donation_purposes/{purposeId}",
+        "definition": {
+          "entityName": "DonationPurpose",
+          "schema": {
+            "$ref": "#/backend/entities/DonationPurpose"
+          },
+          "description": "Stores predefined categories for donations. Publicly readable for display on the donation page, writable only by authenticated administrators. Includes `isActive` to control visibility on the frontend."
+        }
+      },
+      {
+        "path": "/prominent_donors/{donorId}",
+        "definition": {
+          "entityName": "ProminentDonor",
+          "schema": {
+            "$ref": "#/backend/entities/ProminentDonor"
+          },
+          "description": "Stores details of prominent donors for public display. Publicly readable, writable only by authenticated administrators. `displayOrder` helps manage presentation on the frontend."
+        }
+      },
+      {
+        "path": "/gallery_images/{imageId}",
+        "definition": {
+          "entityName": "GalleryImage",
+          "schema": {
+            "$ref": "#/backend/entities/GalleryImage"
+          },
+          "description": "Stores metadata for images in the public photo gallery. Publicly readable (conditioned on `isVisible: true`), writable only by authenticated administrators. Includes `imageUrl` and `thumbnailUrl` for efficient loading and display."
+        }
+      },
+      {
+        "path": "/daily_blessing_photos/{photoId}",
+        "definition": {
+          "entityName": "DailyBlessingPhoto",
+          "schema": {
+            "$ref": "#/backend/entities/DailyBlessingPhoto"
+          },
+          "description": "Stores daily photos of Sai Baba for 'Today's Darshan in Blessing Column'. Publicly readable, writable only by authenticated administrators. Each document represents a photo for a specific `blessingDate`."
+        }
+      },
+      {
+        "path": "/roles_admin/{adminUid}",
+        "definition": {
+          "entityName": "AdminRole",
+          "schema": {
+            "$ref": "#/backend/entities/AdminRole"
+          },
+          "description": "Stores an empty document for each user who has 'admin' privileges. Authorization for admin functions is based on the existence of a document where the document ID matches the authenticated user's UID (`request.auth.uid`). This allows for DBAC without custom claims. Writable only by existing administrators.",
+          "params": [
+            {
+              "name": "adminUid",
+              "description": "The unique ID of the Firebase authenticated user with admin privileges."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, prioritizing authorization independence and query efficiency. \n\n**Authorization Independence (CRITICAL):**\n1.  **Admin-Managed Data (e.g., /app_configuration, /donation_purposes, /prominent_donors, /gallery_images, /daily_blessing_photos):** For these collections, write access is granted based on the existence of a document in the `/roles_admin/{adminUid}` collection, where `adminUid` matches `request.auth.uid`. This eliminates the need for any `get()` calls in security rules to check parent documents or user profiles for roles, making rules atomic and performant. Public read access to these collections does not require any authorization checks, further simplifying rules.\n2.  **User-Owned Data (e.g., /users/{userId}/volunteers, /users/{userId}/darshan_registrations):** Ownership is explicitly embedded in the path itself. Security rules can directly compare the `{userId}` wildcard in the path with `request.auth.uid` (`request.auth.uid == userId`). This design completely removes hierarchical authorization dependencies, enabling atomic operations (like creating a volunteer registration without first fetching the user document) and simplifying rule logic. Denormalization of owner data is implicitly handled by the path structure.\n\n**QAPs (Queries as Permissions) & Structural Segregation:**\n1.  **Public Collections (Homogeneous Security Posture):** Collections like `/app_configuration`, `/donation_purposes`, `/prominent_donors`, `/daily_blessing_photos` are structured as top-level collections with public read access. This inherently supports QAPs because any `list` operation performed by any user will only return documents that are publicly accessible. For `/gallery_images`, a `isVisible: true` field allows for query-time filtering in rules to ensure only visible images are returned to the public, while still allowing admins full access. This segregation ensures all documents within these collections share the same public read security posture (with admin write access).\n2.  **User-Specific Collections (Path-Based Ownership):** Collections like `/users/{userId}/volunteers` and `/users/{userId}/darshan_registrations` are nested under a user's unique ID. This structural segregation ensures that `list` operations are only permissible for the authenticated user (`request.auth.uid`) within their own subcollection (`/users/$(request.auth.uid)/volunteers`). A user cannot query another user's `volunteers` subcollection. This design directly enforces QAPs by guaranteeing that any `list` operation will only return data that the requesting user is authorized to see, eliminating the need for rules to act as data filters after the query has been executed.\n\n**DBAC and Invariants:**\n*   **DBAC:** Admin roles are stored in `/roles_admin/{adminUid}`, using the 'existence over content' principle. This decouples authorization from custom claims, centralizing role management in Firestore.\n*   **Invariants:** Timestamps (`lastUpdatedAt`, `registrationDate`, `uploadDate`, `blessingDate`) are explicitly included in the schemas to maintain data integrity. Ownership is clearly defined by path for user-specific data or by role for admin-managed data."
+  }
+}
