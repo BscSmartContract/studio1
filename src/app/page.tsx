@@ -40,17 +40,32 @@ export default function Home() {
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
 
-  // Fallback Sai Baba Image - Using a high quality portrait placeholder that captures the full idol
-  const fallbackSaiImage = PlaceHolderImages.find(img => img.id === "sai-baba")?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1080";
+  // Fallback Sai Baba Image - A high quality vertical portrait
+  const fallbackSaiImage = PlaceHolderImages.find(img => img.id === "sai-v-portrait")?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1080";
 
   return (
     <div className="flex flex-col">
-      {/* Refined Plain Hero Section with Spiritual Gradient Aura */}
-      <section className="relative min-h-[85vh] flex items-center justify-center text-center overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
-        {/* Subtle Decorative Aura Background */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl aspect-square opacity-20 pointer-events-none">
-          <div className="w-full h-full rounded-full bg-gradient-radial from-primary/30 to-transparent blur-[120px]" />
-        </div>
+      {/* Refined Hero Section with Optional Spiritual Background */}
+      <section className="relative min-h-[90vh] flex items-center justify-center text-center overflow-hidden">
+        {/* Dynamic Background Image or Gradient */}
+        {config?.heroImageUrl ? (
+          <div className="absolute inset-0 z-0">
+            <Image 
+              src={config.heroImageUrl} 
+              alt="Hero Background" 
+              fill 
+              className="object-cover opacity-20"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/90 to-accent/5" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl aspect-square opacity-20 pointer-events-none">
+              <div className="w-full h-full rounded-full bg-gradient-radial from-primary/30 to-transparent blur-[120px]" />
+            </div>
+          </div>
+        )}
         
         <div className="relative z-10 container px-4 py-20 flex flex-col items-center">
           <div className="inline-block px-5 py-2 mb-8 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-[0.3em] uppercase animate-in fade-in slide-in-from-top duration-1000 shadow-sm">
@@ -91,7 +106,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Divine Presence Section */}
+      {/* Divine Presence Section - NO CROPPING */}
       <section className="py-24 bg-white relative">
         <div className="container px-4">
           <div className="max-w-6xl mx-auto space-y-16">
@@ -136,25 +151,24 @@ export default function Home() {
                 )}
               </div>
 
-              <div className="order-1 lg:order-2 flex justify-center">
-                {/* 
-                  Container for the Idol Image:
-                  - Height fixed at 700px to accommodate tall vertical portrait.
-                  - Max-width ensures it stays proportional.
-                  - object-contain ensures NO CROPPING occurs.
-                */}
-                <div className="relative h-[700px] w-full max-w-sm rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-primary/10 bg-white transition-transform duration-700 hover:scale-[1.01] flex items-center justify-center">
+              {/* 
+                THE DIVINE PORTRAIT CONTAINER:
+                - Large height (800px) and width (max-w-lg) to accommodate the full portrait.
+                - object-contain ensures that the portrait is never cropped, showing the full Samadhi Mandir idol.
+              */}
+              <div className="order-1 lg:order-2 flex justify-center w-full">
+                <div className="relative h-[800px] w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-[0_35px_60px_-15px_rgba(0,0,0,0.1)] border-[8px] border-primary/5 bg-white flex items-center justify-center group transition-all duration-700">
                   <Image
                     src={todayBlessing?.imageUrl || fallbackSaiImage}
-                    alt="Shirdi Sai Baba Sacred Idol"
+                    alt="Shirdi Sai Baba Sacred Idol Portrait"
                     fill
                     unoptimized={true}
-                    className="object-contain p-2"
+                    className="object-contain p-4"
                     style={{ objectPosition: 'center' }}
                     data-ai-hint="shirdi sai"
                   />
                   {/* Decorative corner accent */}
-                  <div className="absolute top-6 right-6 p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/40 z-10">
+                  <div className="absolute top-8 right-8 p-3 bg-white/30 backdrop-blur-md rounded-2xl border border-white/40 z-10 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
                     <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                   </div>
                 </div>

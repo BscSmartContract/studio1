@@ -7,8 +7,8 @@
       "imageHint": "shirdi sai"
     },
     {
-      "id": "sai-baba",
-      "description": "Sacred Portrait of Shirdi Sai Baba",
+      "id": "sai-v-portrait",
+      "description": "Sacred Vertical Portrait of Shirdi Sai Baba",
       "imageUrl": "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1080",
       "imageHint": "shirdi sai"
     },
@@ -17,24 +17,6 @@
       "description": "Aggarwal Bhavan Venue",
       "imageUrl": "https://images.unsplash.com/photo-1762456415266-9daeea81ac93?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YnVpbGRpbmclMjBoYWxsfGVufDB8fHx8MTc3MjMwNjcwOHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "building hall"
-    },
-    {
-      "id": "gallery-1",
-      "description": "Prasad Distribution",
-      "imageUrl": "https://images.unsplash.com/photo-1763838527744-7fcbdc559ea8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmb29kJTIwZGlzdHJpYnV0aW9ufGVufDB8fHx8MTc3MjMwNjcwOHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "food distribution"
-    },
-    {
-      "id": "gallery-2",
-      "description": "Crowd Management",
-      "imageUrl": "https://images.unsplash.com/photo-1746046318036-b091b95b02bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxvcmdhbml6ZWQlMjBjcm93ZHxlbnwwfHx8fDE3NzIzMDY3MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "organized crowd"
-    },
-    {
-      "id": "gallery-3",
-      "description": "Sai Paduka Darshan",
-      "imageUrl": "https://images.unsplash.com/photo-1655656724704-59c4021ee726?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyZWxpZ2lvdXMlMjBmZWV0fGVufDB8fHx8MTc3MjMwNjcwOXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "religious feet"
     }
   ]
 }
