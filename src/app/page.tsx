@@ -14,6 +14,7 @@ import {
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit, doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function Home() {
   const db = useFirestore();
@@ -38,6 +39,9 @@ export default function Home() {
   const eventName = config?.eventName || "Sai Paduka Mahotsav";
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
+
+  // Fallback Sai Baba Image
+  const fallbackSaiImage = PlaceHolderImages.find(img => img.id === "sai-baba")?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=2000";
 
   return (
     <div className="flex flex-col">
@@ -87,7 +91,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Today's Blessing */}
+      {/* Today's Blessing / Divine Presence */}
       <section className="py-24 bg-white">
         <div className="container px-4">
           <div className="max-w-5xl mx-auto space-y-16">
@@ -109,10 +113,10 @@ export default function Home() {
                     <Skeleton className="h-10 w-full rounded-xl" />
                     <Skeleton className="h-20 w-3/4 rounded-xl" />
                   </div>
-                ) : todayBlessing ? (
+                ) : (
                   <div className="space-y-8">
                     <blockquote className="text-3xl md:text-4xl font-headline italic text-foreground font-medium leading-snug">
-                      "{todayBlessing.caption || "Shraddha and Saburi. Your faith will guide you to my door."}"
+                      "{todayBlessing?.caption || "Shraddha and Saburi. Your faith will guide you to my door. Why fear when I am here?"}"
                     </blockquote>
                     <div className="flex items-center gap-4 bg-muted/30 p-5 rounded-3xl w-fit">
                       <div className="p-4 bg-primary/10 rounded-2xl">
@@ -121,30 +125,29 @@ export default function Home() {
                       <div>
                         <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-[0.15em] mb-1">Darshan Record</p>
                         <p className="text-lg font-bold">
-                          {new Date(todayBlessing.blessingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          {todayBlessing 
+                            ? new Date(todayBlessing.blessingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+                            : "Daily Divine Blessing"
+                          }
                         </p>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <p className="text-muted-foreground italic text-lg">Waiting for the daily divine sight...</p>
                 )}
               </div>
 
               <div className="order-1 lg:order-2">
                 <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-muted/20 bg-muted transition-transform duration-700 hover:scale-[1.01]">
-                  {todayBlessing ? (
-                    <Image
-                      src={todayBlessing.imageUrl}
-                      alt="Daily Blessing"
-                      fill
-                      unoptimized={true}
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <Sparkles className="h-16 w-16 text-primary/10" />
-                    </div>
+                  <Image
+                    src={todayBlessing?.imageUrl || fallbackSaiImage}
+                    alt="Shirdi Sai Baba"
+                    fill
+                    unoptimized={true}
+                    className="object-cover"
+                    data-ai-hint="shirdi sai"
+                  />
+                  {!todayBlessing && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                   )}
                 </div>
               </div>
