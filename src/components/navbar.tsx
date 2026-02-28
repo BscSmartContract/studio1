@@ -22,13 +22,13 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between h-16 md:h-20">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-xl shadow-lg">
-              S
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-2xl shadow-lg pb-0.5">
+              ॐ
             </div>
             <div className="flex flex-col">
-              <span className="font-headline font-bold text-lg leading-none text-primary">Sai Paduka</span>
-              <span className="text-xs text-muted-foreground">Sai Parivar Ambala</span>
+              <span className="font-headline font-bold text-lg leading-none text-primary uppercase tracking-tight">Sai Paduka</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Sai Parivar Ambala</span>
             </div>
           </Link>
 
@@ -44,7 +44,7 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-md">
+            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-md font-bold px-6 rounded-full">
               <Link href="/darshan">Register</Link>
             </Button>
           </div>
@@ -76,7 +76,7 @@ export function Navbar() {
               </Link>
             ))}
             <div className="flex flex-col space-y-3 pt-4">
-              <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white">
+              <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-12 rounded-full shadow-lg shadow-primary/20">
                 <Link href="/darshan" onClick={() => setIsOpen(false)}>Register for Darshan</Link>
               </Button>
             </div>
