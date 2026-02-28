@@ -82,5 +82,15 @@ service cloud.firestore {
       allow get, list: if true;
       allow write: if isAdmin();
     }
+
+    // Support for 'Trigger Email' Extension
+    match /mail/{mailId} {
+      // Allow users to read their own sent mail status
+      allow get: if isSignedIn() && (resource.data.to == request.auth.token.email || isAdmin());
+      // Allow users to create mail documents for themselves
+      allow create: if isSignedIn() && (request.resource.data.to == request.auth.token.email || isAdmin());
+      // Only admin can list all or delete
+      allow list, update, delete: if isAdmin();
+    }
   }
 }
