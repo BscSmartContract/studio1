@@ -17,7 +17,6 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && 
-             request.auth.token.email_verified == true && 
              request.auth.token.email == "theroasterop1@gmail.com";
     }
 
@@ -71,8 +70,9 @@ service cloud.firestore {
     }
 
     match /gallery_images/{imageId} {
-      // Allow read if user is admin OR if the document exists and is visible
-      allow read: if isAdmin() || (resource != null && resource.data.isVisible == true);
+      // Admin can see everything; public can only see visible items
+      allow list: if isAdmin() || (resource.data.isVisible == true);
+      allow get: if isAdmin() || (resource.data.isVisible == true);
       allow write: if isAdmin();
     }
 
