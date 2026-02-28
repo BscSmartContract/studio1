@@ -68,7 +68,6 @@ export default function AdminPanel() {
   const configRef = useMemoFirebase(() => (db && isActuallyAdmin) ? doc(db, "app_configuration", "main") : null, [db, isActuallyAdmin]);
   const blessingsRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isActuallyAdmin]);
   const donorsRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "prominent_donors"), orderBy("displayOrder", "asc")) : null, [db, isActuallyAdmin]);
-  const galleryRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "gallery_images"), orderBy("createdAt", "desc")) : null, [db, isActuallyAdmin]);
   
   const allRegistrationsQuery = useMemoFirebase(() => 
     (db && isActuallyAdmin) ? collectionGroup(db, "darshan_registrations") : null, 
@@ -81,7 +80,6 @@ export default function AdminPanel() {
   const { data: config } = useDoc(configRef);
   const { data: blessings } = useCollection(blessingsRef);
   const { data: donors } = useCollection(donorsRef);
-  const { data: galleryItems } = useCollection(galleryRef);
   const { data: allRegistrations, isLoading: regLoading } = useCollection(allRegistrationsQuery);
   const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
@@ -97,10 +95,6 @@ export default function AdminPanel() {
   const [blessingCaption, setBlessingCaption] = useState("");
   const [blessingDate, setBlessingDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Gallery states
-  const [galleryImgUrl, setGalleryImgUrl] = useState("");
-  const [galleryDescription, setGalleryDescription] = useState("");
-
   // Donor states
   const [donorName, setDonorName] = useState("");
   const [donorCity, setDonorCity] = useState("");
@@ -110,7 +104,6 @@ export default function AdminPanel() {
   // Entry Check-in logic
   const [passCodeInput, setPassCodeInput] = useState("");
   const [scanning, setScanning] = useState(false);
-  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [foundRegistration, setFoundRegistration] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -123,36 +116,6 @@ export default function AdminPanel() {
       setLiveUrl(config.liveDarshanYoutubeLink || "");
     }
   }, [config]);
-
-  useEffect(() => {
-    if (scanning) {
-      const getCameraPermission = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment" }
-          });
-          setHasCameraPermission(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-          }
-        } catch (error) {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          toast({
-            variant: 'destructive',
-            title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in your browser settings.',
-          });
-        }
-      };
-      getCameraPermission();
-    } else {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
-    }
-  }, [scanning, toast]);
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -199,26 +162,6 @@ export default function AdminPanel() {
     if (!db) return;
     deleteDocumentNonBlocking(doc(db, "daily_blessing_photos", id));
     toast({ title: "Removed", description: "Photo removed from blessings list." });
-  };
-
-  const handleAddGalleryImage = () => {
-    if (!db || !galleryImgUrl) return;
-    const galleryCol = collection(db, "gallery_images");
-    addDocumentNonBlocking(galleryCol, {
-      imageUrl: galleryImgUrl,
-      description: galleryDescription,
-      isVisible: true,
-      createdAt: new Date().toISOString()
-    });
-    setGalleryImgUrl("");
-    setGalleryDescription("");
-    toast({ title: "Image Added", description: "Photo added to the public gallery." });
-  };
-
-  const handleDeleteGalleryImage = (id: string) => {
-    if (!db) return;
-    deleteDocumentNonBlocking(doc(db, "gallery_images", id));
-    toast({ title: "Removed", description: "Photo removed from gallery." });
   };
 
   const handleAddDonor = () => {
@@ -346,7 +289,7 @@ export default function AdminPanel() {
         </div>
 
         <Tabs defaultValue="entry-checkin" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 h-auto p-1 bg-muted rounded-xl mb-8">
+          <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 h-auto p-1 bg-muted rounded-xl mb-8">
             <TabsTrigger value="entry-checkin" className="py-3">
               <ScanLine className="h-4 w-4 mr-2" /> Entry
             </TabsTrigger>
@@ -355,9 +298,6 @@ export default function AdminPanel() {
             </TabsTrigger>
             <TabsTrigger value="donors" className="py-3">
               <Star className="h-4 w-4 mr-2" /> Donors
-            </TabsTrigger>
-            <TabsTrigger value="gallery" className="py-3">
-              <ImageIcon className="h-4 w-4 mr-2" /> Gallery
             </TabsTrigger>
             <TabsTrigger value="blessings" className="py-3">
               <Sparkles className="h-4 w-4 mr-2" /> Blessings
@@ -395,15 +335,6 @@ export default function AdminPanel() {
                          <QrCode className="h-4 w-4 mr-2" /> {scanning ? "Close" : "Scan"}
                       </Button>
                     </div>
-
-                    {scanning && (
-                      <div className="space-y-4">
-                        <video ref={videoRef} className="w-full aspect-video rounded-3xl bg-black border-4 border-primary/20 shadow-xl" autoPlay muted />
-                        <p className="text-center text-xs text-muted-foreground animate-pulse">
-                          Hold the devotee's QR code in front of the camera...
-                        </p>
-                      </div>
-                    )}
 
                     {foundRegistration && (
                       <Card className="mt-8 border-2 bg-primary/5 border-primary/20">
@@ -614,70 +545,6 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          <TabsContent value="gallery">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle>Add Gallery Image</CardTitle>
-                  <CardDescription>Upload photos from past Mahotsavs to the public gallery.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Image URL</Label>
-                    <Input 
-                      placeholder="https://images.unsplash.com/..." 
-                      value={galleryImgUrl}
-                      onChange={(e) => setGalleryImgUrl(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Input 
-                      placeholder="e.g. Sai Paduka Welcome Ceremony" 
-                      value={galleryDescription}
-                      onChange={(e) => setGalleryDescription(e.target.value)}
-                    />
-                  </div>
-                  <Button onClick={handleAddGalleryImage} className="w-full bg-primary">
-                    <Plus className="h-4 w-4 mr-2" /> Add to Gallery
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-lg overflow-hidden">
-                <CardHeader>
-                  <CardTitle>Gallery Management</CardTitle>
-                </CardHeader>
-                <div className="max-h-[500px] overflow-y-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Preview</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {galleryItems?.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <img src={item.imageUrl} alt="Gallery" className="w-12 h-12 rounded object-cover" />
-                          </TableCell>
-                          <TableCell className="text-xs truncate max-w-[150px]">{item.description}</TableCell>
-                          <TableCell className="text-right">
-                            <Button size="icon" variant="destructive" onClick={() => handleDeleteGalleryImage(item.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </Card>
-            </div>
-          </TabsContent>
-
           <TabsContent value="blessings">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="shadow-lg">
@@ -724,7 +591,7 @@ export default function AdminPanel() {
                         <TableHead>Preview</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
+                      </TableHeader>
                     </TableHeader>
                     <TableBody>
                       {blessings?.map((item) => (

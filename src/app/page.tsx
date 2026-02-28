@@ -4,14 +4,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { 
   Calendar, 
   MapPin, 
   Sparkles, 
   PlayCircle, 
-  ArrowRight,
-  ImageIcon
+  ArrowRight
 } from "lucide-react";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit, doc } from "firebase/firestore";
@@ -40,8 +38,6 @@ export default function Home() {
   const eventName = config?.eventName || "Sai Paduka Mahotsav";
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
-
-  const galleryPreviewImages = PlaceHolderImages.filter(img => img.id.startsWith('gallery-')).slice(0, 4);
 
   return (
     <div className="flex flex-col">
@@ -153,42 +149,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Photo Gallery Preview */}
-      <section className="py-24 bg-muted/10">
-        <div className="container px-4">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="text-4xl font-headline font-bold text-primary">Mahotsav Gallery</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-              Experience the spiritual energy of previous Mahotsavs and sacred ceremonies captured through our lens.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {galleryPreviewImages.map((img, i) => (
-              <div key={i} className="relative aspect-square rounded-[2rem] overflow-hidden group shadow-xl cursor-pointer">
-                <Image
-                  src={img.imageUrl}
-                  alt={img.description}
-                  fill
-                  unoptimized={true}
-                  className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  data-ai-hint={img.imageHint}
-                />
-                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                  <div className="bg-white/90 p-4 rounded-full shadow-lg scale-90 group-hover:scale-100 transition-transform duration-300">
-                    <ImageIcon className="text-primary h-6 w-6" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Button asChild variant="ghost" className="rounded-full px-10 h-14 text-primary font-bold text-lg hover:bg-primary/5">
-              <Link href="/gallery">Explore Full Gallery <ArrowRight className="ml-2 h-5 w-5" /></Link>
-            </Button>
           </div>
         </div>
       </section>

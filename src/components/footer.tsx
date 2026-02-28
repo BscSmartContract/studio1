@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { Mail, Phone, MapPin, Instagram, Facebook, Sparkles, Heart } from "lucide-react";
 
@@ -57,7 +58,7 @@ export function Footer() {
               <li><Link href="/darshan" className="hover:text-primary transition-colors">Darshan Registration</Link></li>
               <li><Link href="/volunteer" className="hover:text-primary transition-colors">Volunteer Signup</Link></li>
               <li><Link href="/donations" className="hover:text-primary transition-colors">Donation Page</Link></li>
-              <li><Link href="/gallery" className="hover:text-primary transition-colors">Photo Gallery</Link></li>
+              <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
             </ul>
           </div>
 
@@ -88,7 +89,6 @@ export function Footer() {
             <div className="h-[1px] w-8 bg-primary/30" />
           </div>
           
-          {/* Blessing Symbol (Lotus Stylized) */}
           <div className="flex justify-center">
              <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse" />

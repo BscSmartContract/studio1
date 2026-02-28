@@ -68,16 +68,6 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    match /gallery_images/{imageId} {
-      // Rule 1: Admin has full access
-      allow read, write: if isAdmin();
-      
-      // Rule 2: Public users can read only visible images
-      // Separated list and get to ensure the rules engine evaluates them correctly for guest users
-      allow list: if resource.data.isVisible == true;
-      allow get: if resource.data.isVisible == true;
-    }
-
     match /daily_blessing_photos/{photoId} {
       allow get, list: if true;
       allow write: if isAdmin();

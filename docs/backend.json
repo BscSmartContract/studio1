@@ -59,19 +59,6 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "category"]
-    },
-    "GalleryImage": {
-      "title": "GalleryImage",
-      "type": "object",
-      "description": "An image for the public gallery.",
-      "properties": {
-        "id": { "type": "string" },
-        "imageUrl": { "type": "string", "format": "uri" },
-        "description": { "type": "string" },
-        "isVisible": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["imageUrl", "description", "createdAt"]
     }
   },
   "auth": {
@@ -93,10 +80,6 @@
     "/prominent_donors/{donorId}": {
       "schema": "Donor",
       "description": "Wall of Gratitude donors."
-    },
-    "/gallery_images/{imageId}": {
-      "schema": "GalleryImage",
-      "description": "Public photo gallery."
     }
   }
 }
