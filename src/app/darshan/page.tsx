@@ -21,7 +21,9 @@ import {
   Users as UsersIcon,
   ScrollText,
   Plus,
-  Minus
+  Minus,
+  Share2,
+  MessageSquare
 } from "lucide-react";
 import { 
   useAuth, 
@@ -145,11 +147,17 @@ export default function DarshanPage() {
     }
   };
 
+  const handleShareWhatsApp = () => {
+    if (!registrations || registrations.length === 0) return;
+    const reg = registrations[0];
+    const text = `*Sai Paduka Darshan Confirmation*\n\nOm Sai Ram!\n\nDevotee: ${reg.userName}\nGroup Size: ${reg.totalPeople}\nPhone: ${reg.userPhone}\n\n*Group Members:*\n${reg.devotees.map((d: any, i: number) => `${i+1}. ${d.name} (Age: ${d.age})`).join('\n')}\n\nVenue: Aggarwal Bhavan, Ambala\nDate: 9th March\nTime: 9:00 AM\n\n_Sent from Sai Paduka Portal_`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db || !user) return;
     
-    // Validation
     if (!contactPhone) {
       toast({ variant: "destructive", title: "Missing Phone", description: "Contact number is required." });
       return;
@@ -174,11 +182,9 @@ export default function DarshanPage() {
     };
 
     try {
-      // 1. Save registration to Firestore
       const userRegRef = collection(db, "users", user.uid, "darshan_registrations");
       addDocumentNonBlocking(userRegRef, regData);
       
-      // 2. Trigger AI Confirmation Email Flow
       if (user.email) {
         const result = await sendConfirmationEmail({
           userEmail: user.email,
@@ -191,8 +197,8 @@ export default function DarshanPage() {
         if (result.success && result.draftedContent) {
           setConfirmationMessage(result.draftedContent);
 
-          // 3. AUTOMATIC EMAIL SENDING (via Firestore Extension)
-          // Simply writing to the 'mail' collection triggers the extension
+          // We still write to 'mail' collection. If the user eventually upgrades 
+          // or sets up a manual cloud function, this will work.
           const mailColRef = collection(db, "mail");
           addDocumentNonBlocking(mailColRef, {
             to: user.email,
@@ -206,7 +212,7 @@ export default function DarshanPage() {
 
       toast({
         title: "Registration Complete",
-        description: "Your divine message has been drafted and sent.",
+        description: "Your digital pass has been generated.",
       });
     } catch (err) {
       console.error("Registration error:", err);
@@ -325,10 +331,27 @@ export default function DarshanPage() {
               </div>
               <CardTitle className="text-3xl font-headline text-green-800">Registration Confirmed!</CardTitle>
               <CardDescription className="text-lg">
-                Om Sai Ram, {registrations[0]?.userName}. Your registration is complete.
+                Om Sai Ram, {registrations[0]?.userName}. Your digital pass is ready.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8 pb-10 px-8">
+              
+              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <Button 
+                  onClick={handleShareWhatsApp}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-full h-12"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" /> Share on WhatsApp
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => window.print()}
+                  className="flex-1 border-primary text-primary hover:bg-primary/5 rounded-full h-12"
+                >
+                  <Share2 className="h-4 w-4 mr-2" /> Save/Print Pass
+                </Button>
+              </div>
+
               {confirmationMessage && (
                 <div className="bg-[#FFFDF5] rounded-3xl border border-primary/20 p-8 shadow-sm relative overflow-hidden">
                    <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
@@ -373,8 +396,9 @@ export default function DarshanPage() {
                   </div>
                 </div>
               </div>
-              <p className="text-center text-sm text-muted-foreground">
-                A copy of this divine message has been sent to your registered email address.
+              <p className="text-center text-xs text-muted-foreground leading-relaxed">
+                Please show this digital pass at the entry of Aggarwal Bhavan on 9th March.<br />
+                <strong>Arrival Time: 9:00 AM</strong>
               </p>
             </CardContent>
             <CardFooter className="flex justify-center border-t bg-muted/20 py-6">
@@ -393,7 +417,6 @@ export default function DarshanPage() {
             </CardHeader>
             <form onSubmit={handleRegister}>
               <CardContent className="space-y-8 pb-6 pt-4 px-8">
-                {/* Contact Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-muted/30 rounded-3xl border">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> Contact Phone</Label>
@@ -431,7 +454,6 @@ export default function DarshanPage() {
                   </div>
                 </div>
 
-                {/* Attendee Details */}
                 <div className="space-y-6">
                   <h3 className="font-bold text-xl flex items-center gap-2 text-primary">
                     <UserIcon className="h-5 w-5" /> Devotee Information
