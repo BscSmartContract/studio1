@@ -13,26 +13,19 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Users, 
   HandHeart, 
-  Settings, 
-  Heart, 
-  Plus,
-  Trash2,
   Video,
   Sparkles,
   Loader2,
   AlertCircle,
-  ExternalLink,
-  ShieldCheck,
   LogIn,
   LogOut,
   Mail,
-  Smartphone,
   Lock,
-  Copy,
   Info,
   ScanLine,
-  CheckCircle2,
-  QrCode
+  QrCode,
+  ShieldCheck,
+  Trash2
 } from "lucide-react";
 import { 
   useAuth,
@@ -55,7 +48,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AdminPanel() {
   const { toast } = useToast();
@@ -201,11 +193,6 @@ export default function AdminPanel() {
 
     setFoundRegistration({ ...foundRegistration, isCheckedIn: true });
     toast({ title: "Check-in Successful", description: "Devotee entry has been recorded." });
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({ title: "Copied!", description: "Value copied to clipboard." });
   };
 
   if (authLoading) {
@@ -499,7 +486,6 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
 
-          {/* ... other tabs content ... */}
           <TabsContent value="live-darshan">
             <Card className="shadow-lg max-w-2xl mx-auto">
               <CardHeader>
