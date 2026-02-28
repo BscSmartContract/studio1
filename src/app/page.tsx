@@ -14,7 +14,6 @@ import {
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit, doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function Home() {
   const db = useFirestore();
@@ -40,14 +39,13 @@ export default function Home() {
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
 
-  // Fallback Shrine Image - A high quality landscape view of the Samadhi Mandir
-  const fallbackSaiImage = "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1200";
+  // Sacred Vertical Portrait URL
+  const sacredPortraitUrl = "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1080";
 
   return (
     <div className="flex flex-col">
-      {/* Refined Hero Section with Optional Spiritual Background */}
+      {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center text-center overflow-hidden">
-        {/* Dynamic Background Image or Gradient */}
         {config?.heroImageUrl ? (
           <div className="absolute inset-0 z-0">
             <Image 
@@ -106,7 +104,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Divine Presence Section - OPTIMIZED FOR FULL SHRINE VIEW */}
+      {/* Divine Presence Section - Optimized for Vertical Portrait */}
       <section className="py-24 bg-white relative">
         <div className="container px-4">
           <div className="max-w-7xl mx-auto space-y-16">
@@ -144,21 +142,23 @@ export default function Home() {
               </div>
 
               {/* 
-                THE SACRED SHRINE CONTAINER:
-                - Aspect-video for horizontal altar images.
-                - object-contain ensures the FULL shrine image is visible.
+                SACRED PORTAL: Optimized for the vertical idol portrait.
+                - object-cover ensures it fills the elegant frame.
+                - Max width constrained for portrait orientation.
               */}
-              <div className="relative w-full max-w-5xl aspect-[16/10] md:aspect-video rounded-[2.5rem] overflow-hidden shadow-[0_35px_60px_-15px_rgba(0,0,0,0.15)] border-[10px] border-primary/5 bg-white group transition-all duration-700">
+              <div className="relative w-full max-w-md aspect-[3/4] rounded-[3rem] overflow-hidden shadow-[0_35px_60px_-15px_rgba(0,0,0,0.15)] border-[12px] border-primary/5 bg-white group transition-all duration-700">
                 <Image
-                  src={todayBlessing?.imageUrl || fallbackSaiImage}
-                  alt="Shirdi Sai Baba Sacred Samadhi Mandir"
+                  src={todayBlessing?.imageUrl || sacredPortraitUrl}
+                  alt="Shri Shirdi Sai Baba"
                   fill
                   unoptimized={true}
-                  className="object-contain p-2"
-                  style={{ objectPosition: 'center' }}
-                  data-ai-hint="shirdi shrine"
+                  className="object-cover"
+                  style={{ objectPosition: 'center top' }}
+                  data-ai-hint="shirdi portrait"
                 />
-                {/* Decorative corner accent */}
+                {/* Decorative overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
                 <div className="absolute top-8 right-8 p-3 bg-white/30 backdrop-blur-md rounded-2xl border border-white/40 z-10 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
                   <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                 </div>
@@ -168,7 +168,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section - Harmonized Saffron Background */}
+      {/* CTA Section */}
       <section className="py-32 bg-primary text-white overflow-hidden relative">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-white rounded-full blur-[150px]" />
