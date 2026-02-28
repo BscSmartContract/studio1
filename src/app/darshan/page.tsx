@@ -17,7 +17,8 @@ import {
   CheckCircle2, 
   Phone, 
   User as UserIcon,
-  Users as UsersIcon
+  Users as UsersIcon,
+  ScrollText
 } from "lucide-react";
 import { 
   useAuth, 
@@ -46,6 +47,7 @@ export default function DarshanPage() {
   const [loginMethod, setLoginMethod] = useState<'options' | 'email'>('options');
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
 
   // States for Devotee Group Details
   const [contactPhone, setContactPhone] = useState('');
@@ -134,6 +136,7 @@ export default function DarshanPage() {
       setAttendees([{name: '', age: ''}]);
       setContactPhone('');
       setTotalPeople(1);
+      setConfirmationMessage(null);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: "Could not sign out." });
     }
@@ -159,7 +162,7 @@ export default function DarshanPage() {
     
     const regData = {
       externalAuthUserId: user.uid,
-      userName: attendees[0].name, // Use first attendee as primary contact name
+      userName: attendees[0].name, 
       userEmail: user.email || "No Email",
       userPhone: contactPhone,
       totalPeople: totalPeople,
@@ -174,25 +177,29 @@ export default function DarshanPage() {
       
       // Trigger AI Confirmation Email Flow
       if (user.email) {
-        await sendConfirmationEmail({
+        const result = await sendConfirmationEmail({
           userEmail: user.email,
           userName: regData.userName,
           totalPeople: regData.totalPeople,
           devotees: regData.devotees,
           eventDate: "9th March"
         });
+        
+        if (result.success) {
+          setConfirmationMessage(result.draftedContent || null);
+        }
       }
 
       toast({
         title: "Registration Complete",
-        description: "Confirmation sent to your registered mail.",
+        description: "Your divine message has been drafted.",
       });
     } catch (err) {
       console.error("Registration error:", err);
       toast({
         variant: "destructive",
         title: "Registration Issue",
-        description: "We saved your slot, but could not send the email confirmation.",
+        description: "We saved your slot, but could not process the confirmation message.",
       });
     } finally {
       setIsSubmitting(false);
@@ -296,7 +303,8 @@ export default function DarshanPage() {
             </CardContent>
           </Card>
         ) : isRegistered ? (
-          <Card className="max-w-2xl mx-auto shadow-2xl border-accent/20 bg-green-50/50">
+          <Card className="max-w-2xl mx-auto shadow-2xl border-accent/20 bg-green-50/50 overflow-hidden">
+            <div className="h-2 bg-green-600 w-full" />
             <CardHeader className="text-center pt-10">
               <div className="mx-auto bg-green-100 p-4 rounded-full w-fit mb-4">
                 <CheckCircle2 className="h-10 w-10 text-green-600" />
@@ -307,6 +315,20 @@ export default function DarshanPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pb-10 px-8">
+              {confirmationMessage && (
+                <div className="bg-white rounded-2xl border border-primary/20 p-6 shadow-sm relative">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <ScrollText className="h-12 w-12 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-primary mb-2 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" /> Divine Message
+                  </h3>
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground font-body italic">
+                    {confirmationMessage}
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white rounded-2xl border border-dashed border-green-300 p-6 shadow-sm">
                 <h3 className="text-center font-bold text-lg mb-4 text-primary">Group Summary</h3>
                 <div className="space-y-3">
@@ -332,7 +354,7 @@ export default function DarshanPage() {
                 </div>
               </div>
               <p className="text-center text-xs text-muted-foreground">
-                Confirmation details have been sent to your registered email.
+                The above message has been sent to your registered email for your records.
               </p>
             </CardContent>
             <CardFooter className="flex justify-center border-t bg-muted/20 py-4">

@@ -66,5 +66,9 @@ export async function sendConfirmationEmail(input: RegistrationEmailInput) {
   console.log(`BODY:\n${text}`);
   console.log(`--- [END OF EMAIL] ---\n`);
   
-  return { success: true, message: "Confirmation drafted and logged." };
+  return { 
+    success: true, 
+    message: "Confirmation drafted and logged.",
+    draftedContent: text 
+  };
 }
