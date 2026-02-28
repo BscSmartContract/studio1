@@ -29,7 +29,9 @@ import {
   CheckCircle2,
   Circle,
   Star,
-  Plus
+  Plus,
+  Settings,
+  Image as ImageIcon
 } from "lucide-react";
 import { 
   useAuth,
@@ -81,7 +83,14 @@ export default function AdminPanel() {
   const { data: allRegistrations, isLoading: regLoading } = useCollection(allRegistrationsQuery);
   const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
+  // Site Config states
+  const [heroUrl, setHeroUrl] = useState("");
+  const [eventName, setEventName] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [organizerName, setOrganizerName] = useState("");
   const [liveUrl, setLiveUrl] = useState("");
+
+  // Blessing states
   const [blessingImg, setBlessingImg] = useState("");
   const [blessingCaption, setBlessingCaption] = useState("");
   const [blessingDate, setBlessingDate] = useState(new Date().toISOString().split('T')[0]);
@@ -101,6 +110,10 @@ export default function AdminPanel() {
 
   useEffect(() => {
     if (config) {
+      setHeroUrl(config.heroImageUrl || "");
+      setEventName(config.eventName || "Sai Paduka Mahotsav");
+      setEventDate(config.eventDate || "2026-03-09");
+      setOrganizerName(config.organizerName || "Sai Parivar Ambala");
       setLiveUrl(config.liveDarshanYoutubeLink || "");
     }
   }, [config]);
@@ -149,13 +162,17 @@ export default function AdminPanel() {
     await signOut(auth);
   };
 
-  const handleUpdateLiveLink = () => {
+  const handleUpdateConfig = () => {
     if (!configRef) return;
     updateDocumentNonBlocking(configRef, {
+      heroImageUrl: heroUrl,
+      eventName,
+      eventDate,
+      organizerName,
       liveDarshanYoutubeLink: liveUrl,
       lastUpdatedAt: new Date().toISOString()
     });
-    toast({ title: "Updated", description: "Live Darshan link updated successfully." });
+    toast({ title: "Site Settings Updated", description: "The portal configuration has been saved successfully." });
   };
 
   const handleAddBlessing = () => {
@@ -303,27 +320,24 @@ export default function AdminPanel() {
         </div>
 
         <Tabs defaultValue="entry-checkin" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-7 h-auto p-1 bg-muted rounded-xl mb-8">
-            <TabsTrigger value="entry-checkin" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+          <TabsList className="grid grid-cols-2 md:grid-cols-6 h-auto p-1 bg-muted rounded-xl mb-8">
+            <TabsTrigger value="entry-checkin" className="py-3">
               <ScanLine className="h-4 w-4 mr-2" /> Entry
             </TabsTrigger>
-            <TabsTrigger value="registrations" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <TabsTrigger value="registrations" className="py-3">
               <Users className="h-4 w-4 mr-2" /> Darshan
             </TabsTrigger>
-            <TabsTrigger value="donors" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <TabsTrigger value="donors" className="py-3">
               <Star className="h-4 w-4 mr-2" /> Donors
             </TabsTrigger>
-            <TabsTrigger value="blessings" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <TabsTrigger value="blessings" className="py-3">
               <Sparkles className="h-4 w-4 mr-2" /> Blessings
             </TabsTrigger>
-            <TabsTrigger value="volunteers" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+            <TabsTrigger value="volunteers" className="py-3">
               <HandHeart className="h-4 w-4 mr-2" /> Volunteers
             </TabsTrigger>
-            <TabsTrigger value="live-darshan" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Video className="h-4 w-4 mr-2" /> Live
-            </TabsTrigger>
-            <TabsTrigger value="setup" className="py-3 data-[state=active]:bg-accent data-[state=active]:text-white">
-              <ShieldCheck className="h-4 w-4 mr-2" /> Setup
+            <TabsTrigger value="setup" className="py-3">
+              <Settings className="h-4 w-4 mr-2" /> Settings
             </TabsTrigger>
           </TabsList>
 
@@ -571,72 +585,6 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          <TabsContent value="volunteers">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle>Volunteers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {volLoading ? (
-                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
-                ) : allVolunteers && allVolunteers.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Service</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {allVolunteers.map((vol) => (
-                        <TableRow key={vol.id}>
-                          <TableCell>{vol.name}</TableCell>
-                          <TableCell>{vol.phoneNumber}</TableCell>
-                          <TableCell>
-                            <span className="text-xs bg-muted px-2 py-1 rounded">
-                              {vol.areaOfService?.join(", ")}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            {vol.registrationDate ? new Date(vol.registrationDate).toLocaleDateString() : "N/A"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">No volunteers found.</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="live-darshan">
-            <Card className="shadow-lg max-w-2xl mx-auto">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Video className="text-primary" /> Live Darshan Settings
-                </CardTitle>
-                <CardDescription>Update the YouTube Live link for the devotees.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>YouTube Live Stream URL</Label>
-                  <Input 
-                    placeholder="https://www.youtube.com/watch?v=..." 
-                    value={liveUrl}
-                    onChange={(e) => setLiveUrl(e.target.value)}
-                  />
-                </div>
-                <Button onClick={handleUpdateLiveLink} className="w-full bg-primary hover:bg-primary/90">
-                  Save Live Stream Link
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="blessings">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="shadow-lg">
@@ -706,30 +654,114 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          <TabsContent value="setup">
-            <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
-              <CardHeader className="bg-accent/5">
-                <CardTitle className="flex items-center gap-2 text-accent">
-                  <ShieldCheck className="h-6 w-6" /> Platform Configuration
-                </CardTitle>
-                <CardDescription>Critical instructions for enabling all features.</CardDescription>
+          <TabsContent value="volunteers">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle>Volunteers</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-8 pt-6">
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> Automatic Email Setup
-                  </h3>
-                  <div className="bg-muted p-4 rounded-lg space-y-3 text-sm">
-                    <ol className="list-decimal pl-5 space-y-2">
-                      <li>Go to <strong>Extensions</strong> tab in Firebase Console.</li>
-                      <li>Install <strong>Trigger Email</strong> by Firebase.</li>
-                      <li>Set <strong>Email documents collection</strong> to <code>mail</code>.</li>
-                      <li>Configure your <strong>SMTP connection URI</strong>.</li>
-                    </ol>
-                  </div>
-                </div>
+              <CardContent>
+                {volLoading ? (
+                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+                ) : allVolunteers && allVolunteers.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Service</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allVolunteers.map((vol) => (
+                        <TableRow key={vol.id}>
+                          <TableCell>{vol.name}</TableCell>
+                          <TableCell>{vol.phoneNumber}</TableCell>
+                          <TableCell>
+                            <span className="text-xs bg-muted px-2 py-1 rounded">
+                              {vol.areaOfService?.join(", ")}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {vol.registrationDate ? new Date(vol.registrationDate).toLocaleDateString() : "N/A"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No volunteers found.</p>
+                )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="setup">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="shadow-lg border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="text-primary" /> Site Configuration
+                  </CardTitle>
+                  <CardDescription>Manage global event settings and hero content.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><ImageIcon className="h-4 w-4" /> Hero Image URL</Label>
+                    <Input 
+                      placeholder="https://images.unsplash.com/..." 
+                      value={heroUrl} 
+                      onChange={(e) => setHeroUrl(e.target.value)} 
+                    />
+                    <p className="text-[10px] text-muted-foreground">This image appears behind the event title on the Home page.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Event Name</Label>
+                    <Input value={eventName} onChange={(e) => setEventName(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Event Date</Label>
+                    <Input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Organizer Name</Label>
+                    <Input value={organizerName} onChange={(e) => setOrganizerName(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><Video className="h-4 w-4" /> YouTube Live Link</Label>
+                    <Input value={liveUrl} onChange={(e) => setLiveUrl(e.target.value)} />
+                  </div>
+                  <Button onClick={handleUpdateConfig} className="w-full bg-primary font-bold">
+                    Save Changes
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-accent/20">
+                <CardHeader className="bg-accent/5">
+                  <CardTitle className="flex items-center gap-2 text-accent">
+                    <ShieldCheck className="h-6 w-6" /> Platform Setup
+                  </CardTitle>
+                  <CardDescription>Instructions for enabling advanced features.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8 pt-6">
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                      <Mail className="h-5 w-5 text-primary" /> Automatic Email Setup
+                    </h3>
+                    <div className="bg-muted p-4 rounded-lg space-y-3 text-sm">
+                      <p className="text-xs text-muted-foreground mb-2">Enable the "Trigger Email" extension in Firebase Console to send registration confirmations.</p>
+                      <ol className="list-decimal pl-5 space-y-2">
+                        <li>Go to <strong>Extensions</strong> tab.</li>
+                        <li>Install <strong>Trigger Email</strong>.</li>
+                        <li>Collection: <code>mail</code>.</li>
+                        <li>Configure SMTP URI.</li>
+                      </ol>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

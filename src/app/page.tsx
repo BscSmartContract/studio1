@@ -10,23 +10,23 @@ import {
   Calendar, 
   MapPin, 
   Clock, 
-  Heart, 
-  Users, 
-  Star, 
   Sparkles, 
   PlayCircle, 
   ArrowRight,
   ImageIcon
 } from "lucide-react";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, orderBy, limit } from "firebase/firestore";
+import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy, limit, doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const db = useFirestore();
-  const heroImg = PlaceHolderImages.find(img => img.id === 'hero-bg');
-  const galleryPreviewImages = PlaceHolderImages.filter(img => img.id.startsWith('gallery-')).slice(0, 4);
 
+  // Fetch Global Configuration
+  const configRef = useMemoFirebase(() => db ? doc(db, "app_configuration", "main") : null, [db]);
+  const { data: config } = useDoc(configRef);
+
+  // Fetch Latest Blessing
   const blessingsQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
@@ -39,12 +39,20 @@ export default function Home() {
   const { data: latestBlessings, isLoading: isBlessingLoading } = useCollection(blessingsQuery);
   const todayBlessing = latestBlessings?.[0];
 
+  const heroFallback = "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=2000";
+  const heroImg = config?.heroImageUrl || heroFallback;
+  const eventName = config?.eventName || "Sai Paduka Mahotsav";
+  const eventDateRaw = config?.eventDate || "2026-03-09";
+  const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
+
+  const galleryPreviewImages = PlaceHolderImages.filter(img => img.id.startsWith('gallery-')).slice(0, 4);
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center text-center overflow-hidden">
         <Image
-          src={heroImg?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=2000"}
+          src={heroImg}
           alt="Shirdi Sai Baba"
           fill
           className="object-cover brightness-[0.4] object-top"
@@ -57,13 +65,13 @@ export default function Home() {
             Om Sai Ram
           </div>
           <h1 className="text-5xl md:text-8xl font-headline font-extrabold text-white mb-6 drop-shadow-lg leading-tight">
-            Sai Paduka <span className="text-primary italic">Mahotsav</span>
+            {eventName.split(' ').slice(0, -1).join(' ')} <span className="text-primary italic">{eventName.split(' ').pop()}</span>
           </h1>
           
           <div className="flex flex-wrap justify-center gap-6 mb-10 text-white/90 text-sm font-medium">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-primary" />
-              <span>9th March 2026</span>
+              <span>{eventDateFormatted}, {new Date(eventDateRaw).getFullYear()}</span>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary" />
@@ -167,8 +175,8 @@ export default function Home() {
                   <Calendar className="h-8 w-8 text-primary group-hover:text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold group-hover:text-white">9th March</h3>
-                  <p className="text-muted-foreground text-sm group-hover:text-white/80">Sunday Mahotsav</p>
+                  <h3 className="text-xl font-bold group-hover:text-white">{eventDateFormatted}</h3>
+                  <p className="text-muted-foreground text-sm group-hover:text-white/80">Special Mahotsav</p>
                 </div>
               </CardContent>
             </Card>

@@ -37,6 +37,11 @@
           "type": "string",
           "description": "The primary contact phone number for the event."
         },
+        "heroImageUrl": {
+          "type": "string",
+          "description": "The URL for the background image on the homepage hero section.",
+          "format": "uri"
+        },
         "instagramLink": {
           "type": "string",
           "description": "Link to the event's or organization's Instagram profile.",
