@@ -211,8 +211,6 @@ export default function DarshanPage() {
                     <strong>Don't see it?</strong>
                     <ul className="mt-1 list-disc pl-4 space-y-1">
                       <li>Check your <strong>Spam</strong> or Junk folder.</li>
-                      <li>Ensure "Email Link" is enabled in Firebase Console.</li>
-                      <li>Check the Admin Setup Guide for domain whitelisting.</li>
                     </ul>
                   </div>
                   <Button variant="link" onClick={() => setEmailSent(false)} className="text-xs text-primary">
