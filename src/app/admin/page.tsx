@@ -103,9 +103,7 @@ export default function AdminPanel() {
 
   // Entry Check-in logic
   const [passCodeInput, setPassCodeInput] = useState("");
-  const [scanning, setScanning] = useState(false);
   const [foundRegistration, setFoundRegistration] = useState<any>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (config) {
@@ -331,9 +329,6 @@ export default function AdminPanel() {
                         />
                       </div>
                       <Button onClick={handleSearchPass} className="h-12 px-8 bg-primary">Search</Button>
-                      <Button variant="outline" className="h-12 px-6" onClick={() => setScanning(!scanning)}>
-                         <QrCode className="h-4 w-4 mr-2" /> {scanning ? "Close" : "Scan"}
-                      </Button>
                     </div>
 
                     {foundRegistration && (
@@ -591,7 +586,7 @@ export default function AdminPanel() {
                         <TableHead>Preview</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead className="text-right">Action</TableHead>
-                      </TableHeader>
+                      </TableRow>
                     </TableHeader>
                     <TableBody>
                       {blessings?.map((item) => (
