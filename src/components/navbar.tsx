@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Heart, Users, Camera, Phone, LayoutDashboard } from "lucide-react";
+import { Menu, X, LayoutDashboard, PlayCircle } from "lucide-react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
     { name: "Home", href: "/" },
+    { name: "Live Darshan", href: "/live", icon: <PlayCircle className="w-4 h-4 mr-1 text-accent animate-pulse" /> },
     { name: "Darshan", href: "/darshan" },
     { name: "Volunteer", href: "/volunteer" },
     { name: "Donations", href: "/donations" },
@@ -37,8 +38,9 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-sm font-medium hover:text-primary transition-colors duration-200"
+                className="text-sm font-medium hover:text-primary transition-colors duration-200 flex items-center"
               >
+                {link.icon}
                 {link.name}
               </Link>
             ))}
@@ -72,9 +74,10 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-lg font-medium hover:text-primary py-2 border-b border-border/50"
+                className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
                 onClick={() => setIsOpen(false)}
               >
+                {link.icon}
                 {link.name}
               </Link>
             ))}

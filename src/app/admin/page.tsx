@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,15 +15,49 @@ import {
   Image as ImageIcon, 
   Settings, 
   Heart, 
-  Star,
   Plus,
-  Trash2
+  Trash2,
+  Video,
+  Sparkles,
+  RefreshCw
 } from "lucide-react";
+import { 
+  useFirestore, 
+  useDoc, 
+  useCollection, 
+  useMemoFirebase,
+  setDocumentNonBlocking,
+  addDocumentNonBlocking,
+  updateDocumentNonBlocking,
+  deleteDocumentNonBlocking
+} from "@/firebase";
+import { doc, collection, serverTimestamp } from "firebase/firestore";
 
 export default function AdminPanel() {
   const { toast } = useToast();
+  const db = useFirestore();
   const [isAdmin, setIsAdmin] = useState(false);
   const [password, setPassword] = useState("");
+
+  // Firebase Refs
+  const configRef = useMemoFirebase(() => db ? doc(db, "app_configuration", "main") : null, [db]);
+  const blessingsRef = useMemoFirebase(() => db ? collection(db, "daily_blessing_photos") : null, [db]);
+
+  // Data fetching
+  const { data: config } = useDoc(configRef);
+  const { data: blessings } = useCollection(blessingsRef);
+
+  // Form states
+  const [liveUrl, setLiveUrl] = useState("");
+  const [blessingImg, setBlessingImg] = useState("");
+  const [blessingCaption, setBlessingCaption] = useState("");
+  const [blessingDate, setBlessingDate] = useState(new Date().toISOString().split('T')[0]);
+
+  useEffect(() => {
+    if (config) {
+      setLiveUrl(config.liveDarshanYoutubeLink || "");
+    }
+  }, [config]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +67,34 @@ export default function AdminPanel() {
     } else {
       toast({ variant: "destructive", title: "Invalid Credentials" });
     }
+  };
+
+  const handleUpdateLiveLink = () => {
+    if (!configRef) return;
+    updateDocumentNonBlocking(configRef, {
+      liveDarshanYoutubeLink: liveUrl,
+      lastUpdatedAt: new Date().toISOString()
+    });
+    toast({ title: "Updated", description: "Live Darshan link updated successfully." });
+  };
+
+  const handleAddBlessing = () => {
+    if (!blessingsRef || !blessingImg) return;
+    addDocumentNonBlocking(blessingsRef, {
+      imageUrl: blessingImg,
+      blessingDate,
+      caption: blessingCaption,
+      uploadedAt: new Date().toISOString()
+    });
+    setBlessingImg("");
+    setBlessingCaption("");
+    toast({ title: "Success", description: "Daily Blessing photo uploaded." });
+  };
+
+  const handleDeleteBlessing = (id: string) => {
+    if (!db) return;
+    deleteDocumentNonBlocking(doc(db, "daily_blessing_photos", id));
+    toast({ title: "Removed", description: "Photo removed from blessings list." });
   };
 
   if (!isAdmin) {
@@ -74,26 +136,126 @@ export default function AdminPanel() {
           <Button variant="outline" onClick={() => setIsAdmin(false)}>Logout</Button>
         </div>
 
-        <Tabs defaultValue="registrations" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto p-1 bg-muted rounded-xl mb-8">
+        <Tabs defaultValue="live-darshan" className="w-full">
+          <TabsList className="grid grid-cols-2 md:grid-cols-6 h-auto p-1 bg-muted rounded-xl mb-8">
+            <TabsTrigger value="live-darshan" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Video className="h-4 w-4 mr-2" /> Live
+            </TabsTrigger>
+            <TabsTrigger value="blessings" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Sparkles className="h-4 w-4 mr-2" /> Blessings
+            </TabsTrigger>
             <TabsTrigger value="registrations" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Users className="h-4 w-4 mr-2 hidden sm:inline" /> Darshan
+              <Users className="h-4 w-4 mr-2" /> Darshan
             </TabsTrigger>
             <TabsTrigger value="volunteers" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <HandHeart className="h-4 w-4 mr-2 hidden sm:inline" /> Volunteers
+              <HandHeart className="h-4 w-4 mr-2" /> Volunteers
             </TabsTrigger>
             <TabsTrigger value="donations" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Heart className="h-4 w-4 mr-2 hidden sm:inline" /> Donations
-            </TabsTrigger>
-            <TabsTrigger value="gallery" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <ImageIcon className="h-4 w-4 mr-2 hidden sm:inline" /> Gallery
+              <Heart className="h-4 w-4 mr-2" /> Donations
             </TabsTrigger>
             <TabsTrigger value="settings" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Settings className="h-4 w-4 mr-2 hidden sm:inline" /> Details
+              <Settings className="h-4 w-4 mr-2" /> Details
             </TabsTrigger>
           </TabsList>
 
-          {/* Registrations Tab */}
+          {/* Live Darshan Tab */}
+          <TabsContent value="live-darshan">
+            <Card className="shadow-lg max-w-2xl mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="text-primary" /> Live Darshan Settings
+                </CardTitle>
+                <CardDescription>Update the YouTube Live link for the devotees.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>YouTube Live Stream URL</Label>
+                  <Input 
+                    placeholder="https://www.youtube.com/watch?v=..." 
+                    value={liveUrl}
+                    onChange={(e) => setLiveUrl(e.target.value)}
+                  />
+                  <p className="text-[10px] text-muted-foreground">Example: https://www.youtube.com/watch?v=VIDEO_ID</p>
+                </div>
+                <Button onClick={handleUpdateLiveLink} className="w-full bg-primary hover:bg-primary/90">
+                  Save Live Stream Link
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Daily Blessings Tab */}
+          <TabsContent value="blessings">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle>Add Today's Darshan</CardTitle>
+                  <CardDescription>Upload photo and message for the "Blessing Column".</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Image URL</Label>
+                    <Input 
+                      placeholder="Enter image URL" 
+                      value={blessingImg}
+                      onChange={(e) => setBlessingImg(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Blessing Date</Label>
+                    <Input 
+                      type="date" 
+                      value={blessingDate}
+                      onChange={(e) => setBlessingDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Message/Caption</Label>
+                    <Textarea 
+                      placeholder="e.g. May Sai Baba guide your path..." 
+                      value={blessingCaption}
+                      onChange={(e) => setBlessingCaption(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={handleAddBlessing} className="w-full bg-primary">Add to Blessings Column</Button>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg overflow-hidden">
+                <CardHeader>
+                  <CardTitle>Recent Blessings</CardTitle>
+                </CardHeader>
+                <div className="max-h-[500px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Preview</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {blessings?.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <img src={item.imageUrl} alt="Blessing" className="w-12 h-12 rounded object-cover" />
+                          </TableCell>
+                          <TableCell className="text-xs font-mono">{item.blessingDate}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="icon" variant="destructive" onClick={() => handleDeleteBlessing(item.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Registrations Tab (Mock UI for now, ready for Firebase) */}
           <TabsContent value="registrations">
             <Card className="shadow-lg">
               <CardHeader>
@@ -116,12 +278,6 @@ export default function AdminPanel() {
                       <TableCell>Amit Kumar</TableCell>
                       <TableCell>amit.k@gmail.com</TableCell>
                       <TableCell>Oct 24, 2024</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-mono">SAI-882</TableCell>
-                      <TableCell>Sonia Sharma</TableCell>
-                      <TableCell>sonia.s@yahoo.com</TableCell>
-                      <TableCell>Oct 25, 2024</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -152,12 +308,6 @@ export default function AdminPanel() {
                       <TableCell>9876543210</TableCell>
                       <TableCell>Crowd Management</TableCell>
                       <TableCell><span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-bold">Approved</span></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Priya Mehta</TableCell>
-                      <TableCell>9012345678</TableCell>
-                      <TableCell>Medical Help</TableCell>
-                      <TableCell><span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-bold">Pending</span></TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -204,31 +354,6 @@ export default function AdminPanel() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          {/* Gallery Tab */}
-          <TabsContent value="gallery">
-            <Card className="shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <div>
-                  <CardTitle>Manage Photo Gallery</CardTitle>
-                  <CardDescription>Upload or remove event photos.</CardDescription>
-                </div>
-                <Button className="bg-primary">Upload New Photo</Button>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
-                  {[1,2,3,4,5,6].map(i => (
-                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden group">
-                      <img src={`https://picsum.photos/seed/gall-${i}/200/200`} alt="Gallery item" className="object-cover w-full h-full" />
-                      <button className="absolute top-1 right-1 p-1.5 bg-destructive text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Settings Tab */}
