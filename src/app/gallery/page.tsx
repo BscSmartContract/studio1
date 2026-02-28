@@ -42,8 +42,9 @@ export default function GalleryPage() {
               <Card key={image.id} className="group relative overflow-hidden rounded-2xl border-none shadow-xl aspect-square cursor-pointer bg-muted">
                 <Image
                   src={image.imageUrl}
-                  alt={image.description}
+                  alt={image.description || "Sai Gallery Image"}
                   fill
+                  unoptimized={true} // Bypasses Next.js image optimization to avoid 429 upstream errors
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">

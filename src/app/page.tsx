@@ -1,14 +1,13 @@
+
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { 
   Calendar, 
   MapPin, 
-  Clock, 
   Sparkles, 
   PlayCircle, 
   ArrowRight,
@@ -47,10 +46,10 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Refined Plain Hero Section with Spiritual Gradient Aura */}
-      <section className="relative min-h-[85vh] flex items-center justify-center text-center overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/5">
+      <section className="relative min-h-[85vh] flex items-center justify-center text-center overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
         {/* Subtle Decorative Aura Background */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl aspect-square opacity-20 pointer-events-none">
-          <div className="w-full h-full rounded-full bg-gradient-radial from-primary/40 to-transparent blur-[120px]" />
+          <div className="w-full h-full rounded-full bg-gradient-radial from-primary/30 to-transparent blur-[120px]" />
         </div>
         
         <div className="relative z-10 container px-4 py-20 flex flex-col items-center">
@@ -143,6 +142,7 @@ export default function Home() {
                       src={todayBlessing.imageUrl}
                       alt="Daily Blessing"
                       fill
+                      unoptimized={true}
                       className="object-cover"
                     />
                   ) : (
@@ -173,6 +173,7 @@ export default function Home() {
                   src={img.imageUrl}
                   alt={img.description}
                   fill
+                  unoptimized={true}
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                   data-ai-hint={img.imageHint}
                 />
