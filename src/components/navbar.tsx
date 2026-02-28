@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LayoutDashboard, PlayCircle } from "lucide-react";
+import { Menu, X, PlayCircle } from "lucide-react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -44,12 +44,6 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <Button asChild variant="outline" size="sm" className="border-primary text-primary hover:bg-primary hover:text-white">
-              <Link href="/admin">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Admin
-              </Link>
-            </Button>
             <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-md">
               <Link href="/darshan">Register</Link>
             </Button>
@@ -84,9 +78,6 @@ export function Navbar() {
             <div className="flex flex-col space-y-3 pt-4">
               <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white">
                 <Link href="/darshan" onClick={() => setIsOpen(false)}>Register for Darshan</Link>
-              </Button>
-              <Button asChild variant="outline" className="w-full border-primary text-primary">
-                <Link href="/admin" onClick={() => setIsOpen(false)}>Admin Panel</Link>
               </Button>
             </div>
           </div>
