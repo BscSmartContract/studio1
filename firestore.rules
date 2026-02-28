@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -5,86 +6,40 @@ service cloud.firestore {
     /**
      * SAI BABA TEMPLE TRUST - FIREBASE SECURITY RULES
      * 
-     * CORE PHILOSOPHY:
-     * This ruleset implements a dual-layered security model:
-     * 1. Admin-Managed Content: Global configurations (YouTube links, venue details), donation 
-     *    purposes, donor lists, and gallery images are publicly readable but strictly 
-     *    writable only by users with an Admin role.
-     * 2. User-Owned Data: Registrations for volunteers and Darshan are nested under a user-specific 
-     *    path (/users/{userId}), ensuring that users can only manage their own data while 
-     *    Admins retain oversight.
-     * 
-     * DATA STRUCTURE:
-     * - Public/Admin Collections: /app_configuration, /donation_purposes, /prominent_donors, 
-     *   /gallery_images, /daily_blessing_photos.
-     * - User-Scoped Subcollections: /users/{userId}/volunteers, /users/{userId}/darshan_registrations.
-     * - RBAC: /roles_admin/{adminUid} (Presence of document indicates admin status).
-     * 
-     * KEY SECURITY DECISIONS:
-     * - "Existence over Content" for Roles: Admin status is determined by the presence of a document 
-     *   in the /roles_admin collection, avoiding complex data lookups.
-     * - Path-Based Authorization: User data is secured by comparing the URL {userId} wildcard 
-     *   directly to the request.auth.uid, ensuring performant and secure isolation.
-     * - Prototyping Flexibility: Rules focus on "Who" (Authorization) and "Relationships" 
-     *   (Relational Integrity) rather than strict schema validation of content.
+     * Updated to support Google Authentication and specific user data paths.
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
 
-    /** Checks if the request is from a signed-in user. */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** Checks if the signed-in user exists in the admin roles collection. */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    /** Checks if the provided UID matches the signed-in user. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** Combines ownership check with document existence for updates and deletes. */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
     // --- COLLECTION RULES ---
 
-    /**
-     * @description Rules for Admin role management.
-     * @path /roles_admin/{adminUid}
-     * @allow (get) If user is signed in. (write) If requester is already an admin.
-     * @deny (write) If requester is not an admin.
-     * @principle Database-Based Access Control (DBAC) via existence checks.
-     */
     match /roles_admin/{adminUid} {
       allow get: if isSignedIn();
       allow list: if isAdmin();
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Global application configuration (Live Darshan links, event dates).
-     * @path /app_configuration/main
-     * @allow (get, list) For all public users. (write) For admins only.
-     * @deny (write) For non-admin users.
-     * @principle Public consumption with administrative control.
-     */
     match /app_configuration/{configId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Volunteer registrations nested by user.
-     * @path /users/{userId}/volunteers/{volunteerId}
-     * @allow (get, list) By the owning user or an administrator. (create) By the owner.
-     * @deny (create) If externalAuthUserId does not match the path userId.
-     * @principle Enforces path-based ownership and relational integrity.
-     */
     match /users/{userId}/volunteers/{volunteerId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.externalAuthUserId == userId;
@@ -92,13 +47,6 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Darshan registrations nested by user.
-     * @path /users/{userId}/darshan_registrations/{registrationId}
-     * @allow (get, list) By the owning user or an administrator. (create) By the owner.
-     * @deny (update) If user attempts to change their owner ID.
-     * @principle Resource isolation and immutable ownership fields.
-     */
     match /users/{userId}/darshan_registrations/{registrationId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.externalAuthUserId == userId;
@@ -106,49 +54,21 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Categories for donations.
-     * @path /donation_purposes/{purposeId}
-     * @allow (get, list) Publicly available for the donation page.
-     * @deny (write) Any modification by non-admins.
-     * @principle Open read access for static-like administrative content.
-     */
     match /donation_purposes/{purposeId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Prominent donor recognition list.
-     * @path /prominent_donors/{donorId}
-     * @allow (get, list) Publicly readable.
-     * @deny (write) Any modification by non-admins.
-     * @principle Administrative authority over public recognition data.
-     */
     match /prominent_donors/{donorId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Photo gallery for event images.
-     * @path /gallery_images/{imageId}
-     * @allow (get, list) Public read if visible; Admin read all.
-     * @deny (list) Public queries for non-visible images.
-     * @principle Query-time filtering via visibility flags.
-     */
     match /gallery_images/{imageId} {
       allow get, list: if (resource == null || resource.data.isVisible == true) || isAdmin();
       allow create, update, delete: if isAdmin();
     }
 
-    /**
-     * @description Daily blessing photos (Today's Darshan).
-     * @path /daily_blessing_photos/{photoId}
-     * @allow (get, list) Public access for daily inspiration.
-     * @deny (write) By non-admins.
-     * @principle Daily updated content managed via admin panel.
-     */
     match /daily_blessing_photos/{photoId} {
       allow get, list: if true;
       allow create, update, delete: if isAdmin();
