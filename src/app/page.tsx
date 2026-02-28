@@ -4,9 +4,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Calendar, MapPin, Clock, Heart, Users, Star, Sparkles, PlayCircle } from "lucide-react";
+import { Calendar, MapPin, Clock, Heart, Users, Star, Sparkles, PlayCircle, ArrowLeft } from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,31 +33,31 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[85vh] flex items-center justify-center text-center overflow-hidden">
         <Image
-          src={heroImg?.imageUrl || "https://picsum.photos/seed/sai-hero/1920/1080"}
-          alt="Divine Sai Baba Background"
+          src={heroImg?.imageUrl || "https://picsum.photos/seed/sai-paduka/1920/1080"}
+          alt="Original Sai Paduka"
           fill
-          className="object-cover object-top brightness-[0.35]"
+          className="object-cover brightness-[0.4] object-top"
           priority
-          data-ai-hint="shirdi sai"
+          data-ai-hint="religious feet"
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-background/90" />
         <div className="relative z-10 container px-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-primary-foreground text-sm font-medium tracking-wider">
-            OM SAI RAM
+          <div className="inline-block px-6 py-2 mb-8 rounded-full bg-primary/20 backdrop-blur-md border border-primary/40 text-primary-foreground text-sm font-bold tracking-[0.2em] uppercase">
+            Om Sai Ram
           </div>
-          <h1 className="text-5xl md:text-7xl font-headline font-bold text-white mb-6 drop-shadow-lg">
-            Sai Paduka <span className="text-primary">Event</span>
+          <h1 className="text-5xl md:text-8xl font-headline font-extrabold text-white mb-6 drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)] leading-tight">
+            Sai Paduka <span className="text-primary italic">Mahotsav</span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Experience the divine presence of Shirdi Sai Baba's Padukas. 
-            Join Sai Parivar Ambala for a day of worship and spiritual awakening.
+          <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+            Join the sacred gathering of Sai Parivar Ambala. Experience the divine grace of Shirdi Sai Baba's Original Padukas in an atmosphere of ultimate peace and devotion.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white min-w-[200px] h-14 text-lg rounded-full">
-              <Link href="/darshan">Register for Darshan</Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white min-w-[240px] h-16 text-xl rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95">
+              <Link href="/darshan">Get Your Entry Pass</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-md min-w-[200px] h-14 text-lg rounded-full">
+            <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/40 backdrop-blur-md min-w-[240px] h-16 text-xl rounded-full shadow-xl transition-transform hover:scale-105 active:scale-95">
               <Link href="/live" className="flex items-center">
-                <PlayCircle className="mr-2 h-5 w-5 text-accent" />
+                <PlayCircle className="mr-3 h-6 w-6 text-accent animate-pulse" />
                 Live Darshan
               </Link>
             </Button>
@@ -68,15 +68,18 @@ export default function Home() {
       {/* Today's Blessing / Daily Darshan Section */}
       <section className="py-20 bg-background overflow-hidden">
         <div className="container px-4">
-          <div className="flex flex-col lg:flex-row gap-12 items-center">
+          <div className="flex flex-col lg:flex-row gap-16 items-center">
             <div className="flex-1 space-y-8 order-2 lg:order-1">
-              <div className="space-y-4">
-                <h2 className="text-3xl md:text-4xl font-headline font-bold flex items-center gap-3">
-                  <Sparkles className="text-primary h-8 w-8" />
-                  Today's Blessing
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-1 w-12 bg-primary rounded-full" />
+                  <span className="text-primary font-bold tracking-widest uppercase text-sm">Sacred Moments</span>
+                </div>
+                <h2 className="text-4xl md:text-5xl font-headline font-bold leading-tight">
+                  Daily Glimpse of <br /><span className="text-primary">Divine Grace</span>
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Start your day with the divine sight of Shri Sai Baba. Every day, we bring a fresh glimpse of the sacred murti or events directly from the temple trust to fill your heart with peace.
+                  Start your day with the blessed sight of the Padukas. We share real-time updates and sacred photography from the event venue to keep your soul connected with Sai's presence.
                 </p>
               </div>
 
@@ -87,47 +90,59 @@ export default function Home() {
                 </div>
               ) : todayBlessing ? (
                 <Card className="border-none shadow-none bg-transparent">
-                  <CardContent className="p-0 space-y-4">
-                    <p className="text-2xl font-headline italic text-primary">
-                      "{todayBlessing.caption || "May Sai Baba bless you always."}"
+                  <CardContent className="p-0 space-y-6">
+                    <p className="text-3xl font-headline italic text-primary font-medium leading-relaxed">
+                      "{todayBlessing.caption || "Shraddha and Saburi. Your faith will guide you to my door."}"
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Blessing for: {new Date(todayBlessing.blessingDate).toLocaleDateString()}
-                    </p>
-                    <Button asChild variant="outline" className="rounded-full">
-                      <Link href="/gallery">View All Gallery</Link>
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-muted rounded-full">
+                        <Calendar className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase text-muted-foreground">Blessing for</p>
+                        <p className="text-base font-bold">{new Date(todayBlessing.blessingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                      </div>
+                    </div>
+                    <Button asChild variant="outline" className="rounded-full px-8 h-12 hover:bg-primary hover:text-white border-primary text-primary transition-all">
+                      <Link href="/gallery" className="flex items-center gap-2">Explore Gallery <Star className="h-4 w-4" /></Link>
                     </Button>
                   </CardContent>
                 </Card>
               ) : (
-                <p className="text-muted-foreground">No blessings uploaded for today yet. Stay blessed!</p>
+                <div className="p-8 bg-muted/30 rounded-3xl border-dashed border-2 border-muted flex flex-col items-center text-center">
+                  <Sparkles className="h-12 w-12 text-muted-foreground/30 mb-4" />
+                  <p className="text-muted-foreground font-medium">Wait for the divine sight... No blessing uploaded yet today.</p>
+                </div>
               )}
             </div>
 
-            <div className="flex-1 order-1 lg:order-2 w-full max-w-md mx-auto">
+            <div className="flex-1 order-1 lg:order-2 w-full max-w-lg mx-auto">
               {isBlessingLoading ? (
-                <Skeleton className="aspect-[3/4] rounded-3xl" />
+                <Skeleton className="aspect-[3/4] rounded-[3rem]" />
               ) : todayBlessing ? (
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border-8 border-white group">
+                <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-[0_20px_50px_rgba(229,137,26,0.3)] border-[12px] border-white group">
                   <Image
                     src={todayBlessing.imageUrl}
                     alt="Daily Blessing"
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-8">
-                    <span className="text-white/80 text-sm font-medium tracking-widest uppercase">Sacred Darshan</span>
-                    <span className="text-white text-xl font-bold">Sai Parivar Ambala</span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-10">
+                    <span className="text-primary font-bold tracking-widest uppercase text-xs mb-2">Shri Sai Sansthan</span>
+                    <span className="text-white text-3xl font-bold font-headline">The Sacred Paduka</span>
                   </div>
                 </div>
               ) : (
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
+                <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-white bg-muted">
                   <Image
-                    src="https://picsum.photos/seed/sai-fallback/800/1200"
-                    alt="Daily Blessing Placeholder"
+                    src="https://picsum.photos/seed/sai-paduka-fallback/800/1200"
+                    alt="Sacred Placeholder"
                     fill
-                    className="object-cover"
+                    className="object-cover opacity-50 grayscale"
                   />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="h-20 w-20 text-white/20" />
+                  </div>
                 </div>
               )}
             </div>
@@ -136,44 +151,48 @@ export default function Home() {
       </section>
 
       {/* Event Details Section */}
-      <section className="py-20 bg-muted/30 relative overflow-hidden">
+      <section className="py-24 bg-muted/40 relative overflow-hidden">
+        <div className="absolute -top-24 -left-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
+        
         <div className="container px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4 text-foreground">Event Information</h2>
-            <div className="w-24 h-1 bg-primary mx-auto rounded-full"></div>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-6 text-foreground">A Day of Devotion</h2>
+            <div className="w-20 h-1.5 bg-primary mx-auto rounded-full"></div>
+            <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">Plan your visit to the Mahotsav. Every second spent in the presence of the Padukas is a step toward spiritual bliss.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="border-none shadow-xl bg-card hover:translate-y-[-4px] transition-all">
-              <CardContent className="pt-8 flex flex-col items-center text-center">
-                <div className="p-4 bg-primary/10 rounded-2xl mb-6">
-                  <Calendar className="h-8 w-8 text-primary" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] bg-card hover:translate-y-[-8px] transition-all duration-300 rounded-[2rem] group overflow-hidden">
+              <CardContent className="pt-10 flex flex-col items-center text-center p-8">
+                <div className="p-5 bg-primary/10 rounded-3xl mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Calendar className="h-10 w-10 text-primary transition-colors group-hover:text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Date</h3>
-                <p className="text-muted-foreground">Sunday, 9th March</p>
-                <p className="text-sm mt-2 text-accent font-medium">Mark your calendars!</p>
+                <h3 className="text-2xl font-bold mb-3">Divine Date</h3>
+                <p className="text-lg text-muted-foreground font-medium">Sunday, 9th March</p>
+                <div className="mt-4 px-4 py-1.5 bg-accent/10 rounded-full text-accent font-bold text-sm">Save the Date</div>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-xl bg-card hover:translate-y-[-4px] transition-all">
-              <CardContent className="pt-8 flex flex-col items-center text-center">
-                <div className="p-4 bg-primary/10 rounded-2xl mb-6">
-                  <MapPin className="h-8 w-8 text-primary" />
+            <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] bg-card hover:translate-y-[-8px] transition-all duration-300 rounded-[2rem] group overflow-hidden">
+              <CardContent className="pt-10 flex flex-col items-center text-center p-8">
+                <div className="p-5 bg-primary/10 rounded-3xl mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
+                  <MapPin className="h-10 w-10 text-primary transition-colors group-hover:text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Location</h3>
-                <p className="text-muted-foreground">Aggarwal Bhavan</p>
-                <p className="text-muted-foreground">Ambala, Haryana</p>
+                <h3 className="text-2xl font-bold mb-3">Sacred Venue</h3>
+                <p className="text-lg text-muted-foreground font-medium">Aggarwal Bhavan</p>
+                <p className="text-muted-foreground">Railway Station Area, Ambala</p>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-xl bg-card hover:translate-y-[-4px] transition-all">
-              <CardContent className="pt-8 flex flex-col items-center text-center">
-                <div className="p-4 bg-primary/10 rounded-2xl mb-6">
-                  <Clock className="h-8 w-8 text-primary" />
+            <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] bg-card hover:translate-y-[-8px] transition-all duration-300 rounded-[2rem] group overflow-hidden">
+              <CardContent className="pt-10 flex flex-col items-center text-center p-8">
+                <div className="p-5 bg-primary/10 rounded-3xl mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Clock className="h-10 w-10 text-primary transition-colors group-hover:text-white" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Timing</h3>
-                <p className="text-muted-foreground">9:00 AM onwards</p>
-                <p className="text-sm mt-2 text-accent font-medium">Bhandara starts at 1:00 PM</p>
+                <h3 className="text-2xl font-bold mb-3">Holy Schedule</h3>
+                <p className="text-lg text-muted-foreground font-medium">9:00 AM Onwards</p>
+                <p className="text-sm mt-3 text-accent font-bold bg-accent/5 px-4 py-1 rounded-full">Prasad starts at 1 PM</p>
               </CardContent>
             </Card>
           </div>
@@ -181,60 +200,79 @@ export default function Home() {
       </section>
 
       {/* Organizer Section */}
-      <section className="py-20 bg-background">
+      <section className="py-24 bg-background overflow-hidden">
         <div className="container px-4">
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="flex-1 space-y-6">
-              <h2 className="text-3xl md:text-4xl font-headline font-bold text-foreground">Organized by Sai Parivar Ambala</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Sai Parivar Ambala is a community dedicated to spreading the message of Love, Faith, and Patience. 
-                We organize various spiritual and social activities including Bhandaras, medical camps, and education support.
-              </p>
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <div className="flex items-center space-x-3">
-                  <Heart className="h-5 w-5 text-accent" />
-                  <span className="font-medium">10+ Years of Service</span>
+          <div className="flex flex-col md:flex-row items-center gap-20">
+            <div className="flex-1 space-y-8 animate-in fade-in slide-in-from-left duration-1000">
+              <div className="space-y-4">
+                <h2 className="text-4xl md:text-5xl font-headline font-bold text-foreground leading-tight">Serving the Divine with <br /><span className="text-primary underline decoration-accent/30 underline-offset-8">Sai Parivar Ambala</span></h2>
+                <p className="text-xl text-muted-foreground leading-relaxed">
+                  We are a dedicated group of devotees committed to spreading Shirdi Sai Baba's message of Shraddha (Faith) and Saburi (Patience). Our mission is to serve every devotee with the same love that Baba showered upon humanity.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-8 py-6">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-accent/10 rounded-lg"><Heart className="h-6 w-6 text-accent" /></div>
+                    <span className="font-bold text-xl">10+ Years</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground pl-11">Of Spiritual Service</p>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <Users className="h-5 w-5 text-accent" />
-                  <span className="font-medium">500+ Active Members</span>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-primary/10 rounded-lg"><Users className="h-6 w-6 text-primary" /></div>
+                    <span className="font-bold text-xl">500+ Members</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground pl-11">Volunteering for Good</p>
                 </div>
               </div>
-              <Button asChild className="bg-primary hover:bg-primary/90">
-                <Link href="/contact">Learn More & Contact Us</Link>
+              <Button asChild className="bg-primary hover:bg-primary/90 rounded-full px-12 h-14 text-lg shadow-xl shadow-primary/20">
+                <Link href="/contact" className="flex items-center gap-2">Get in Touch <ArrowLeft className="h-4 w-4 rotate-180" /></Link>
               </Button>
             </div>
-            <div className="flex-1 relative w-full aspect-square md:aspect-video rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
+            <div className="flex-1 relative w-full aspect-[4/3] rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.15)] border-[15px] border-white transition-transform hover:scale-105 duration-500">
               <Image
-                src={venueImg?.imageUrl || "https://picsum.photos/seed/venue/800/600"}
+                src={venueImg?.imageUrl || "https://picsum.photos/seed/ambala-venue/800/600"}
                 alt="Venue Image"
                 fill
                 className="object-cover"
                 data-ai-hint="building hall"
               />
+              <div className="absolute top-8 right-8 p-4 bg-white/90 backdrop-blur rounded-2xl shadow-lg border border-primary/20">
+                <div className="text-primary font-bold text-sm mb-1 uppercase tracking-widest">Main Hall</div>
+                <div className="font-headline font-bold text-lg">Aggarwal Bhavan</div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-accent text-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-12 opacity-10">
-          <Star className="w-64 h-64 rotate-45" />
+      <section className="py-24 bg-accent text-white overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
+          <Star className="w-96 h-96 rotate-45" />
         </div>
+        <div className="absolute -bottom-20 -left-20 p-12 opacity-10 pointer-events-none">
+          <Sparkles className="w-80 h-80" />
+        </div>
+        
         <div className="container px-4 text-center relative z-10">
-          <h2 className="text-3xl md:text-5xl font-headline font-bold mb-6">Be a Part of the Divine Journey</h2>
-          <p className="text-xl opacity-90 mb-10 max-w-2xl mx-auto">
-            Your contribution and service help us make this event a success. 
-            Join us in serving the community.
+          <h2 className="text-4xl md:text-6xl font-headline font-bold mb-8 drop-shadow-md">Step into the Divine Aura</h2>
+          <p className="text-2xl opacity-90 mb-12 max-w-3xl mx-auto font-medium leading-relaxed">
+            Your presence is what makes this Mahotsav special. Register now to secure your darshan pass and join us in serving the community.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button asChild variant="secondary" size="lg" className="rounded-full px-8">
-              <Link href="/donations">Make a Donation</Link>
+          <div className="flex flex-wrap justify-center gap-6">
+            <Button asChild variant="secondary" size="lg" className="rounded-full px-12 h-16 text-xl font-bold text-accent shadow-2xl hover:scale-105 transition-transform bg-white border-none">
+              <Link href="/donations">Make an Offering</Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="rounded-full px-8 border-white text-white hover:bg-white/10">
-              <Link href="/volunteer">Register as Volunteer</Link>
+            <Button asChild variant="outline" size="lg" className="rounded-full px-12 h-16 text-xl font-bold border-2 border-white text-white hover:bg-white/10 shadow-2xl hover:scale-105 transition-transform">
+              <Link href="/volunteer">Serve as Volunteer</Link>
             </Button>
+          </div>
+          <div className="mt-16 flex items-center justify-center gap-2 opacity-70">
+            <div className="h-px w-12 bg-white/40" />
+            <span className="text-sm font-bold tracking-widest uppercase">Om Sai Ram</span>
+            <div className="h-px w-12 bg-white/40" />
           </div>
         </div>
       </section>
