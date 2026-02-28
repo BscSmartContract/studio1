@@ -162,7 +162,9 @@
             "type": "object",
             "properties": {
               "name": { "type": "string" },
-              "age": { "type": "number" }
+              "age": { "type": "number" },
+              "isCheckedIn": { "type": "boolean", "default": false },
+              "checkInTime": { "type": "string", "format": "date-time" }
             },
             "required": ["name", "age"]
           }
@@ -174,12 +176,7 @@
         },
         "isCheckedIn": {
           "type": "boolean",
-          "description": "Whether the group has checked in at the venue entry."
-        },
-        "checkInTime": {
-          "type": "string",
-          "description": "The timestamp when the user checked in.",
-          "format": "date-time"
+          "description": "Whether the group as a whole has started check-in."
         }
       },
       "required": [

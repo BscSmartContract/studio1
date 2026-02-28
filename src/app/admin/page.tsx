@@ -25,7 +25,9 @@ import {
   ScanLine,
   QrCode,
   ShieldCheck,
-  Trash2
+  Trash2,
+  CheckCircle2,
+  Circle
 } from "lucide-react";
 import { 
   useAuth,
@@ -80,7 +82,7 @@ export default function AdminPanel() {
   const [blessingCaption, setBlessingCaption] = useState("");
   const [blessingDate, setBlessingDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Check-in logic
+  // Entry Check-in logic
   const [passCodeInput, setPassCodeInput] = useState("");
   const [scanning, setScanning] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -97,7 +99,6 @@ export default function AdminPanel() {
     if (scanning) {
       const getCameraPermission = async () => {
         try {
-          // Use facingMode: "environment" to prefer the back camera
           const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "environment" }
           });
@@ -111,7 +112,7 @@ export default function AdminPanel() {
           toast({
             variant: 'destructive',
             title: 'Camera Access Denied',
-            description: 'Please enable camera permissions in your browser settings to use this app.',
+            description: 'Please enable camera permissions in your browser settings.',
           });
         }
       };
@@ -129,7 +130,6 @@ export default function AdminPanel() {
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: "Verification Attempted", description: "Checking administrator status..." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Sign In Failed", description: error.message });
     }
@@ -185,17 +185,24 @@ export default function AdminPanel() {
     }
   };
 
-  const handleCheckIn = () => {
+  const handleIndividualCheckIn = (devoteeIndex: number) => {
     if (!foundRegistration || !db) return;
     
-    const regRef = doc(db, "users", foundRegistration.externalAuthUserId, "darshan_registrations", foundRegistration.id);
-    updateDocumentNonBlocking(regRef, {
+    const updatedDevotees = [...foundRegistration.devotees];
+    updatedDevotees[devoteeIndex] = {
+      ...updatedDevotees[devoteeIndex],
       isCheckedIn: true,
       checkInTime: new Date().toISOString()
+    };
+
+    const regRef = doc(db, "users", foundRegistration.externalAuthUserId, "darshan_registrations", foundRegistration.id);
+    updateDocumentNonBlocking(regRef, {
+      devotees: updatedDevotees,
+      isCheckedIn: true // Mark group as having started check-in
     });
 
-    setFoundRegistration({ ...foundRegistration, isCheckedIn: true });
-    toast({ title: "Check-in Successful", description: "Devotee entry has been recorded." });
+    setFoundRegistration({ ...foundRegistration, devotees: updatedDevotees, isCheckedIn: true });
+    toast({ title: "Check-in Successful", description: `Entry recorded for ${updatedDevotees[devoteeIndex].name}.` });
   };
 
   if (authLoading) {
@@ -293,7 +300,7 @@ export default function AdminPanel() {
                     <CardTitle className="flex items-center justify-center gap-2">
                       <ScanLine className="text-primary" /> Venue Entry Check-in
                     </CardTitle>
-                    <CardDescription>Verify devotee passes and record entry</CardDescription>
+                    <CardDescription>Verify devotee passes and record individual entry</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="flex flex-col md:flex-row gap-4 items-end">
@@ -306,9 +313,9 @@ export default function AdminPanel() {
                           className="h-12 text-xl font-bold tracking-widest text-center"
                         />
                       </div>
-                      <Button onClick={handleSearchPass} className="h-12 px-8 bg-primary">Search Devotee</Button>
+                      <Button onClick={handleSearchPass} className="h-12 px-8 bg-primary">Search</Button>
                       <Button variant="outline" className="h-12 px-6" onClick={() => setScanning(!scanning)}>
-                         <QrCode className="h-4 w-4 mr-2" /> {scanning ? "Close Camera" : "Open Scanner"}
+                         <QrCode className="h-4 w-4 mr-2" /> {scanning ? "Close" : "Scan"}
                       </Button>
                     </div>
 
@@ -322,46 +329,53 @@ export default function AdminPanel() {
                     )}
 
                     {foundRegistration && (
-                      <Card className={`mt-8 border-2 ${foundRegistration.isCheckedIn ? 'bg-green-50 border-green-200' : 'bg-primary/5 border-primary/20'}`}>
+                      <Card className="mt-8 border-2 bg-primary/5 border-primary/20">
                         <div className="p-6">
                            <div className="flex justify-between items-start mb-6">
                               <div>
                                 <h3 className="text-2xl font-bold">{foundRegistration.userName}</h3>
                                 <p className="text-sm text-muted-foreground">{foundRegistration.userPhone}</p>
                               </div>
-                              <div className={`px-4 py-1.5 rounded-full font-bold text-xs ${foundRegistration.isCheckedIn ? 'bg-green-600 text-white' : 'bg-primary text-white'}`}>
-                                {foundRegistration.isCheckedIn ? 'CHECKED IN' : 'PENDING'}
+                              <div className="text-right">
+                                <span className="text-[10px] font-bold uppercase block mb-1">Pass Code</span>
+                                <span className="text-lg font-bold font-mono text-primary">{foundRegistration.id.substring(0, 8).toUpperCase()}</span>
                               </div>
                            </div>
                            
-                           <div className="grid grid-cols-2 gap-4 mb-6">
-                              <div className="p-4 bg-white rounded-2xl shadow-sm border">
-                                 <span className="text-[10px] font-bold uppercase block mb-1">Group Size</span>
-                                 <span className="text-2xl font-bold text-primary">{foundRegistration.totalPeople} Persons</span>
-                              </div>
-                              <div className="p-4 bg-white rounded-2xl shadow-sm border">
-                                 <span className="text-[10px] font-bold uppercase block mb-1">Pass Code</span>
-                                 <span className="text-lg font-bold font-mono">{foundRegistration.id.substring(0, 8).toUpperCase()}</span>
-                              </div>
-                           </div>
-
-                           <div className="space-y-3">
-                              <h4 className="font-bold text-xs uppercase text-muted-foreground">Attendance List</h4>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                           <div className="space-y-4">
+                              <h4 className="font-bold text-sm uppercase text-muted-foreground border-b pb-2">Devotee Check-in List ({foundRegistration.totalPeople})</h4>
+                              <div className="grid grid-cols-1 gap-3">
                                  {foundRegistration.devotees?.map((dev: any, i: number) => (
-                                   <div key={i} className="flex justify-between items-center p-2 bg-white rounded-lg border text-sm">
-                                      <span>{dev.name}</span>
-                                      <span className="text-[10px] bg-muted px-2 py-0.5 rounded">Age: {dev.age}</span>
+                                   <div key={i} className="flex justify-between items-center p-4 bg-white rounded-2xl border shadow-sm">
+                                      <div className="flex items-center gap-3">
+                                         {dev.isCheckedIn ? (
+                                           <CheckCircle2 className="h-6 w-6 text-green-600" />
+                                         ) : (
+                                           <Circle className="h-6 w-6 text-muted-foreground" />
+                                         )}
+                                         <div>
+                                            <p className="font-bold text-lg">{dev.name}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase">Age: {dev.age}</p>
+                                         </div>
+                                      </div>
+                                      {dev.isCheckedIn ? (
+                                        <div className="text-right">
+                                           <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">ENTERED</span>
+                                           {dev.checkInTime && <p className="text-[8px] mt-1">{new Date(dev.checkInTime).toLocaleTimeString()}</p>}
+                                        </div>
+                                      ) : (
+                                        <Button 
+                                          onClick={() => handleIndividualCheckIn(i)} 
+                                          size="sm" 
+                                          className="bg-primary hover:bg-primary/90 font-bold"
+                                        >
+                                          Confirm Entry
+                                        </Button>
+                                      )}
                                    </div>
                                  ))}
                               </div>
                            </div>
-                           
-                           {!foundRegistration.isCheckedIn && (
-                             <Button onClick={handleCheckIn} className="w-full mt-8 h-16 text-xl font-bold bg-green-600 hover:bg-green-700 shadow-lg rounded-2xl">
-                               Confirm & Complete Entry
-                             </Button>
-                           )}
                         </div>
                       </Card>
                     )}
@@ -384,60 +398,74 @@ export default function AdminPanel() {
                       <TableRow>
                         <TableHead>Contact Person</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Total People</TableHead>
+                        <TableHead>People</TableHead>
                         <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Details</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allRegistrations.map((reg) => (
-                        <TableRow key={reg.id}>
-                          <TableCell className="font-medium">
-                             <div>{reg.userName || "N/A"}</div>
-                             <div className="text-[10px] text-muted-foreground font-mono">{reg.id.substring(0, 8).toUpperCase()}</div>
-                          </TableCell>
-                          <TableCell>
-                            {reg.isCheckedIn ? (
-                              <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">IN</span>
-                            ) : (
-                              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">WAITING</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                             <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs">
-                               {reg.totalPeople || 0}
-                             </span>
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            {reg.registrationDate ? new Date(reg.registrationDate).toLocaleDateString() : "N/A"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button size="sm" variant="outline" className="h-8">
-                                  <Info className="h-3.5 w-3.5 mr-1" /> View List
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-md">
-                                <DialogHeader>
-                                  <DialogTitle>Devotee List</DialogTitle>
-                                  <DialogDescription>
-                                    Group members registered by {reg.userName}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="mt-4 space-y-2">
-                                  {reg.devotees?.map((dev: any, idx: number) => (
-                                    <div key={idx} className="flex justify-between items-center p-3 bg-muted rounded-lg border">
-                                      <span className="font-medium">{dev.name}</span>
-                                      <span className="text-xs bg-white px-2 py-1 rounded border">Age: {dev.age}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </DialogContent>
-                            </Dialog>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {allRegistrations.map((reg) => {
+                        const checkedCount = reg.devotees?.filter((d: any) => d.isCheckedIn).length || 0;
+                        const isFullyCheckedIn = checkedCount === reg.totalPeople;
+
+                        return (
+                          <TableRow key={reg.id}>
+                            <TableCell className="font-medium">
+                               <div>{reg.userName || "N/A"}</div>
+                               <div className="text-[10px] text-muted-foreground font-mono">{reg.id.substring(0, 8).toUpperCase()}</div>
+                            </TableCell>
+                            <TableCell>
+                              {isFullyCheckedIn ? (
+                                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">FULL ENTRY</span>
+                              ) : checkedCount > 0 ? (
+                                <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold">{checkedCount}/{reg.totalPeople} IN</span>
+                              ) : (
+                                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">WAITING</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                               <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs">
+                                 {reg.totalPeople || 0}
+                               </span>
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {reg.registrationDate ? new Date(reg.registrationDate).toLocaleDateString() : "N/A"}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button size="sm" variant="outline" className="h-8">
+                                    <Info className="h-3.5 w-3.5 mr-1" /> Details
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md">
+                                  <DialogHeader>
+                                    <DialogTitle>Devotee List</DialogTitle>
+                                    <DialogDescription>
+                                      Contact: {reg.userName} ({reg.userPhone})
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="mt-4 space-y-2">
+                                    {reg.devotees?.map((dev: any, idx: number) => (
+                                      <div key={idx} className="flex justify-between items-center p-3 bg-muted rounded-lg border">
+                                        <div>
+                                           <span className="font-medium">{dev.name}</span>
+                                           <span className="text-[10px] ml-2 opacity-60">Age: {dev.age}</span>
+                                        </div>
+                                        {dev.isCheckedIn ? (
+                                          <span className="text-[10px] bg-green-600 text-white px-2 py-0.5 rounded">CHECKED IN</span>
+                                        ) : (
+                                          <span className="text-[10px] bg-muted-foreground/20 text-muted-foreground px-2 py-0.5 rounded">PENDING</span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 ) : (

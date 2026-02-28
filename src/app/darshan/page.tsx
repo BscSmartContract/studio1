@@ -161,7 +161,12 @@ export default function DarshanPage() {
       userEmail: user.email || "No Email",
       userPhone: contactPhone,
       totalPeople: totalPeople,
-      devotees: attendees.map(a => ({ name: a.name, age: parseInt(a.age) })),
+      devotees: attendees.map(a => ({ 
+        name: a.name, 
+        age: parseInt(a.age),
+        isCheckedIn: false,
+        checkInTime: null
+      })),
       registrationDate: new Date().toISOString(),
       isCheckedIn: false
     };
@@ -175,7 +180,7 @@ export default function DarshanPage() {
           userEmail: user.email,
           userName: regData.userName,
           totalPeople: regData.totalPeople,
-          devotees: regData.devotees,
+          devotees: regData.devotees.map(d => ({ name: d.name, age: d.age })),
           eventDate: "9th March"
         });
         setConfirmationMessage(result.draftedContent);
