@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,7 +21,7 @@ import {
   ScrollText,
   Plus,
   Minus,
-  Share2,
+  Printer,
   MessageSquare
 } from "lucide-react";
 import { 
@@ -154,6 +153,12 @@ export default function DarshanPage() {
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
+  const handlePrint = () => {
+    if (typeof window !== 'undefined') {
+      window.print();
+    }
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db || !user) return;
@@ -197,8 +202,6 @@ export default function DarshanPage() {
         if (result.success && result.draftedContent) {
           setConfirmationMessage(result.draftedContent);
 
-          // We still write to 'mail' collection. If the user eventually upgrades 
-          // or sets up a manual cloud function, this will work.
           const mailColRef = collection(db, "mail");
           addDocumentNonBlocking(mailColRef, {
             to: user.email,
@@ -237,7 +240,7 @@ export default function DarshanPage() {
   return (
     <div className="py-12 md:py-24 bg-background min-h-[calc(100vh-80px)]">
       <div className="container px-4 mx-auto max-w-4xl">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 no-print">
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4">Darshan Registration</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Book your divine slot. Please provide details of all individuals attending.
@@ -336,7 +339,7 @@ export default function DarshanPage() {
             </CardHeader>
             <CardContent className="space-y-8 pb-10 px-8">
               
-              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row gap-4 mb-4 no-print">
                 <Button 
                   onClick={handleShareWhatsApp}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-full h-12"
@@ -345,10 +348,10 @@ export default function DarshanPage() {
                 </Button>
                 <Button 
                   variant="outline"
-                  onClick={() => window.print()}
+                  onClick={handlePrint}
                   className="flex-1 border-primary text-primary hover:bg-primary/5 rounded-full h-12"
                 >
-                  <Share2 className="h-4 w-4 mr-2" /> Save/Print Pass
+                  <Printer className="h-4 w-4 mr-2" /> Save/Print Pass
                 </Button>
               </div>
 
@@ -401,7 +404,7 @@ export default function DarshanPage() {
                 <strong>Arrival Time: 9:00 AM</strong>
               </p>
             </CardContent>
-            <CardFooter className="flex justify-center border-t bg-muted/20 py-6">
+            <CardFooter className="flex justify-center border-t bg-muted/20 py-6 no-print">
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-primary">
                 <LogOut className="h-4 w-4 mr-2" /> Sign out ({user.email || 'Devotee'})
               </Button>
