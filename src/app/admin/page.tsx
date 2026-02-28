@@ -97,7 +97,10 @@ export default function AdminPanel() {
     if (scanning) {
       const getCameraPermission = async () => {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({video: true});
+          // Use facingMode: "environment" to prefer the back camera
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+          });
           setHasCameraPermission(true);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
