@@ -180,46 +180,39 @@ export default function AdminPanel() {
                 <CardDescription className="text-foreground">Follow these steps to enable Google Login for your devotees.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 pt-6">
+                <div className="bg-primary/10 p-4 rounded-lg border border-primary/20 mb-6">
+                  <h3 className="font-bold text-primary mb-2 flex items-center gap-2">
+                    <ExternalLink className="h-4 w-4" /> Quick Link
+                  </h3>
+                  <p className="text-sm mb-4">Click the button below to go directly to the page where you need to enable Google Login.</p>
+                  <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90" asChild>
+                    <a href="https://console.firebase.google.com/project/studio-2851341323-b12c8/authentication/providers" target="_blank">
+                      Open Authentication Settings Directly
+                    </a>
+                  </Button>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
-                    <h3 className="font-bold text-lg border-b pb-2">Step 1: Open Firebase Console</h3>
-                    <p className="text-sm text-muted-foreground">Go to your project dashboard on the Firebase website.</p>
-                    <Button variant="outline" className="w-full gap-2" asChild>
-                      <a href="https://console.firebase.google.com/" target="_blank">
-                        Open Firebase Console <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-lg border-b pb-2">Step 2: Find the "Build" Menu</h3>
-                    <p className="text-sm text-muted-foreground">On the left sidebar, look for the <strong>Build</strong> category. Click it to expand.</p>
-                    <div className="p-3 bg-muted rounded border text-xs font-mono">
-                      Sidebar {" > "} Build {" > "} Authentication
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-lg border-b pb-2">Step 3: Enable Google Provider</h3>
-                    <p className="text-sm text-muted-foreground">Click <strong>Authentication</strong>, then the <strong>Sign-in method</strong> tab.</p>
+                    <h3 className="font-bold text-lg border-b pb-2">Step 1: Enable Google Provider</h3>
+                    <p className="text-sm text-muted-foreground">On the page that opens, click <strong>"Add new provider"</strong>, then select <strong>"Google"</strong>.</p>
                     <ul className="text-sm list-disc pl-5 space-y-1 text-muted-foreground">
-                      <li>Click "Add new provider"</li>
-                      <li>Select "Google"</li>
-                      <li>Enable it and select your support email</li>
-                      <li>Click "Save"</li>
+                      <li>Enable the switch at the top.</li>
+                      <li>Select your support email from the list.</li>
+                      <li>Click <strong>"Save"</strong>.</li>
                     </ul>
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="font-bold text-lg border-b pb-2">Step 4: CRITICAL - Authorized Domains</h3>
+                    <h3 className="font-bold text-lg border-b pb-2">Step 2: Authorized Domains</h3>
                     <p className="text-sm text-muted-foreground">In Authentication, click the <strong>Settings</strong> tab, then <strong>Authorized domains</strong>.</p>
                     <p className="text-sm text-muted-foreground">Ensure your current website URL (the one you see in the browser address bar) is added here. If it's not listed, Google will block the login.</p>
                   </div>
                 </div>
 
-                <div className="mt-8 p-4 bg-primary/5 rounded-xl border border-primary/20">
+                <div className="mt-8 p-4 bg-muted rounded-xl border border-border">
                   <p className="text-sm font-medium">Common Login Issue: "auth/unauthorized-domain"</p>
-                  <p className="text-xs text-muted-foreground mt-1">If devotees see an error saying the domain is unauthorized, it means you haven't completed Step 4 above. Firebase only allows logins from domains you specifically list for security reasons.</p>
+                  <p className="text-xs text-muted-foreground mt-1">If devotees see an error saying the domain is unauthorized, it means you haven't completed Step 2 above. Firebase only allows logins from domains you specifically list for security reasons.</p>
                 </div>
               </CardContent>
             </Card>
