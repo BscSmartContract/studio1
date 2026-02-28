@@ -24,7 +24,8 @@ import {
   ShieldCheck,
   LogIn,
   LogOut,
-  Mail
+  Mail,
+  Edit3
 } from "lucide-react";
 import { 
   useAuth,
@@ -48,21 +49,16 @@ export default function AdminPanel() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [password, setPassword] = useState("");
 
-  // Firebase Refs - only initialize if unlocked to avoid permission errors
   const configRef = useMemoFirebase(() => (db && isUnlocked) ? doc(db, "app_configuration", "main") : null, [db, isUnlocked]);
   const blessingsRef = useMemoFirebase(() => (db && isUnlocked) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isUnlocked]);
-  
-  // Collection Group queries for all nested registrations
   const allRegistrationsQuery = useMemoFirebase(() => (db && isUnlocked) ? collectionGroup(db, "darshan_registrations") : null, [db, isUnlocked]);
   const allVolunteersQuery = useMemoFirebase(() => (db && isUnlocked) ? collectionGroup(db, "volunteers") : null, [db, isUnlocked]);
 
-  // Data fetching
   const { data: config } = useDoc(configRef);
   const { data: blessings } = useCollection(blessingsRef);
   const { data: allRegistrations, isLoading: regLoading, error: regError } = useCollection(allRegistrationsQuery);
   const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
-  // Form states
   const [liveUrl, setLiveUrl] = useState("");
   const [blessingImg, setBlessingImg] = useState("");
   const [blessingCaption, setBlessingCaption] = useState("");
@@ -208,7 +204,7 @@ export default function AdminPanel() {
         {regError && (
           <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
-            <span>Permission Denied: Your account ({user.email}) is not authorized as an Admin in Firestore. See Step 1 in the Setup Guide.</span>
+            <span>Permission Denied: Your account ({user.email}) is not authorized as an Admin in Firestore. See Setup Guide.</span>
           </div>
         )}
 
@@ -237,25 +233,49 @@ export default function AdminPanel() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Setup Guide Tab */}
           <TabsContent value="setup">
             <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
               <CardHeader className="bg-accent/5">
                 <CardTitle className="flex items-center gap-2 text-accent">
-                  <AlertCircle className="h-6 w-6" /> Required Administrative Setup
+                  <ShieldCheck className="h-6 w-6" /> System Configuration Guide
                 </CardTitle>
-                <CardDescription className="text-foreground">Follow these steps to fully enable data management.</CardDescription>
+                <CardDescription className="text-foreground font-medium">Follow these steps to ensure the portal runs smoothly.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-8 pt-6">
+                
                 <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2">Step 1: Grant Database Privileges</h3>
-                  <p className="text-sm text-muted-foreground">Even after logging in, Firestore requires you to be listed in the <code>roles_admin</code> collection for security.</p>
+                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" /> 1. Clean User Emails (Customizing the Link)
+                  </h3>
+                  <p className="text-sm text-muted-foreground">To make the email sent to users look clean and professional (Subject & Body):</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-3">
+                    <ol className="text-sm list-decimal pl-5 space-y-2">
+                      <li>Go to <strong>Authentication &gt; Templates</strong> in the console.</li>
+                      <li>Select the <strong>"Email address verification"</strong> or <strong>"Passwordless sign-in"</strong> template.</li>
+                      <li>Click the <strong>Edit (pencil) icon</strong>.</li>
+                      <li>Change the <strong>Sender name</strong> to <code>Sai Parivar Ambala</code>.</li>
+                      <li>Update the <strong>Subject</strong> and <strong>Message</strong> to your liking.</li>
+                      <li>Click <strong>Save</strong>.</li>
+                    </ol>
+                    <Button size="sm" variant="outline" className="w-full mt-2" asChild>
+                      <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/templates`} target="_blank">
+                        <ExternalLink className="h-3 w-3 mr-2" /> Open Email Templates
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-primary" /> 2. Grant Database Privileges
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Firestore requires you to be listed in the <code>roles_admin</code> collection to view registration data.</p>
                   <div className="bg-muted p-4 rounded-lg space-y-2">
                     <ol className="text-sm list-decimal pl-5 space-y-1">
                       <li>Go to <strong>Build &gt; Firestore Database</strong> in the console.</li>
                       <li>Click <strong>"Start collection"</strong>.</li>
                       <li>Collection ID: <code>roles_admin</code></li>
-                      <li>Document ID: <code>{user.uid}</code> (Copy this value)</li>
+                      <li>Document ID: <code>{user.uid}</code></li>
                       <li>Add a field: <code>uid</code> (string) = <code>{user.uid}</code></li>
                       <li>Click <strong>Save</strong>.</li>
                     </ol>
@@ -263,54 +283,29 @@ export default function AdminPanel() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2">Step 2: Enable Authentication Methods</h3>
-                  <p className="text-sm text-muted-foreground">Both Google and Email Link login must be enabled for devotees to register.</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border rounded-lg bg-card shadow-sm space-y-3">
-                      <div className="flex items-center gap-2 font-bold text-primary">
-                        <LogIn className="h-4 w-4" /> Google Login
-                      </div>
-                      <p className="text-xs text-muted-foreground">Allows instant registration using Google accounts.</p>
-                      <Button size="sm" className="w-full" asChild>
-                        <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
-                          <ExternalLink className="h-3 w-3 mr-2" /> Enable Google
-                        </a>
-                      </Button>
-                    </div>
-
-                    <div className="p-4 border rounded-lg bg-card shadow-sm space-y-3">
-                      <div className="flex items-center gap-2 font-bold text-primary">
-                        <Mail className="h-4 w-4" /> Email Link (OTP)
-                      </div>
-                      <p className="text-xs text-muted-foreground">Critical: Check the "Email link (passwordless sign-in)" box inside settings.</p>
-                      <Button size="sm" variant="outline" className="w-full" asChild>
-                        <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
-                          <ExternalLink className="h-3 w-3 mr-2" /> Enable Email Link
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2">Step 3: Whitelist This Domain</h3>
-                  <p className="text-sm text-muted-foreground">Firebase blocks authentication requests from unknown domains. You must add the current URL to the authorized list.</p>
+                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                    <LogIn className="h-5 w-5 text-primary" /> 3. Domain Whitelisting
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Firebase blocks login links from unknown domains. You must add the current URL to the authorized list.</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
-                    <p className="text-xs font-mono break-all">Current Domain: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
+                    <p className="text-xs font-mono break-all">Current Hostname: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
                     <ol className="text-sm list-decimal pl-5 space-y-1">
                       <li>Go to <strong>Authentication &gt; Settings</strong> tab.</li>
                       <li>Select <strong>"Authorized domains"</strong>.</li>
                       <li>Click <strong>"Add domain"</strong>.</li>
                       <li>Paste the hostname above and click <strong>Add</strong>.</li>
                     </ol>
+                    <Button size="sm" variant="outline" className="w-full" asChild>
+                      <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
+                        <ExternalLink className="h-3 w-3 mr-2" /> Open Settings
+                      </a>
+                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Live Darshan Tab */}
           <TabsContent value="live-darshan">
             <Card className="shadow-lg max-w-2xl mx-auto">
               <CardHeader>
@@ -336,7 +331,6 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
 
-          {/* Daily Blessings Tab */}
           <TabsContent value="blessings">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="shadow-lg">
@@ -407,7 +401,6 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          {/* Registrations Tab */}
           <TabsContent value="registrations">
             <Card className="shadow-lg">
               <CardHeader>
@@ -447,7 +440,6 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>
 
-          {/* Volunteers Tab */}
           <TabsContent value="volunteers">
             <Card className="shadow-lg">
               <CardHeader>

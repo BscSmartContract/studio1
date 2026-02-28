@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Info, Loader2, LogOut, Mail, Send } from "lucide-react";
+import { ShieldCheck, Info, Loader2, LogOut, Mail, Send, Sparkles, ArrowLeft } from "lucide-react";
 import { 
   useAuth, 
   useUser, 
@@ -29,7 +29,6 @@ export default function DarshanPage() {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
 
-  // Check if current user is already registered
   const registrationsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, "users", user.uid, "darshan_registrations");
@@ -55,8 +54,8 @@ export default function DarshanPage() {
         variant: "destructive",
         title: "Login Failed",
         description: error.code === 'auth/operation-not-allowed' 
-          ? "Google login is not enabled in your Firebase console. Please see the Admin Setup Guide." 
-          : error.message || "Could not sign in with Google.",
+          ? "Google login is not enabled. Please contact administrator." 
+          : error.message,
       });
     } finally {
       setIsSubmitting(false);
@@ -72,14 +71,14 @@ export default function DarshanPage() {
       await sendLoginLink(auth, email);
       setEmailSent(true);
       toast({
-        title: "Link Sent!",
-        description: `A divine login link has been sent to ${email}. Please check your inbox.`,
+        title: "Divine Link Sent",
+        description: `Check your inbox at ${email}.`,
       });
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Failed to send link",
-        description: error.message || "Something went wrong.",
+        title: "Delivery Failed",
+        description: error.message,
       });
     } finally {
       setIsSubmitting(false);
@@ -91,7 +90,6 @@ export default function DarshanPage() {
       await signOut(auth);
       setEmailSent(false);
       setLoginMethod('options');
-      toast({ title: "Signed Out", description: "You have been logged out successfully." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: "Could not sign out." });
     }
@@ -116,7 +114,7 @@ export default function DarshanPage() {
       setIsSubmitting(false);
       toast({
         title: "Registration Complete",
-        description: "You have been registered for Sai Paduka Darshan on 9th March.",
+        description: "You have been registered for Sai Paduka Darshan.",
       });
     }, 1000);
   };
@@ -140,19 +138,20 @@ export default function DarshanPage() {
         </div>
 
         {!user ? (
-          <Card className="max-w-md mx-auto shadow-2xl border-primary/20 bg-muted/30">
-            <CardHeader className="text-center">
+          <Card className="max-w-md mx-auto shadow-2xl border-primary/20 bg-muted/50 overflow-hidden">
+            <div className="h-2 bg-primary w-full" />
+            <CardHeader className="text-center pt-8">
               <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
                 <ShieldCheck className="h-10 w-10 text-primary" />
               </div>
-              <CardTitle className="text-2xl">Identity Verification</CardTitle>
+              <CardTitle className="text-2xl font-headline">Verify Identity</CardTitle>
               <CardDescription>
-                Choose a method to identify yourself and register.
+                Choose a method to identify yourself.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pb-12">
               {loginMethod === 'options' && (
-                <div className="space-y-4">
+                <div className="space-y-4 px-4">
                   <Button 
                     onClick={handleGoogleLogin} 
                     disabled={isSubmitting}
@@ -169,52 +168,55 @@ export default function DarshanPage() {
                   <Button 
                     onClick={() => setLoginMethod('email')} 
                     variant="outline" 
-                    className="w-full h-12 flex items-center justify-center gap-2"
+                    className="w-full h-12 flex items-center justify-center gap-2 border-primary/30"
                   >
-                    <Mail className="h-5 w-5" /> Continue with Email
+                    <Mail className="h-5 w-5 text-primary" /> Continue with Email
                   </Button>
                 </div>
               )}
 
               {loginMethod === 'email' && !emailSent && (
-                <form onSubmit={handleEmailLogin} className="space-y-4">
-                  <div className="space-y-2 text-left">
-                    <Label htmlFor="email">Email Address</Label>
+                <form onSubmit={handleEmailLogin} className="space-y-4 px-4 text-left">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-muted-foreground">Email Address</Label>
                     <Input 
                       id="email" 
                       type="email" 
-                      placeholder="Enter your email" 
+                      placeholder="devotee@example.com" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      className="h-12"
                     />
                   </div>
                   <Button type="submit" className="w-full h-12 bg-primary" disabled={isSubmitting}>
-                    {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : <><Send className="h-4 w-4 mr-2" /> Send Login Link</>}
+                    {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : <><Send className="h-4 w-4 mr-2" /> Send Divine Link</>}
                   </Button>
-                  <Button variant="ghost" onClick={() => setLoginMethod('options')} className="w-full text-xs">
-                    Back to other options
+                  <Button variant="ghost" onClick={() => setLoginMethod('options')} className="w-full text-xs text-muted-foreground">
+                    <ArrowLeft className="h-3 w-3 mr-1" /> Use different method
                   </Button>
                 </form>
               )}
 
               {emailSent && (
-                <div className="text-center py-6 space-y-4">
-                  <div className="bg-primary/10 p-4 rounded-full w-fit mx-auto">
-                    <Mail className="h-8 w-8 text-primary" />
+                <div className="text-center py-6 px-4 space-y-6">
+                  <div className="bg-primary/5 p-6 rounded-full w-fit mx-auto relative">
+                    <Mail className="h-12 w-12 text-primary" />
+                    <Sparkles className="h-6 w-6 text-accent absolute top-0 right-0 animate-pulse" />
                   </div>
-                  <h3 className="text-xl font-bold">Check Your Email</h3>
-                  <p className="text-sm text-muted-foreground">
-                    We sent a login link to <strong>{email}</strong>. 
-                  </p>
-                  <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-lg text-xs text-yellow-800 text-left">
-                    <strong>Don't see it?</strong>
-                    <ul className="mt-1 list-disc pl-4 space-y-1">
-                      <li>Check your <strong>Spam</strong> or Junk folder.</li>
-                    </ul>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-headline font-bold text-foreground">Link Sent!</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      We have sent a secure login link to:<br />
+                      <strong className="text-foreground">{email}</strong>
+                    </p>
                   </div>
-                  <Button variant="link" onClick={() => setEmailSent(false)} className="text-xs text-primary">
-                    Try again with a different email
+                  <div className="p-4 bg-yellow-50/50 border border-yellow-100 rounded-xl text-xs text-yellow-800 text-left">
+                    <p className="font-bold mb-1">Divine Note:</p>
+                    <p>Please check your <strong>Spam</strong> folder if you don't see the link in 2 minutes. The link is valid for 1 hour.</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setEmailSent(false)} className="text-xs">
+                    Try different email
                   </Button>
                 </div>
               )}
@@ -222,49 +224,61 @@ export default function DarshanPage() {
           </Card>
         ) : isRegistered ? (
           <Card className="max-w-md mx-auto shadow-2xl border-accent/20 bg-green-50/50">
-            <CardHeader className="text-center">
+            <CardHeader className="text-center pt-10">
               <div className="mx-auto bg-green-100 p-4 rounded-full w-fit mb-4">
-                <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <CheckCircle2 className="h-10 w-10 text-green-600" />
               </div>
-              <CardTitle className="text-2xl text-green-800">Registration Confirmed!</CardTitle>
+              <CardTitle className="text-2xl font-headline text-green-800">Registration Confirmed!</CardTitle>
               <CardDescription>
-                Thank you, {user.displayName || user.email?.split('@')[0] || "Devotee"}.
+                Om Sai Ram, {user.displayName || user.email?.split('@')[0] || "Devotee"}.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-white rounded-lg border border-dashed border-green-300 text-center">
-                <span className="text-xs uppercase tracking-widest text-muted-foreground block mb-1">Entry Pass ID</span>
-                <span className="text-2xl font-mono font-bold text-foreground">SAI-{registrations[0].id.substring(0, 8).toUpperCase()}</span>
+            <CardContent className="space-y-4 pb-10 px-8">
+              <div className="p-6 bg-white rounded-2xl border border-dashed border-green-300 text-center shadow-inner">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-2">Divine Entry Pass ID</span>
+                <span className="text-3xl font-mono font-bold text-foreground">SAI-{registrations[0].id.substring(0, 8).toUpperCase()}</span>
               </div>
+              <p className="text-center text-xs text-muted-foreground">Please show this ID at the entry gate on 9th March.</p>
             </CardContent>
-            <CardFooter className="flex justify-center border-t pt-4">
+            <CardFooter className="flex justify-center border-t bg-muted/20 py-4">
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
                 <LogOut className="h-4 w-4 mr-2" /> Sign out ({user.email})
               </Button>
             </CardFooter>
           </Card>
         ) : (
-          <Card className="max-w-xl mx-auto shadow-2xl border-primary/20">
-            <CardHeader>
+          <Card className="max-w-xl mx-auto shadow-2xl border-primary/20 overflow-hidden">
+            <div className="h-2 bg-primary w-full" />
+            <CardHeader className="pt-10">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle>Confirm Your Darshan</CardTitle>
-                  <CardDescription>Logged in as {user.email}</CardDescription>
+                  <CardTitle className="text-3xl font-headline">Final Confirmation</CardTitle>
+                  <CardDescription className="text-lg">Registering for {user.email}</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  Sign Out
+                <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs">
+                  Change Account
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-12 pt-4 px-8">
+              <div className="bg-primary/5 p-6 rounded-2xl mb-8 border border-primary/10">
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-accent" />
+                    <span>Special Sai Paduka Darshan access</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-accent" />
+                    <span>Holy Prasad at Bhandara</span>
+                  </li>
+                </ul>
+              </div>
               <Button 
                 onClick={handleRegister} 
                 disabled={isSubmitting}
-                className="w-full bg-primary hover:bg-primary/90 h-14 text-xl shadow-lg rounded-full"
+                className="w-full bg-primary hover:bg-primary/90 h-16 text-xl shadow-lg rounded-full font-headline font-bold"
               >
-                {isSubmitting ? "Processing..." : "Register Now"}
+                {isSubmitting ? "Generating Entry Pass..." : "Confirm & Register"}
               </Button>
             </CardContent>
           </Card>
