@@ -40,7 +40,7 @@ import {
   useDoc, 
   useCollection, 
   useMemoFirebase,
-  updateDocumentNonBlocking,
+  setDocumentNonBlocking,
   addDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from "@/firebase";
@@ -164,14 +164,15 @@ export default function AdminPanel() {
 
   const handleUpdateConfig = () => {
     if (!configRef) return;
-    updateDocumentNonBlocking(configRef, {
+    // Use setDocumentNonBlocking with merge: true to handle initial creation
+    setDocumentNonBlocking(configRef, {
       heroImageUrl: heroUrl,
       eventName,
       eventDate,
       organizerName,
       liveDarshanYoutubeLink: liveUrl,
       lastUpdatedAt: new Date().toISOString()
-    });
+    }, { merge: true });
     toast({ title: "Site Settings Updated", description: "The portal configuration has been saved successfully." });
   };
 
@@ -244,10 +245,10 @@ export default function AdminPanel() {
     };
 
     const regRef = doc(db, "users", foundRegistration.externalAuthUserId, "darshan_registrations", foundRegistration.id);
-    updateDocumentNonBlocking(regRef, {
+    setDocumentNonBlocking(regRef, {
       devotees: updatedDevotees,
       isCheckedIn: true 
-    });
+    }, { merge: true });
 
     setFoundRegistration({ ...foundRegistration, devotees: updatedDevotees, isCheckedIn: true });
     toast({ title: "Check-in Successful", description: `Entry recorded for ${updatedDevotees[devoteeIndex].name}.` });

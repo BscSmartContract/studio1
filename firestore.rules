@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * SAI BABA TEMPLE TRUST - FIREBASE SECURITY RULES
+     * SAI PADUKA PORTAL - FIREBASE SECURITY RULES
      * 
      * Admin access is granted exclusively to theroasterop1@gmail.com
      */
@@ -85,11 +85,8 @@ service cloud.firestore {
 
     // Support for 'Trigger Email' Extension
     match /mail/{mailId} {
-      // Allow users to read their own sent mail status
       allow get: if isSignedIn() && (resource.data.to == request.auth.token.email || isAdmin());
-      // Allow users to create mail documents for themselves
       allow create: if isSignedIn() && (request.resource.data.to == request.auth.token.email || isAdmin());
-      // Only admin can list all or delete
       allow list, update, delete: if isAdmin();
     }
   }
