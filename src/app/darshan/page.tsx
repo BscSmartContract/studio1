@@ -174,11 +174,11 @@ export default function DarshanPage() {
     };
 
     try {
-      // Save registration to Firestore
+      // 1. Save registration to Firestore
       const userRegRef = collection(db, "users", user.uid, "darshan_registrations");
       addDocumentNonBlocking(userRegRef, regData);
       
-      // Trigger AI Confirmation Email Flow
+      // 2. Trigger AI Confirmation Email Flow
       if (user.email) {
         const result = await sendConfirmationEmail({
           userEmail: user.email,
@@ -188,14 +188,25 @@ export default function DarshanPage() {
           eventDate: "9th March"
         });
         
-        if (result.success) {
-          setConfirmationMessage(result.draftedContent || null);
+        if (result.success && result.draftedContent) {
+          setConfirmationMessage(result.draftedContent);
+
+          // 3. AUTOMATIC EMAIL SENDING (via Firestore Extension)
+          // Simply writing to the 'mail' collection triggers the extension
+          const mailColRef = collection(db, "mail");
+          addDocumentNonBlocking(mailColRef, {
+            to: user.email,
+            message: {
+              subject: "Sai Paduka Darshan - Registration Confirmation",
+              text: result.draftedContent
+            }
+          });
         }
       }
 
       toast({
         title: "Registration Complete",
-        description: "Your divine message has been drafted.",
+        description: "Your divine message has been drafted and sent.",
       });
     } catch (err) {
       console.error("Registration error:", err);
@@ -363,7 +374,7 @@ export default function DarshanPage() {
                 </div>
               </div>
               <p className="text-center text-sm text-muted-foreground">
-                A copy of this divine message has been drafted for your registered email address.
+                A copy of this divine message has been sent to your registered email address.
               </p>
             </CardContent>
             <CardFooter className="flex justify-center border-t bg-muted/20 py-6">

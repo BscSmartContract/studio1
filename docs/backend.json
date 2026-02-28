@@ -183,160 +183,23 @@
         "devotees"
       ]
     },
-    "DonationPurpose": {
+    "MailMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "DonationPurpose",
+      "title": "MailMessage",
       "type": "object",
-      "description": "Defines different categories or reasons for making a donation, editable via the Admin Panel.",
+      "description": "A document structure compatible with the 'Trigger Email' Firebase Extension.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the donation purpose."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title or name of the donation purpose (e.g., 'Event Arrangements')."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of what the donation purpose supports."
-        },
-        "displayOrder": {
-          "type": "number",
-          "description": "An integer indicating the order in which this purpose should be displayed on the frontend."
-        },
-        "isActive": {
-          "type": "boolean",
-          "description": "Indicates if this donation purpose is currently active and visible on the frontend."
+        "to": { "type": "string", "format": "email" },
+        "message": {
+          "type": "object",
+          "properties": {
+            "subject": { "type": "string" },
+            "text": { "type": "string" }
+          },
+          "required": ["subject", "text"]
         }
       },
-      "required": [
-        "id",
-        "title",
-        "description",
-        "displayOrder",
-        "isActive"
-      ]
-    },
-    "ProminentDonor": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProminentDonor",
-      "type": "object",
-      "description": "Stores details of prominent donors to be displayed on the website, manageable via the Admin Panel.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the prominent donor entry."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the prominent donor or donor entity."
-        },
-        "description": {
-          "type": "string",
-          "description": "A short description or acknowledgement for the donor (e.g., 'Generous contribution to event arrangements')."
-        },
-        "displayOrder": {
-          "type": "number",
-          "description": "An integer indicating the order in which this donor should be displayed on the frontend."
-        },
-        "contributionDetails": {
-          "type": "string",
-          "description": "Further details about the donor's contribution, if any."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "description",
-        "displayOrder"
-      ]
-    },
-    "GalleryImage": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "GalleryImage",
-      "type": "object",
-      "description": "Represents an image in the event's photo gallery, editable via the Admin Panel.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the gallery image."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "The URL of the high-resolution image file.",
-          "format": "uri"
-        },
-        "thumbnailUrl": {
-          "type": "string",
-          "description": "The URL of a smaller thumbnail version of the image for efficient loading.",
-          "format": "uri"
-        },
-        "caption": {
-          "type": "string",
-          "description": "A descriptive caption for the image."
-        },
-        "uploadDate": {
-          "type": "string",
-          "description": "The timestamp when the image was uploaded.",
-          "format": "date-time"
-        },
-        "tags": {
-          "type": "array",
-          "description": "Keywords or categories associated with the image for filtering or search purposes.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "isVisible": {
-          "type": "boolean",
-          "description": "Indicates if the image is currently visible in the public gallery."
-        }
-      },
-      "required": [
-        "id",
-        "imageUrl",
-        "caption",
-        "uploadDate",
-        "isVisible"
-      ]
-    },
-    "DailyBlessingPhoto": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "DailyBlessingPhoto",
-      "type": "object",
-      "description": "Stores photos of Sai Baba for 'Today's Darshan in Blessing Column', updated daily via the Admin Panel.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the daily blessing photo."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "The URL of the photo of Sai Baba for daily blessings.",
-          "format": "uri"
-        },
-        "blessingDate": {
-          "type": "string",
-          "description": "The specific calendar date for which this blessing photo is designated.",
-          "format": "date"
-        },
-        "caption": {
-          "type": "string",
-          "description": "A short message or blessing text accompanying the photo."
-        },
-        "uploadedAt": {
-          "type": "string",
-          "description": "The timestamp when the photo was uploaded to the system.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "imageUrl",
-        "blessingDate",
-        "uploadedAt"
-      ]
+      "required": ["to", "message"]
     }
   },
   "auth": {
@@ -356,7 +219,7 @@
           "schema": {
             "$ref": "#/backend/entities/AppConfiguration"
           },
-          "description": "Stores a singleton document for global application configuration settings. Publicly readable, writable only by authenticated administrators."
+          "description": "Stores a singleton document for global application configuration settings."
         }
       },
       {
@@ -365,18 +228,7 @@
           "entityName": "Volunteer",
           "schema": {
             "$ref": "#/backend/entities/Volunteer"
-          },
-          "description": "Stores individual volunteer registrations. Each document is uniquely identified by `volunteerId` and nested under the `userId` of the registering user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the Firebase authenticated user who registered as a volunteer."
-            },
-            {
-              "name": "volunteerId",
-              "description": "The unique ID of the volunteer registration document."
-            }
-          ]
+          }
         }
       },
       {
@@ -385,81 +237,19 @@
           "entityName": "DarshanRegistration",
           "schema": {
             "$ref": "#/backend/entities/DarshanRegistration"
-          },
-          "description": "Stores individual Darshan registrations. Each document is uniquely identified by `registrationId` and nested under the `userId` of the registering user.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the Firebase authenticated user who registered for Darshan."
-            },
-            {
-              "name": "registrationId",
-              "description": "The unique ID of the Darshan registration document."
-            }
-          ]
+          }
         }
       },
       {
-        "path": "/donation_purposes/{purposeId}",
+        "path": "/mail/{mailId}",
         "definition": {
-          "entityName": "DonationPurpose",
+          "entityName": "MailMessage",
           "schema": {
-            "$ref": "#/backend/entities/DonationPurpose"
+            "$ref": "#/backend/entities/MailMessage"
           },
-          "description": "Stores predefined categories for donations."
-        }
-      },
-      {
-        "path": "/prominent_donors/{donorId}",
-        "definition": {
-          "entityName": "ProminentDonor",
-          "schema": {
-            "$ref": "#/backend/entities/ProminentDonor"
-          },
-          "description": "Stores details of prominent donors for public display."
-        }
-      },
-      {
-        "path": "/gallery_images/{imageId}",
-        "definition": {
-          "entityName": "GalleryImage",
-          "schema": {
-            "$ref": "#/backend/entities/GalleryImage"
-          },
-          "description": "Stores metadata for images in the public photo gallery."
-        }
-      },
-      {
-        "path": "/daily_blessing_photos/{photoId}",
-        "definition": {
-          "entityName": "DailyBlessingPhoto",
-          "schema": {
-            "$ref": "#/backend/entities/DailyBlessingPhoto"
-          },
-          "description": "Stores daily photos of Sai Baba for 'Today's Darshan in Blessing Column'."
-        }
-      },
-      {
-        "path": "/roles_admin/{adminUid}",
-        "definition": {
-          "entityName": "AdminRole",
-          "schema": {
-            "title": "AdminRole",
-            "type": "object",
-            "properties": {
-              "uid": { "type": "string" }
-            }
-          },
-          "description": "Stores an empty document for each user who has 'admin' privileges.",
-          "params": [
-            {
-              "name": "adminUid",
-              "description": "The unique ID of the Firebase authenticated user with admin privileges."
-            }
-          ]
+          "description": "Collection monitored by the 'Trigger Email' Extension."
         }
       }
-    ],
-    "reasoning": "Standard Firestore structure with path-based ownership for user data and role-based access for admin content."
+    ]
   }
 }

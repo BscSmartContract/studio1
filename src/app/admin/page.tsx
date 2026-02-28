@@ -248,7 +248,29 @@ export default function AdminPanel() {
                 
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-primary" /> 1. Authorized Domains
+                    <Mail className="h-5 w-5 text-primary" /> 1. Automatic Email Setup (Trigger Email Extension)
+                  </h3>
+                  <p className="text-sm text-muted-foreground">To send registration emails automatically without manual API calls:</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-3">
+                    <ol className="text-sm list-decimal pl-5 space-y-2">
+                      <li>Go to the <strong>Extensions</strong> tab in the Firebase Console.</li>
+                      <li>Search for and click <strong>Trigger Email</strong> by Firebase.</li>
+                      <li>Click <strong>Install in Firebase Console</strong>.</li>
+                      <li>During configuration, set the <strong>Email documents collection</strong> to <code>mail</code>.</li>
+                      <li>Configure your <strong>SMTP connection URI</strong> (e.g., your Gmail or SendGrid SMTP details).</li>
+                      <li>Once installed, every Darshan registration will automatically trigger a real email.</li>
+                    </ol>
+                    <Button size="sm" variant="outline" className="w-full" asChild>
+                      <a href="https://console.firebase.google.com/project/_/extensions/instances/firestore-send-email" target="_blank">
+                        <ExternalLink className="h-3 w-3 mr-2" /> Open Extension Settings
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-primary" /> 2. Authorized Domains
                   </h3>
                   <p className="text-sm text-muted-foreground">Firebase blocks login links from unknown domains. Add the current URL.</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
@@ -258,17 +280,12 @@ export default function AdminPanel() {
                       <li>Select <strong>Authorized domains</strong>.</li>
                       <li>Click <strong>Add domain</strong> and paste the hostname above.</li>
                     </ol>
-                    <Button size="sm" variant="outline" className="w-full" asChild>
-                      <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/settings`} target="_blank">
-                        <ExternalLink className="h-3 w-3 mr-2" /> Open Auth Settings
-                      </a>
-                    </Button>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> 2. Branding Emails
+                    <Mail className="h-5 w-5 text-primary" /> 3. Branding Emails
                   </h3>
                   <p className="text-sm text-muted-foreground">Make the magic links look professional:</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
