@@ -40,7 +40,7 @@ export default function Home() {
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
 
-  // Fallback Sai Baba Image - Using the high quality Idol placeholder
+  // Fallback Sai Baba Image - Using a high quality portrait placeholder
   const fallbackSaiImage = PlaceHolderImages.find(img => img.id === "sai-baba")?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1080";
 
   return (
@@ -137,18 +137,15 @@ export default function Home() {
               </div>
 
               <div className="order-1 lg:order-2">
-                <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-primary/10 bg-muted transition-transform duration-700 hover:scale-[1.01]">
+                <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-primary/10 bg-muted/50 transition-transform duration-700 hover:scale-[1.01]">
                   <Image
                     src={todayBlessing?.imageUrl || fallbackSaiImage}
                     alt="Shirdi Sai Baba Sacred Idol"
                     fill
                     unoptimized={true}
-                    className="object-cover"
+                    className="object-contain p-4"
                     data-ai-hint="shirdi sai"
                   />
-                  {!todayBlessing && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-                  )}
                   {/* Decorative corner accent */}
                   <div className="absolute top-6 right-6 p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
                     <Sparkles className="h-6 w-6 text-white animate-pulse" />
