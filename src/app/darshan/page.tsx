@@ -51,14 +51,13 @@ export default function DarshanPage() {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
 
-  // New states for Name & Phone verification
+  // States for Name & Phone verification
   const [registrationStep, setRegistrationStep] = useState<'details' | 'otp' | 'confirm'>('details');
   const [devoteeName, setDevoteeName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('+91');
   const [otp, setOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   
-  const recaptchaRef = useRef<HTMLDivElement>(null);
   const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
   const registrationsQuery = useMemoFirebase(() => {
@@ -69,19 +68,32 @@ export default function DarshanPage() {
   const { data: registrations, isLoading: isRegLoading } = useCollection(registrationsQuery);
   const isRegistered = registrations && registrations.length > 0;
 
+  // Initialize Recaptcha
   useEffect(() => {
     if (user && !isRegistered && !recaptchaVerifier.current && typeof window !== 'undefined') {
       try {
-        recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          size: 'invisible',
-          callback: () => {
-            console.log('Recaptcha resolved');
-          }
-        });
+        // Ensure container exists before initializing
+        const container = document.getElementById('recaptcha-container');
+        if (container) {
+          recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+            size: 'invisible',
+            callback: () => {
+              console.log('Recaptcha resolved');
+            }
+          });
+        }
       } catch (e) {
         console.error("Recaptcha init error", e);
       }
     }
+    
+    // Cleanup on unmount
+    return () => {
+      if (recaptchaVerifier.current) {
+        recaptchaVerifier.current.clear();
+        recaptchaVerifier.current = null;
+      }
+    };
   }, [user, isRegistered, auth]);
 
   const handleGoogleLogin = async () => {
@@ -138,16 +150,23 @@ export default function DarshanPage() {
 
     setIsSubmitting(true);
     try {
-      if (!recaptchaVerifier.current) throw new Error("Recaptcha not initialized");
+      if (!recaptchaVerifier.current) {
+        // Fallback initialization if it wasn't ready
+        recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+      }
       
       const result = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier.current);
       setConfirmationResult(result);
       setRegistrationStep('otp');
       toast({ title: "OTP Sent", description: "Verification code sent to your phone." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
-      // Reset recaptcha if it fails
-      if (typeof window !== 'undefined') window.location.reload();
+      console.error("Send OTP Error:", error);
+      toast({ 
+        variant: "destructive", 
+        title: "Error Sending OTP", 
+        description: error.message || "Failed to initiate phone verification. Please check console for details." 
+      });
+      // Do NOT reload the page here, as it clears the error toast and frustrates the user
     } finally {
       setIsSubmitting(false);
     }
@@ -367,7 +386,6 @@ export default function DarshanPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="px-8 pb-12 pt-0 flex flex-col gap-4">
-                    <div id="recaptcha-container"></div>
                     <Button 
                       type="submit"
                       disabled={isSubmitting}
@@ -463,6 +481,9 @@ export default function DarshanPage() {
             )}
           </Card>
         )}
+        
+        {/* Persistent Recaptcha Container - Hidden but stable in DOM */}
+        <div id="recaptcha-container" className="invisible"></div>
       </div>
     </div>
   );
