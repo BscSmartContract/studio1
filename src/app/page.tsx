@@ -39,10 +39,15 @@ export default function Home() {
   const { data: latestBlessings, isLoading: isBlessingLoading } = useCollection(blessingsQuery);
   const todayBlessing = latestBlessings?.[0];
 
+  // A high-quality spiritual image of Shirdi Sai Baba (Direct URL)
   const heroFallback = "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=2000";
-  // If the admin-provided URL is clearly a search page or invalid, we use the fallback
-  const heroImg = (config?.heroImageUrl && config.heroImageUrl.includes('http') && !config.heroImageUrl.includes('google.com/search')) 
-    ? config.heroImageUrl 
+  
+  // Logic to determine the hero image. 
+  // We prioritize the admin URL if it's a direct image, otherwise use a sacred fallback.
+  const adminHeroUrl = config?.heroImageUrl;
+  const isSearchPage = adminHeroUrl?.includes('google.com/search');
+  const heroImg = (adminHeroUrl && adminHeroUrl.startsWith('http') && !isSearchPage) 
+    ? adminHeroUrl 
     : heroFallback;
     
   const eventName = config?.eventName || "Sai Paduka Mahotsav";
@@ -63,32 +68,32 @@ export default function Home() {
           priority
           data-ai-hint="shirdi sai"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-background" />
         <div className="relative z-10 container px-4 py-20 flex flex-col items-center">
-          <div className="inline-block px-5 py-1.5 mb-6 rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 text-white text-xs font-bold tracking-[0.2em] uppercase">
+          <div className="inline-block px-5 py-1.5 mb-6 rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 text-white text-xs font-bold tracking-[0.2em] uppercase animate-in fade-in slide-in-from-top duration-1000">
             Om Sai Ram
           </div>
-          <h1 className="text-5xl md:text-8xl font-headline font-extrabold text-white mb-6 drop-shadow-lg leading-tight">
+          <h1 className="text-5xl md:text-8xl font-headline font-extrabold text-white mb-6 drop-shadow-2xl leading-tight">
             {eventName.split(' ').slice(0, -1).join(' ')} <span className="text-primary italic">{eventName.split(' ').pop()}</span>
           </h1>
           
           <div className="flex flex-wrap justify-center gap-6 mb-10 text-white/90 text-sm font-medium">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full backdrop-blur-md">
               <Calendar className="h-4 w-4 text-primary" />
               <span>{eventDateFormatted}, {new Date(eventDateRaw).getFullYear()}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full backdrop-blur-md">
               <MapPin className="h-4 w-4 text-primary" />
               <span>Aggarwal Bhavan</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-black/30 px-4 py-2 rounded-full backdrop-blur-md">
               <Clock className="h-4 w-4 text-primary" />
               <span>9:00 AM Onwards</span>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white w-full h-14 text-lg font-bold rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 border-none">
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white w-full h-14 text-lg font-bold rounded-full shadow-2xl transition-all hover:scale-105 active:scale-95 border-none">
               <Link href="/darshan">Register Now</Link>
             </Button>
             <Button asChild variant="ghost" className="text-white hover:text-primary hover:bg-white/10 w-full h-12 text-base font-medium transition-all">
@@ -169,51 +174,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Event Details Cards */}
-      <section className="py-20 bg-muted/30">
-        <div className="container px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <Card className="border-none shadow-md rounded-3xl p-6 text-center group hover:bg-primary transition-colors duration-300">
-              <CardContent className="pt-4 space-y-4">
-                <div className="p-4 bg-primary/10 rounded-2xl inline-block group-hover:bg-white/20">
-                  <Calendar className="h-8 w-8 text-primary group-hover:text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold group-hover:text-white">{eventDateFormatted}</h3>
-                  <p className="text-muted-foreground text-sm group-hover:text-white/80">Special Mahotsav</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-md rounded-3xl p-6 text-center group hover:bg-primary transition-colors duration-300">
-              <CardContent className="pt-4 space-y-4">
-                <div className="p-4 bg-primary/10 rounded-2xl inline-block group-hover:bg-white/20">
-                  <MapPin className="h-8 w-8 text-primary group-hover:text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold group-hover:text-white">Aggarwal Bhavan</h3>
-                  <p className="text-muted-foreground text-sm group-hover:text-white/80">Ambala City</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-md rounded-3xl p-6 text-center group hover:bg-primary transition-colors duration-300">
-              <CardContent className="pt-4 space-y-4">
-                <div className="p-4 bg-primary/10 rounded-2xl inline-block group-hover:bg-white/20">
-                  <Clock className="h-8 w-8 text-primary group-hover:text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold group-hover:text-white">9:00 AM</h3>
-                  <p className="text-muted-foreground text-sm group-hover:text-white/80">Starts with Aarti</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* Photo Gallery Preview */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-muted/20">
         <div className="container px-4">
           <div className="text-center mb-12 space-y-4">
             <h2 className="text-3xl font-headline font-bold text-primary">Photo Gallery</h2>
@@ -238,7 +200,7 @@ export default function Home() {
             ))}
           </div>
           <div className="text-center mt-10">
-            <Button asChild variant="outline" className="rounded-full px-8 h-12">
+            <Button asChild variant="outline" className="rounded-full px-8 h-12 border-primary text-primary hover:bg-primary hover:text-white">
               <Link href="/gallery">View Full Gallery <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
