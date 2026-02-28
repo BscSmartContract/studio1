@@ -240,7 +240,7 @@ export default function DarshanPage() {
   return (
     <div className="py-12 md:py-24 bg-background min-h-[calc(100vh-80px)]">
       <div className="container px-4 mx-auto max-w-4xl">
-        <div className="text-center mb-12 no-print">
+        <div className="text-center mb-12 print:hidden">
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4">Darshan Registration</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Book your divine slot. Please provide details of all individuals attending.
@@ -326,20 +326,20 @@ export default function DarshanPage() {
             </CardContent>
           </Card>
         ) : isRegistered ? (
-          <Card className="max-w-2xl mx-auto shadow-2xl border-accent/20 bg-green-50/50 overflow-hidden">
-            <div className="h-2 bg-green-600 w-full" />
+          <Card id="digital-pass" className="max-w-2xl mx-auto shadow-2xl border-accent/20 bg-green-50/50 overflow-hidden print:border-primary print:shadow-none">
+            <div className="h-2 bg-green-600 w-full print:bg-primary" />
             <CardHeader className="text-center pt-10">
-              <div className="mx-auto bg-green-100 p-4 rounded-full w-fit mb-4">
+              <div className="mx-auto bg-green-100 p-4 rounded-full w-fit mb-4 print:hidden">
                 <CheckCircle2 className="h-10 w-10 text-green-600" />
               </div>
-              <CardTitle className="text-3xl font-headline text-green-800">Registration Confirmed!</CardTitle>
-              <CardDescription className="text-lg">
+              <CardTitle className="text-3xl font-headline text-green-800 print:text-primary print:text-4xl">Registration Confirmed!</CardTitle>
+              <CardDescription className="text-lg print:text-foreground">
                 Om Sai Ram, {registrations[0]?.userName}. Your digital pass is ready.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8 pb-10 px-8">
               
-              <div className="flex flex-col sm:flex-row gap-4 mb-4 no-print">
+              <div className="flex flex-col sm:flex-row gap-4 mb-4 print:hidden">
                 <Button 
                   onClick={handleShareWhatsApp}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-full h-12"
@@ -356,32 +356,32 @@ export default function DarshanPage() {
               </div>
 
               {confirmationMessage && (
-                <div className="bg-[#FFFDF5] rounded-3xl border border-primary/20 p-8 shadow-sm relative overflow-hidden">
+                <div className="bg-[#FFFDF5] rounded-3xl border border-primary/20 p-8 shadow-sm relative overflow-hidden print:border-primary/40">
                    <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
                     <ScrollText className="h-24 w-24 text-primary" />
                   </div>
                   <h3 className="font-bold text-primary mb-4 flex items-center gap-2 uppercase tracking-widest text-sm">
                     <Sparkles className="h-4 w-4" /> Divine Message
                   </h3>
-                  <div className="whitespace-pre-wrap text-base leading-relaxed text-muted-foreground font-body italic">
+                  <div className="whitespace-pre-wrap text-base leading-relaxed text-muted-foreground font-body italic print:text-foreground">
                     {confirmationMessage}
                   </div>
-                  <div className="mt-6 pt-6 border-t border-primary/10 text-xs text-primary/60 font-medium">
+                  <div className="mt-6 pt-6 border-t border-primary/10 text-xs text-primary/60 font-medium print:border-primary/20">
                     Blessings from Sai Parivar Ambala
                   </div>
                 </div>
               )}
 
-              <div className="bg-white rounded-3xl border border-dashed border-green-300 p-8 shadow-sm">
+              <div className="bg-white rounded-3xl border border-dashed border-green-300 p-8 shadow-sm print:border-primary/40 print:shadow-none">
                 <h3 className="text-center font-bold text-xl mb-6 text-primary flex items-center justify-center gap-2">
                   <UsersIcon className="h-5 w-5" /> Group Summary
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center">
+                  <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center print:bg-muted/10">
                     <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Total People</span>
                     <span className="text-3xl font-bold text-primary">{registrations[0]?.totalPeople}</span>
                   </div>
-                  <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center">
+                  <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center print:bg-muted/10">
                     <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Contact Phone</span>
                     <span className="text-lg font-bold text-foreground">{registrations[0]?.userPhone}</span>
                   </div>
@@ -391,7 +391,7 @@ export default function DarshanPage() {
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 text-center">Devotee Attendance List</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {registrations[0]?.devotees?.map((dev: any, idx: number) => (
-                      <div key={idx} className="flex justify-between items-center bg-background p-3 rounded-xl border text-sm shadow-sm">
+                      <div key={idx} className="flex justify-between items-center bg-background p-3 rounded-xl border text-sm shadow-sm print:shadow-none print:border-muted">
                         <span className="font-medium">{idx + 1}. {dev.name}</span>
                         <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">Age: {dev.age}</span>
                       </div>
@@ -399,12 +399,12 @@ export default function DarshanPage() {
                   </div>
                 </div>
               </div>
-              <p className="text-center text-xs text-muted-foreground leading-relaxed">
+              <p className="text-center text-xs text-muted-foreground leading-relaxed print:text-foreground print:text-sm">
                 Please show this digital pass at the entry of Aggarwal Bhavan on 9th March.<br />
                 <strong>Arrival Time: 9:00 AM</strong>
               </p>
             </CardContent>
-            <CardFooter className="flex justify-center border-t bg-muted/20 py-6 no-print">
+            <CardFooter className="flex justify-center border-t bg-muted/20 py-6 print:hidden">
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-primary">
                 <LogOut className="h-4 w-4 mr-2" /> Sign out ({user.email || 'Devotee'})
               </Button>

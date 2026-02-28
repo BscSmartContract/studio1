@@ -63,7 +63,9 @@
   footer, 
   button, 
   .no-print,
-  .toaster {
+  .toaster,
+  [data-sidebar="trigger"],
+  [role="status"] {
     display: none !important;
   }
   
@@ -76,25 +78,32 @@
   main {
     margin: 0 !important;
     padding: 0 !important;
+    display: block !important;
   }
 
   .container {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
-    padding: 20px !important;
-  }
-
-  /* Ensure colors and backgrounds print correctly */
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    padding: 0 !important;
   }
 
   /* Force the card to be centered and look like a pass on paper */
   .max-w-2xl {
     max-width: 100% !important;
-    border: 1px solid #e5e7eb !important;
+    border: 2px solid #e5891a !important; /* Primary color border */
     box-shadow: none !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    border-radius: 0 !important;
+  }
+
+  .bg-green-50\/50 {
+    background-color: #f0fdf4 !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
