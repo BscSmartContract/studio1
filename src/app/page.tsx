@@ -40,7 +40,11 @@ export default function Home() {
   const todayBlessing = latestBlessings?.[0];
 
   const heroFallback = "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=2000";
-  const heroImg = config?.heroImageUrl || heroFallback;
+  // If the admin-provided URL is clearly a search page or invalid, we use the fallback
+  const heroImg = (config?.heroImageUrl && config.heroImageUrl.includes('http') && !config.heroImageUrl.includes('google.com/search')) 
+    ? config.heroImageUrl 
+    : heroFallback;
+    
   const eventName = config?.eventName || "Sai Paduka Mahotsav";
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
