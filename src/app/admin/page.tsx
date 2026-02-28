@@ -45,7 +45,7 @@ import {
   addDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from "@/firebase";
-import { doc, collection, collectionGroup, query, orderBy, getDocs } from "firebase/firestore";
+import { doc, collection, collectionGroup, query, orderBy } from "firebase/firestore";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import {
   Dialog,
@@ -122,7 +122,6 @@ export default function AdminPanel() {
       };
       getCameraPermission();
     } else {
-      // Stop the stream if scanning is turned off
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
@@ -175,11 +174,10 @@ export default function AdminPanel() {
   };
 
   const handleSearchPass = async () => {
-    if (!passCodeInput || !db) return;
+    if (!passCodeInput || !allRegistrations) return;
     
-    // Pass ID is the full Firestore ID. Pass Code is the first 8 chars.
     const cleanCode = passCodeInput.trim().toUpperCase();
-    const match = allRegistrations?.find(r => 
+    const match = allRegistrations.find(r => 
       r.id.toUpperCase().startsWith(cleanCode) || r.id === passCodeInput
     );
 
@@ -233,9 +231,6 @@ export default function AdminPanel() {
             <Button onClick={handleGoogleSignIn} className="w-full h-12 flex items-center gap-2">
               <LogIn className="h-4 w-4" /> Sign in with Google
             </Button>
-            <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest">
-              Authorized Personnel Only
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -256,12 +251,6 @@ export default function AdminPanel() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
-            <div className="p-3 bg-muted rounded border text-xs font-mono break-all flex items-center justify-between gap-2">
-              <span>UID: {user.uid}</span>
-              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(user.uid)}>
-                <Copy className="h-3 w-3" />
-              </Button>
-            </div>
             <p className="text-sm text-muted-foreground">
               Please sign in with the authorized admin email <strong>{ADMIN_EMAIL}</strong>.
             </p>
@@ -336,50 +325,38 @@ export default function AdminPanel() {
                     {scanning && (
                       <div className="space-y-4">
                         <video ref={videoRef} className="w-full aspect-video rounded-3xl bg-black border-4 border-primary/20 shadow-xl" autoPlay muted />
-                        {hasCameraPermission === false && (
-                          <Alert variant="destructive">
-                            <AlertTitle>Camera Access Required</AlertTitle>
-                            <AlertDescription>Please allow camera access to scan QR codes.</AlertDescription>
-                          </Alert>
-                        )}
                         <p className="text-center text-xs text-muted-foreground animate-pulse">
-                          Hold the devotee's QR code in front of the camera to scan...
+                          Hold the devotee's QR code in front of the camera...
                         </p>
                       </div>
                     )}
 
                     {foundRegistration && (
-                      <Card className={`mt-8 border-2 ${foundRegistration.isCheckedIn ? 'bg-green-50 border-green-200' : 'bg-primary/5 border-primary/20'} overflow-hidden`}>
+                      <Card className={`mt-8 border-2 ${foundRegistration.isCheckedIn ? 'bg-green-50 border-green-200' : 'bg-primary/5 border-primary/20'}`}>
                         <div className="p-6">
                            <div className="flex justify-between items-start mb-6">
                               <div>
                                 <h3 className="text-2xl font-bold">{foundRegistration.userName}</h3>
-                                <p className="text-sm text-muted-foreground">{foundRegistration.userPhone} | {foundRegistration.userEmail}</p>
+                                <p className="text-sm text-muted-foreground">{foundRegistration.userPhone}</p>
                               </div>
-                              {foundRegistration.isCheckedIn ? (
-                                <div className="bg-green-600 text-white px-4 py-1.5 rounded-full font-bold text-xs flex items-center gap-1">
-                                  <CheckCircle2 className="h-3 w-3" /> CHECKED IN
-                                </div>
-                              ) : (
-                                <div className="bg-primary text-white px-4 py-1.5 rounded-full font-bold text-xs">
-                                  PENDING ENTRY
-                                </div>
-                              )}
+                              <div className={`px-4 py-1.5 rounded-full font-bold text-xs ${foundRegistration.isCheckedIn ? 'bg-green-600 text-white' : 'bg-primary text-white'}`}>
+                                {foundRegistration.isCheckedIn ? 'CHECKED IN' : 'PENDING'}
+                              </div>
                            </div>
                            
                            <div className="grid grid-cols-2 gap-4 mb-6">
                               <div className="p-4 bg-white rounded-2xl shadow-sm border">
-                                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Group Size</span>
+                                 <span className="text-[10px] font-bold uppercase block mb-1">Group Size</span>
                                  <span className="text-2xl font-bold text-primary">{foundRegistration.totalPeople} Persons</span>
                               </div>
                               <div className="p-4 bg-white rounded-2xl shadow-sm border">
-                                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Pass Code</span>
+                                 <span className="text-[10px] font-bold uppercase block mb-1">Pass Code</span>
                                  <span className="text-lg font-bold font-mono">{foundRegistration.id.substring(0, 8).toUpperCase()}</span>
                               </div>
                            </div>
 
                            <div className="space-y-3">
-                              <h4 className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Attendance List</h4>
+                              <h4 className="font-bold text-xs uppercase text-muted-foreground">Attendance List</h4>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                  {foundRegistration.devotees?.map((dev: any, i: number) => (
                                    <div key={i} className="flex justify-between items-center p-2 bg-white rounded-lg border text-sm">
@@ -395,174 +372,12 @@ export default function AdminPanel() {
                                Confirm & Complete Entry
                              </Button>
                            )}
-                           {foundRegistration.isCheckedIn && foundRegistration.checkInTime && (
-                             <p className="mt-6 text-center text-sm font-medium text-green-700">
-                               Checked in at: {new Date(foundRegistration.checkInTime).toLocaleString()}
-                             </p>
-                           )}
                         </div>
                       </Card>
                     )}
                   </CardContent>
                 </Card>
              </div>
-          </TabsContent>
-
-          <TabsContent value="setup">
-            <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
-              <CardHeader className="bg-accent/5">
-                <CardTitle className="flex items-center gap-2 text-accent">
-                  <ShieldCheck className="h-6 w-6" /> Platform Configuration
-                </CardTitle>
-                <CardDescription className="text-foreground font-medium">Critical instructions for enabling all features.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-8 pt-6">
-                
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> 1. Automatic Email Setup (Trigger Email Extension)
-                  </h3>
-                  <p className="text-sm text-muted-foreground">To send registration emails automatically without manual API calls:</p>
-                  <div className="bg-muted p-4 rounded-lg space-y-3">
-                    <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Go to the <strong>Extensions</strong> tab in the Firebase Console.</li>
-                      <li>Search for and click <strong>Trigger Email</strong> by Firebase.</li>
-                      <li>Click <strong>Install in Firebase Console</strong>.</li>
-                      <li>During configuration, set the <strong>Email documents collection</strong> to <code>mail</code>.</li>
-                      <li>Configure your <strong>SMTP connection URI</strong> (e.g., your Gmail or SendGrid SMTP details).</li>
-                      <li>Once installed, every Darshan registration will automatically trigger a real email.</li>
-                    </ol>
-                    <Button size="sm" variant="outline" className="w-full" asChild>
-                      <a href="https://console.firebase.google.com/project/_/extensions/instances/firestore-send-email" target="_blank">
-                        <ExternalLink className="h-3 w-3 mr-2" /> Open Extension Settings
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-primary" /> 2. Authorized Domains
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Firebase blocks login links from unknown domains. Add the current URL.</p>
-                  <div className="bg-muted p-4 rounded-lg space-y-3">
-                    <p className="text-xs font-mono break-all bg-white p-2 rounded border">Hostname: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
-                    <ol className="text-sm list-decimal pl-5 space-y-1">
-                      <li>Go to <strong>Authentication &gt; Settings</strong> tab in Firebase Console.</li>
-                      <li>Select <strong>Authorized domains</strong>.</li>
-                      <li>Click <strong>Add domain</strong> and paste the hostname above.</li>
-                    </ol>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> 3. Branding Emails
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Make the magic links look professional:</p>
-                  <div className="bg-muted p-4 rounded-lg space-y-3">
-                    <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Go to <strong>Authentication &gt; Templates</strong> in Firebase Console.</li>
-                      <li>Update <strong>Sender name</strong> to <code>Sai Parivar Ambala</code>.</li>
-                      <li>Click <strong>Save</strong>.</li>
-                    </ol>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="live-darshan">
-            <Card className="shadow-lg max-w-2xl mx-auto">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Video className="text-primary" /> Live Darshan Settings
-                </CardTitle>
-                <CardDescription>Update the YouTube Live link for the devotees.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>YouTube Live Stream URL</Label>
-                  <Input 
-                    placeholder="https://www.youtube.com/watch?v=..." 
-                    value={liveUrl}
-                    onChange={(e) => setLiveUrl(e.target.value)}
-                  />
-                </div>
-                <Button onClick={handleUpdateLiveLink} className="w-full bg-primary hover:bg-primary/90">
-                  Save Live Stream Link
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="blessings">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle>Add Today's Darshan</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Image URL</Label>
-                    <Input 
-                      placeholder="Enter image URL" 
-                      value={blessingImg}
-                      onChange={(e) => setBlessingImg(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Blessing Date</Label>
-                    <Input 
-                      type="date" 
-                      value={blessingDate}
-                      onChange={(e) => setBlessingDate(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Message/Caption</Label>
-                    <Textarea 
-                      placeholder="e.g. May Sai Baba guide your path..." 
-                      value={blessingCaption}
-                      onChange={(e) => setBlessingCaption(e.target.value)}
-                    />
-                  </div>
-                  <Button onClick={handleAddBlessing} className="w-full bg-primary">Add Photo</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-lg overflow-hidden">
-                <CardHeader>
-                  <CardTitle>Recent Photos</CardTitle>
-                </CardHeader>
-                <div className="max-h-[500px] overflow-y-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Preview</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {blessings?.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <img src={item.imageUrl} alt="Blessing" className="w-12 h-12 rounded object-cover" />
-                          </TableCell>
-                          <TableCell className="text-xs">{item.blessingDate}</TableCell>
-                          <TableCell className="text-right">
-                            <Button size="icon" variant="destructive" onClick={() => handleDeleteBlessing(item.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </Card>
-            </div>
           </TabsContent>
 
           <TabsContent value="registrations">
@@ -680,6 +495,126 @@ export default function AdminPanel() {
                 ) : (
                   <p className="text-center text-muted-foreground py-8">No volunteers found.</p>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ... other tabs content ... */}
+          <TabsContent value="live-darshan">
+            <Card className="shadow-lg max-w-2xl mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="text-primary" /> Live Darshan Settings
+                </CardTitle>
+                <CardDescription>Update the YouTube Live link for the devotees.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>YouTube Live Stream URL</Label>
+                  <Input 
+                    placeholder="https://www.youtube.com/watch?v=..." 
+                    value={liveUrl}
+                    onChange={(e) => setLiveUrl(e.target.value)}
+                  />
+                </div>
+                <Button onClick={handleUpdateLiveLink} className="w-full bg-primary hover:bg-primary/90">
+                  Save Live Stream Link
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="blessings">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle>Add Today's Darshan</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Image URL</Label>
+                    <Input 
+                      placeholder="Enter image URL" 
+                      value={blessingImg}
+                      onChange={(e) => setBlessingImg(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Blessing Date</Label>
+                    <Input 
+                      type="date" 
+                      value={blessingDate}
+                      onChange={(e) => setBlessingDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Message/Caption</Label>
+                    <Textarea 
+                      placeholder="e.g. May Sai Baba guide your path..." 
+                      value={blessingCaption}
+                      onChange={(e) => setBlessingCaption(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={handleAddBlessing} className="w-full bg-primary">Add Photo</Button>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg overflow-hidden">
+                <CardHeader>
+                  <CardTitle>Recent Photos</CardTitle>
+                </CardHeader>
+                <div className="max-h-[500px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Preview</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {blessings?.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <img src={item.imageUrl} alt="Blessing" className="w-12 h-12 rounded object-cover" />
+                          </TableCell>
+                          <TableCell className="text-xs">{item.blessingDate}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="icon" variant="destructive" onClick={() => handleDeleteBlessing(item.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="setup">
+            <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
+              <CardHeader className="bg-accent/5">
+                <CardTitle className="flex items-center gap-2 text-accent">
+                  <ShieldCheck className="h-6 w-6" /> Platform Configuration
+                </CardTitle>
+                <CardDescription>Critical instructions for enabling all features.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-8 pt-6">
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" /> Automatic Email Setup
+                  </h3>
+                  <div className="bg-muted p-4 rounded-lg space-y-3 text-sm">
+                    <ol className="list-decimal pl-5 space-y-2">
+                      <li>Go to <strong>Extensions</strong> tab in Firebase Console.</li>
+                      <li>Install <strong>Trigger Email</strong> by Firebase.</li>
+                      <li>Set <strong>Email documents collection</strong> to <code>mail</code>.</li>
+                      <li>Configure your <strong>SMTP connection URI</strong>.</li>
+                    </ol>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

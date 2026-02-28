@@ -5,19 +5,19 @@
 
 @layer base {
   :root {
-    --background: 40 30% 98%; /* #F9F6F0 - Pale warm off-white */
+    --background: 40 30% 98%;
     --foreground: 20 10% 10%;
     --card: 0 0% 100%;
     --card-foreground: 20 10% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 20 10% 10%;
-    --primary: 33 80% 50%; /* #E5891A - Saffron orange-gold */
+    --primary: 33 80% 50%;
     --primary-foreground: 0 0% 100%;
     --secondary: 33 20% 90%;
     --secondary-foreground: 33 80% 20%;
     --muted: 33 10% 94%;
     --muted-foreground: 33 10% 40%;
-    --accent: 5 91% 42%; /* #CC1E0A - Deep red-orange */
+    --accent: 5 91% 42%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -26,85 +26,22 @@
     --ring: 33 80% 50%;
     --radius: 0.75rem;
   }
-  .dark {
-    --background: 20 10% 5%;
-    --foreground: 0 0% 98%;
-    --card: 20 10% 8%;
-    --card-foreground: 0 0% 98%;
-    --popover: 20 10% 8%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 33 80% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 20 10% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 20 10% 15%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 5 91% 42%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 20 10% 15%;
-    --input: 20 10% 15%;
-    --ring: 33 80% 50%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
 }
 
 @media print {
-  nav, 
-  footer, 
-  button, 
-  .no-print,
-  .toaster,
-  [data-sidebar="trigger"],
-  [role="status"] {
+  nav, footer, button, .no-print, [role="status"] {
     display: none !important;
   }
-  
   body {
-    background-color: white !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  main {
+    background: white !important;
     margin: 0 !important;
     padding: 0 !important;
-    display: block !important;
   }
-
   .container {
     max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
   }
-
-  /* Force the card to be centered and look like a pass on paper */
-  .max-w-2xl {
-    max-width: 100% !important;
-    border: 2px solid #e5891a !important; /* Primary color border */
+  .shadow-2xl {
     box-shadow: none !important;
-    margin: 0 !important;
-    padding: 20px !important;
-    border-radius: 0 !important;
-  }
-
-  .bg-green-50\/50 {
-    background-color: #f0fdf4 !important;
-  }
-
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    border: 2px solid #E5891A !important;
   }
 }
