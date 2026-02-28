@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,6 @@ import {
   CheckCircle2, 
   Phone, 
   User as UserIcon,
-  Smartphone,
   Check
 } from "lucide-react";
 import { 
@@ -33,10 +31,7 @@ import { sendLoginLink } from "@/firebase/non-blocking-login";
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
-  signOut,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  ConfirmationResult
+  signOut
 } from "firebase/auth";
 import { collection } from "firebase/firestore";
 
@@ -51,14 +46,9 @@ export default function DarshanPage() {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
 
-  // States for Name & Phone verification
-  const [registrationStep, setRegistrationStep] = useState<'details' | 'otp' | 'confirm'>('details');
+  // States for Name & Phone
   const [devoteeName, setDevoteeName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('+91');
-  const [otp, setOtp] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  
-  const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
 
   const registrationsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -67,34 +57,6 @@ export default function DarshanPage() {
 
   const { data: registrations, isLoading: isRegLoading } = useCollection(registrationsQuery);
   const isRegistered = registrations && registrations.length > 0;
-
-  // Initialize Recaptcha
-  useEffect(() => {
-    if (user && !isRegistered && !recaptchaVerifier.current && typeof window !== 'undefined') {
-      try {
-        // Ensure container exists before initializing
-        const container = document.getElementById('recaptcha-container');
-        if (container) {
-          recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
-            size: 'invisible',
-            callback: () => {
-              console.log('Recaptcha resolved');
-            }
-          });
-        }
-      } catch (e) {
-        console.error("Recaptcha init error", e);
-      }
-    }
-    
-    // Cleanup on unmount
-    return () => {
-      if (recaptchaVerifier.current) {
-        recaptchaVerifier.current.clear();
-        recaptchaVerifier.current = null;
-      }
-    };
-  }, [user, isRegistered, auth]);
 
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
@@ -105,7 +67,7 @@ export default function DarshanPage() {
       await signInWithPopup(auth, provider);
       toast({
         title: "Authenticated Successfully",
-        description: "Welcome! Please provide your contact details to continue.",
+        description: "Welcome! Please provide your contact details to complete registration.",
       });
     } catch (error: any) {
       toast({
@@ -141,67 +103,27 @@ export default function DarshanPage() {
     }
   };
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phoneNumber || phoneNumber.length < 10) {
-      toast({ variant: "destructive", title: "Invalid Phone", description: "Please enter a valid phone number with country code." });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      if (!recaptchaVerifier.current) {
-        // Fallback initialization if it wasn't ready
-        recaptchaVerifier.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
-      }
-      
-      const result = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier.current);
-      setConfirmationResult(result);
-      setRegistrationStep('otp');
-      toast({ title: "OTP Sent", description: "Verification code sent to your phone." });
-    } catch (error: any) {
-      console.error("Send OTP Error:", error);
-      toast({ 
-        variant: "destructive", 
-        title: "Error Sending OTP", 
-        description: error.message || "Failed to initiate phone verification. Please check console for details." 
-      });
-      // Do NOT reload the page here, as it clears the error toast and frustrates the user
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otp || !confirmationResult) return;
-
-    setIsSubmitting(true);
-    try {
-      await confirmationResult.confirm(otp);
-      setRegistrationStep('confirm');
-      toast({ title: "Phone Verified", description: "Divine blessing awaits!" });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Invalid OTP", description: "The code you entered is incorrect." });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleSignOut = async () => {
     try {
       await signOut(auth);
       setEmailSent(false);
       setLoginMethod('options');
-      setRegistrationStep('details');
-      setConfirmationResult(null);
+      setDevoteeName('');
+      setPhoneNumber('');
     } catch (error: any) {
       toast({ variant: "destructive", title: "Error", description: "Could not sign out." });
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!db || !user) return;
+    
+    if (!devoteeName || !phoneNumber) {
+      toast({ variant: "destructive", title: "Missing Info", description: "Please enter your name and phone number." });
+      return;
+    }
+
     setIsSubmitting(true);
     
     const regData = {
@@ -355,135 +277,48 @@ export default function DarshanPage() {
           <Card className="max-w-xl mx-auto shadow-2xl border-primary/20 overflow-hidden">
             <div className="h-2 bg-primary w-full" />
             
-            {registrationStep === 'details' && (
-              <>
-                <CardHeader className="pt-10">
-                  <CardTitle className="text-3xl font-headline">Devotee Details</CardTitle>
-                  <CardDescription className="text-lg">Step 2: Enter your name and phone for verification</CardDescription>
-                </CardHeader>
-                <form onSubmit={handleSendOtp}>
-                  <CardContent className="space-y-6 pb-6 pt-4 px-8">
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2"><UserIcon className="h-4 w-4 text-primary" /> Full Name</Label>
-                      <Input 
-                        placeholder="Enter your name" 
-                        value={devoteeName} 
-                        onChange={(e) => setDevoteeName(e.target.value)} 
-                        required 
-                        className="h-12"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> Phone Number (with Country Code)</Label>
-                      <Input 
-                        placeholder="+91 9876543210" 
-                        value={phoneNumber} 
-                        onChange={(e) => setPhoneNumber(e.target.value)} 
-                        required 
-                        className="h-12"
-                      />
-                      <p className="text-[10px] text-muted-foreground">Example: +91 for India, +1 for USA</p>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="px-8 pb-12 pt-0 flex flex-col gap-4">
-                    <Button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full bg-primary hover:bg-primary/90 h-14 text-lg rounded-full font-headline font-bold shadow-lg"
-                    >
-                      {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : "Verify Phone via OTP"}
-                    </Button>
-                    <Button variant="ghost" onClick={handleSignOut} className="text-xs text-muted-foreground">
-                      Cancel & Sign Out
-                    </Button>
-                  </CardFooter>
-                </form>
-              </>
-            )}
-
-            {registrationStep === 'otp' && (
-              <>
-                <CardHeader className="pt-10">
-                  <CardTitle className="text-3xl font-headline">Verify OTP</CardTitle>
-                  <CardDescription className="text-lg">Step 3: Enter the 6-digit code sent to {phoneNumber}</CardDescription>
-                </CardHeader>
-                <form onSubmit={handleVerifyOtp}>
-                  <CardContent className="space-y-6 pb-6 pt-4 px-8">
-                    <div className="space-y-4">
-                      <div className="flex justify-center">
-                        <Smartphone className="h-16 w-16 text-primary/20" />
-                      </div>
-                      <Input 
-                        placeholder="000000" 
-                        value={otp} 
-                        onChange={(e) => setOtp(e.target.value)} 
-                        required 
-                        maxLength={6}
-                        className="h-16 text-center text-3xl tracking-[0.5em] font-mono"
-                      />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="px-8 pb-12 pt-0 flex flex-col gap-4">
-                    <Button 
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full bg-primary hover:bg-primary/90 h-14 text-lg rounded-full font-headline font-bold shadow-lg"
-                    >
-                      {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : "Verify & Continue"}
-                    </Button>
-                    <Button variant="ghost" onClick={() => setRegistrationStep('details')} className="text-xs text-muted-foreground">
-                      <ArrowLeft className="h-3 w-3 mr-1" /> Edit phone number
-                    </Button>
-                  </CardFooter>
-                </form>
-              </>
-            )}
-
-            {registrationStep === 'confirm' && (
-              <>
-                <CardHeader className="pt-10">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-3xl font-headline">Final Confirmation</CardTitle>
-                      <CardDescription className="text-lg">Registering devotee: {devoteeName}</CardDescription>
-                    </div>
-                    <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                      <Check className="h-3 w-3" /> Verified
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pb-12 pt-4 px-8">
-                  <div className="bg-primary/5 p-6 rounded-2xl mb-8 border border-primary/10">
-                    <ul className="space-y-3 text-sm">
-                      <li className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-accent" />
-                        <span>Special Sai Paduka Darshan access</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-accent" />
-                        <span>Holy Prasad at Bhandara</span>
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-primary" />
-                        <span>SMS confirmation to {phoneNumber}</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <Button 
-                    onClick={handleRegister} 
-                    disabled={isSubmitting}
-                    className="w-full bg-primary hover:bg-primary/90 h-16 text-xl shadow-lg rounded-full font-headline font-bold"
-                  >
-                    {isSubmitting ? "Generating Entry Pass..." : "Confirm & Register"}
-                  </Button>
-                </CardContent>
-              </>
-            )}
+            <CardHeader className="pt-10">
+              <CardTitle className="text-3xl font-headline">Devotee Details</CardTitle>
+              <CardDescription className="text-lg">Step 2: Enter your name and phone for our records</CardDescription>
+            </CardHeader>
+            <form onSubmit={handleRegister}>
+              <CardContent className="space-y-6 pb-6 pt-4 px-8">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2"><UserIcon className="h-4 w-4 text-primary" /> Full Name</Label>
+                  <Input 
+                    placeholder="Enter your name" 
+                    value={devoteeName} 
+                    onChange={(e) => setDevoteeName(e.target.value)} 
+                    required 
+                    className="h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> Phone Number</Label>
+                  <Input 
+                    placeholder="e.g. +91 9876543210" 
+                    value={phoneNumber} 
+                    onChange={(e) => setPhoneNumber(e.target.value)} 
+                    required 
+                    className="h-12"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="px-8 pb-12 pt-0 flex flex-col gap-4">
+                <Button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-primary hover:bg-primary/90 h-16 text-xl shadow-lg rounded-full font-headline font-bold"
+                >
+                  {isSubmitting ? "Generating Entry Pass..." : "Confirm & Register"}
+                </Button>
+                <Button variant="ghost" onClick={handleSignOut} className="text-xs text-muted-foreground">
+                  Cancel & Sign Out
+                </Button>
+              </CardFooter>
+            </form>
           </Card>
         )}
-        
-        {/* Persistent Recaptcha Container - Hidden but stable in DOM */}
-        <div id="recaptcha-container" className="invisible"></div>
       </div>
     </div>
   );

@@ -238,28 +238,13 @@ export default function AdminPanel() {
                 
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Smartphone className="h-5 w-5 text-primary" /> 1. Enable Phone OTP
+                    <ShieldCheck className="h-5 w-5 text-primary" /> 1. Authorized Domains
                   </h3>
-                  <p className="text-sm text-muted-foreground">Devotees need OTP verification for Darshan registrations.</p>
-                  <div className="bg-muted p-4 rounded-lg space-y-3">
-                    <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Open <strong>Authentication &gt; Sign-in method</strong> in Firebase Console.</li>
-                      <li>Click <strong>Add new provider</strong>.</li>
-                      <li>Select <strong>Phone</strong> and toggle it to <strong>Enable</strong>.</li>
-                      <li>Click <strong>Save</strong>.</li>
-                    </ol>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-primary" /> 2. Authorized Domains
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Firebase blocks Phone/Email login links from unknown domains. Add the current URL.</p>
+                  <p className="text-sm text-muted-foreground">Firebase blocks login links from unknown domains. Add the current URL.</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
                     <p className="text-xs font-mono break-all bg-white p-2 rounded border">Hostname: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
                     <ol className="text-sm list-decimal pl-5 space-y-1">
-                      <li>Go to <strong>Authentication &gt; Settings</strong> tab.</li>
+                      <li>Go to <strong>Authentication &gt; Settings</strong> tab in Firebase Console.</li>
                       <li>Select <strong>Authorized domains</strong>.</li>
                       <li>Click <strong>Add domain</strong> and paste the hostname above.</li>
                     </ol>
@@ -273,12 +258,12 @@ export default function AdminPanel() {
 
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> 3. Branding Emails
+                    <Mail className="h-5 w-5 text-primary" /> 2. Branding Emails
                   </h3>
                   <p className="text-sm text-muted-foreground">Make the magic links look professional:</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
                     <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Go to <strong>Authentication &gt; Templates</strong>.</li>
+                      <li>Go to <strong>Authentication &gt; Templates</strong> in Firebase Console.</li>
                       <li>Update <strong>Sender name</strong> to <code>Sai Parivar Ambala</code>.</li>
                       <li>Click <strong>Save</strong>.</li>
                     </ol>
@@ -435,7 +420,7 @@ export default function AdminPanel() {
                         <TableHead>Phone</TableHead>
                         <TableHead>Service</TableHead>
                         <TableHead>Date</TableHead>
-                      </TableRow>
+                      </TableHeader>
                     </TableHeader>
                     <TableBody>
                       {allVolunteers.map((vol) => (
