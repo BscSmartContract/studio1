@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -24,7 +23,8 @@ import {
   ExternalLink,
   ShieldCheck,
   LogIn,
-  LogOut
+  LogOut,
+  Mail
 } from "lucide-react";
 import { 
   useAuth,
@@ -208,7 +208,7 @@ export default function AdminPanel() {
         {regError && (
           <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
-            <span>Permission Denied: Your account ({user.email}) is not authorized as an Admin in Firestore. Check the Setup Guide.</span>
+            <span>Permission Denied: Your account ({user.email}) is not authorized as an Admin in Firestore. See Step 1 in the Setup Guide.</span>
           </div>
         )}
 
@@ -246,7 +246,7 @@ export default function AdminPanel() {
                 </CardTitle>
                 <CardDescription className="text-foreground">Follow these steps to fully enable data management.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6 pt-6">
+              <CardContent className="space-y-8 pt-6">
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2">Step 1: Grant Database Privileges</h3>
                   <p className="text-sm text-muted-foreground">Even after logging in, Firestore requires you to be listed in the <code>roles_admin</code> collection for security.</p>
@@ -262,16 +262,49 @@ export default function AdminPanel() {
                   </div>
                 </div>
 
-                <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                  <h3 className="font-bold text-primary mb-2 flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4" /> Authentication Settings
-                  </h3>
-                  <p className="text-sm mb-4">If you haven't enabled Google Login yet, click below.</p>
-                  <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90" asChild>
-                    <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
-                      Open Authentication Console
-                    </a>
-                  </Button>
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2">Step 2: Enable Authentication Methods</h3>
+                  <p className="text-sm text-muted-foreground">Both Google and Email Link login must be enabled for devotees to register.</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 border rounded-lg bg-card shadow-sm space-y-3">
+                      <div className="flex items-center gap-2 font-bold text-primary">
+                        <LogIn className="h-4 w-4" /> Google Login
+                      </div>
+                      <p className="text-xs text-muted-foreground">Allows instant registration using Google accounts.</p>
+                      <Button size="sm" className="w-full" asChild>
+                        <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
+                          <ExternalLink className="h-3 w-3 mr-2" /> Enable Google
+                        </a>
+                      </Button>
+                    </div>
+
+                    <div className="p-4 border rounded-lg bg-card shadow-sm space-y-3">
+                      <div className="flex items-center gap-2 font-bold text-primary">
+                        <Mail className="h-4 w-4" /> Email Link (OTP)
+                      </div>
+                      <p className="text-xs text-muted-foreground">Critical: Check the "Email link (passwordless sign-in)" box inside settings.</p>
+                      <Button size="sm" variant="outline" className="w-full" asChild>
+                        <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
+                          <ExternalLink className="h-3 w-3 mr-2" /> Enable Email Link
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2">Step 3: Whitelist This Domain</h3>
+                  <p className="text-sm text-muted-foreground">Firebase blocks authentication requests from unknown domains. You must add the current URL to the authorized list.</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-3">
+                    <p className="text-xs font-mono break-all">Current Domain: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
+                    <ol className="text-sm list-decimal pl-5 space-y-1">
+                      <li>Go to <strong>Authentication &gt; Settings</strong> tab.</li>
+                      <li>Select <strong>"Authorized domains"</strong>.</li>
+                      <li>Click <strong>"Add domain"</strong>.</li>
+                      <li>Paste the hostname above and click <strong>Add</strong>.</li>
+                    </ol>
+                  </div>
                 </div>
               </CardContent>
             </Card>

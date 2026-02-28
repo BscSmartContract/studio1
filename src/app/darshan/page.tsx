@@ -54,7 +54,9 @@ export default function DarshanPage() {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "Could not sign in with Google.",
+        description: error.code === 'auth/operation-not-allowed' 
+          ? "Google login is not enabled in your Firebase console. Please see the Admin Setup Guide." 
+          : error.message || "Could not sign in with Google.",
       });
     } finally {
       setIsSubmitting(false);
@@ -204,10 +206,17 @@ export default function DarshanPage() {
                   <h3 className="text-xl font-bold">Check Your Email</h3>
                   <p className="text-sm text-muted-foreground">
                     We sent a login link to <strong>{email}</strong>. 
-                    Click the link in the email to sign in instantly.
                   </p>
+                  <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-lg text-xs text-yellow-800 text-left">
+                    <strong>Don't see it?</strong>
+                    <ul className="mt-1 list-disc pl-4 space-y-1">
+                      <li>Check your <strong>Spam</strong> or Junk folder.</li>
+                      <li>Ensure "Email Link" is enabled in Firebase Console.</li>
+                      <li>Check the Admin Setup Guide for domain whitelisting.</li>
+                    </ul>
+                  </div>
                   <Button variant="link" onClick={() => setEmailSent(false)} className="text-xs text-primary">
-                    Didn't get the email? Try again.
+                    Try again with a different email
                   </Button>
                 </div>
               )}
@@ -223,7 +232,7 @@ export default function DarshanPage() {
               </div>
               <CardTitle className="text-2xl text-green-800">Registration Confirmed!</CardTitle>
               <CardDescription>
-                Thank you, {user.displayName || user.email?.split('@')[0]}.
+                Thank you, {user.displayName || user.email?.split('@')[0] || "Devotee"}.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
