@@ -6,7 +6,7 @@ service cloud.firestore {
     /**
      * SAI BABA TEMPLE TRUST - FIREBASE SECURITY RULES
      * 
-     * Updated to support Google Authentication and specific user data paths.
+     * Updated to support Collection Group queries and Admin access.
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
@@ -40,6 +40,7 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // Individual document rules
     match /users/{userId}/volunteers/{volunteerId} {
       allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.externalAuthUserId == userId;
@@ -52,6 +53,15 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.resource.data.externalAuthUserId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.externalAuthUserId == resource.data.externalAuthUserId;
       allow delete: if isExistingOwner(userId);
+    }
+
+    // Collection Group rules (Crucial for Admin Panel)
+    match /{path=**}/darshan_registrations/{registrationId} {
+      allow list: if isAdmin();
+    }
+
+    match /{path=**}/volunteers/{volunteerId} {
+      allow list: if isAdmin();
     }
 
     match /donation_purposes/{purposeId} {

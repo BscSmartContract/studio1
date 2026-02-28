@@ -51,15 +51,28 @@ export default function AdminPanel() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [password, setPassword] = useState("");
 
+  // Admin Verification
+  const adminDocRef = useMemoFirebase(() => (db && user) ? doc(db, "roles_admin", user.uid) : null, [db, user]);
+  const { data: adminDoc, isLoading: isAdminCheckLoading } = useDoc(adminDocRef);
+  const isActuallyAdmin = !!adminDoc;
+
+  // Conditional Queries
   const configRef = useMemoFirebase(() => (db && isUnlocked) ? doc(db, "app_configuration", "main") : null, [db, isUnlocked]);
   const blessingsRef = useMemoFirebase(() => (db && isUnlocked) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isUnlocked]);
-  const allRegistrationsQuery = useMemoFirebase(() => (db && isUnlocked) ? collectionGroup(db, "darshan_registrations") : null, [db, isUnlocked]);
-  const allVolunteersQuery = useMemoFirebase(() => (db && isUnlocked) ? collectionGroup(db, "volunteers") : null, [db, isUnlocked]);
+  
+  // These queries are only enabled if the user is unlocked AND verified as an admin in Firestore
+  const allRegistrationsQuery = useMemoFirebase(() => 
+    (db && isUnlocked && isActuallyAdmin) ? collectionGroup(db, "darshan_registrations") : null, 
+  [db, isUnlocked, isActuallyAdmin]);
+  
+  const allVolunteersQuery = useMemoFirebase(() => 
+    (db && isUnlocked && isActuallyAdmin) ? collectionGroup(db, "volunteers") : null, 
+  [db, isUnlocked, isActuallyAdmin]);
 
   const { data: config } = useDoc(configRef);
   const { data: blessings } = useCollection(blessingsRef);
   const { data: allRegistrations, isLoading: regLoading, error: regError } = useCollection(allRegistrationsQuery);
-  const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
+  const { data: allVolunteers, isLoading: volLoading, error: volError } = useCollection(allVolunteersQuery);
 
   const [liveUrl, setLiveUrl] = useState("");
   const [blessingImg, setBlessingImg] = useState("");
@@ -133,7 +146,7 @@ export default function AdminPanel() {
     toast({ title: "Removed", description: "Photo removed from blessings list." });
   };
 
-  if (authLoading) {
+  if (authLoading || isAdminCheckLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="animate-spin h-8 w-8 text-primary" />
@@ -221,14 +234,15 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {regError && (
+        {(!isActuallyAdmin || regError || volError) && (
           <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <div className="flex-grow">
-              <p className="font-bold">Permission Denied</p>
-              <p>Your account ({user.email}) is not authorized as an Admin. Add your UID to <code>roles_admin</code> collection.</p>
+              <p className="font-bold">Admin Privileges Required</p>
+              <p>Your account ({user.email}) is authenticated but not yet authorized as an Admin in Firestore.</p>
+              <p className="mt-1 font-medium">To fix this, add your UID to the <code>roles_admin</code> collection in the Firebase Console.</p>
               <div className="mt-2 flex items-center gap-2">
-                <code className="bg-destructive/5 px-2 py-0.5 rounded border border-destructive/20 text-xs">{user.uid}</code>
+                <code className="bg-destructive/5 px-2 py-0.5 rounded border border-destructive/20 text-xs font-mono">{user.uid}</code>
                 <Button size="icon" variant="ghost" className="h-6 w-6" onClick={copyUid}>
                   <Copy className="h-3 w-3" />
                 </Button>
@@ -274,7 +288,33 @@ export default function AdminPanel() {
                 
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> 1. Clean User Emails (Customizing the Link)
+                    <ShieldCheck className="h-5 w-5 text-primary" /> 1. Grant Database Privileges (Fixes Permissions Error)
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Firestore requires you to be listed in the <code>roles_admin</code> collection to view registration data.</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-2">
+                    <ol className="text-sm list-decimal pl-5 space-y-2">
+                      <li>Go to <strong>Build &gt; Firestore Database</strong> in the console.</li>
+                      <li>Click <strong>"Start collection"</strong>.</li>
+                      <li>Collection ID: <code>roles_admin</code></li>
+                      <li>Document ID: <code>{user.uid}</code></li>
+                      <li>Add a field: <code>uid</code> (string) = <code>{user.uid}</code></li>
+                      <li>Click <strong>Save</strong>.</li>
+                    </ol>
+                    <div className="mt-4 p-3 bg-primary/5 rounded border border-primary/20">
+                      <p className="text-xs font-bold text-primary mb-1">Your UID for step 1.4:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs font-mono">{user.uid}</code>
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={copyUid}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" /> 2. Clean User Emails (Customizing the Link)
                   </h3>
                   <p className="text-sm text-muted-foreground">To make the email sent to users look clean and professional (Subject & Body):</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
@@ -291,32 +331,6 @@ export default function AdminPanel() {
                         <ExternalLink className="h-3 w-3 mr-2" /> Open Email Templates
                       </a>
                     </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-primary" /> 2. Grant Database Privileges
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Firestore requires you to be listed in the <code>roles_admin</code> collection to view registration data.</p>
-                  <div className="bg-muted p-4 rounded-lg space-y-2">
-                    <ol className="text-sm list-decimal pl-5 space-y-1">
-                      <li>Go to <strong>Build &gt; Firestore Database</strong> in the console.</li>
-                      <li>Click <strong>"Start collection"</strong>.</li>
-                      <li>Collection ID: <code>roles_admin</code></li>
-                      <li>Document ID: <code>{user.uid}</code></li>
-                      <li>Add a field: <code>uid</code> (string) = <code>{user.uid}</code></li>
-                      <li>Click <strong>Save</strong>.</li>
-                    </ol>
-                    <div className="mt-4 p-3 bg-primary/5 rounded border border-primary/20">
-                      <p className="text-xs font-bold text-primary mb-1">Your UID for step 2.4:</p>
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono">{user.uid}</code>
-                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={copyUid}>
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -446,7 +460,9 @@ export default function AdminPanel() {
                 <CardDescription>Devotees registered for the event.</CardDescription>
               </CardHeader>
               <CardContent>
-                {regLoading ? (
+                {!isActuallyAdmin ? (
+                  <p className="text-center text-muted-foreground py-8">Complete Admin Setup to view registrations.</p>
+                ) : regLoading ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                 ) : allRegistrations && allRegistrations.length > 0 ? (
                   <Table>
@@ -485,7 +501,9 @@ export default function AdminPanel() {
                 <CardDescription>People who signed up to serve.</CardDescription>
               </CardHeader>
               <CardContent>
-                {volLoading ? (
+                {!isActuallyAdmin ? (
+                  <p className="text-center text-muted-foreground py-8">Complete Admin Setup to view volunteers.</p>
+                ) : volLoading ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                 ) : allVolunteers && allVolunteers.length > 0 ? (
                   <Table>
@@ -496,8 +514,7 @@ export default function AdminPanel() {
                         <TableHead>Phone</TableHead>
                         <TableHead>Service Area</TableHead>
                         <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                      </TableHeader>
                     <TableBody>
                       {allVolunteers.map((vol) => (
                         <TableRow key={vol.id}>
