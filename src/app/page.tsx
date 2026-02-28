@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -31,16 +30,16 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative h-[85vh] flex items-center justify-center text-center overflow-hidden">
+      <section className="relative h-[90vh] flex items-center justify-center text-center overflow-hidden">
         <Image
-          src={heroImg?.imageUrl || "https://picsum.photos/seed/sai-paduka/1920/1080"}
-          alt="Original Sai Paduka"
+          src={heroImg?.imageUrl || "https://picsum.photos/seed/sai-baba-throne/1920/1080"}
+          alt="Shirdi Sai Baba on Golden Throne"
           fill
-          className="object-cover brightness-[0.4] object-top"
+          className="object-cover brightness-[0.45] object-top"
           priority
-          data-ai-hint="religious feet"
+          data-ai-hint="shirdi sai"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-background/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-background" />
         <div className="relative z-10 container px-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="inline-block px-6 py-2 mb-8 rounded-full bg-primary/20 backdrop-blur-md border border-primary/40 text-primary-foreground text-sm font-bold tracking-[0.2em] uppercase">
             Om Sai Ram
@@ -227,7 +226,7 @@ export default function Home() {
                 </div>
               </div>
               <Button asChild className="bg-primary hover:bg-primary/90 rounded-full px-12 h-14 text-lg shadow-xl shadow-primary/20">
-                <Link href="/contact" className="flex items-center gap-2">Get in Touch <ArrowLeft className="h-4 w-4 rotate-180" /></Link>
+                <Link href="/contact" className="flex items-center gap-2">Get in Touch <ArrowLeft className="h-4 w-4" /></Link>
               </Button>
             </div>
             <div className="flex-1 relative w-full aspect-[4/3] rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.15)] border-[15px] border-white transition-transform hover:scale-105 duration-500">
