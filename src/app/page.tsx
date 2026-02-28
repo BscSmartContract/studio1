@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -47,7 +46,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
-      {/* Refined Plain Hero Section with Spiritual Gradient */}
+      {/* Refined Plain Hero Section with Spiritual Gradient Aura */}
       <section className="relative min-h-[85vh] flex items-center justify-center text-center overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/5">
         {/* Subtle Decorative Aura Background */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl aspect-square opacity-20 pointer-events-none">

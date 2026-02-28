@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'Sai Paduka Portal | Sai Parivar Ambala',
+  title: 'ॐ Sai Paduka Portal | Sai Parivar Ambala',
   description: 'Official portal for Sai Paduka Event organized by Sai Parivar Ambala. Join us on 9th March at Aggarwal Bhavan.',
 };
 

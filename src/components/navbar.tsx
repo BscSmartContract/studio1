@@ -44,7 +44,7 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-md font-bold px-6 rounded-full">
+            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-md font-bold px-6 rounded-full transition-all hover:scale-105 active:scale-95">
               <Link href="/darshan">Register</Link>
             </Button>
           </div>
