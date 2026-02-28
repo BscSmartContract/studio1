@@ -40,8 +40,8 @@ export default function Home() {
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
 
-  // Fallback Sai Baba Image
-  const fallbackSaiImage = PlaceHolderImages.find(img => img.id === "sai-baba")?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=2000";
+  // Fallback Sai Baba Image - Using the high quality Idol placeholder
+  const fallbackSaiImage = PlaceHolderImages.find(img => img.id === "sai-baba")?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1080";
 
   return (
     <div className="flex flex-col">
@@ -91,8 +91,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Today's Blessing / Divine Presence */}
-      <section className="py-24 bg-white">
+      {/* Divine Presence Section */}
+      <section className="py-24 bg-white relative">
         <div className="container px-4">
           <div className="max-w-5xl mx-auto space-y-16">
             <div className="space-y-4 text-center">
@@ -137,18 +137,22 @@ export default function Home() {
               </div>
 
               <div className="order-1 lg:order-2">
-                <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-muted/20 bg-muted transition-transform duration-700 hover:scale-[1.01]">
+                <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-primary/10 bg-muted transition-transform duration-700 hover:scale-[1.01]">
                   <Image
                     src={todayBlessing?.imageUrl || fallbackSaiImage}
-                    alt="Shirdi Sai Baba"
+                    alt="Shirdi Sai Baba Sacred Idol"
                     fill
                     unoptimized={true}
                     className="object-cover"
                     data-ai-hint="shirdi sai"
                   />
                   {!todayBlessing && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
                   )}
+                  {/* Decorative corner accent */}
+                  <div className="absolute top-6 right-6 p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                    <Sparkles className="h-6 w-6 text-white animate-pulse" />
+                  </div>
                 </div>
               </div>
             </div>
