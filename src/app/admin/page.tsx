@@ -26,8 +26,8 @@ import {
   LogIn,
   LogOut,
   Mail,
-  Edit3,
-  Copy
+  Copy,
+  Lock
 } from "lucide-react";
 import { 
   useAuth,
@@ -48,31 +48,26 @@ export default function AdminPanel() {
   const db = useFirestore();
   const auth = useAuth();
   const { user, isUserLoading: authLoading } = useUser();
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [password, setPassword] = useState("");
 
-  // Admin Verification
-  const adminDocRef = useMemoFirebase(() => (db && user) ? doc(db, "roles_admin", user.uid) : null, [db, user]);
-  const { data: adminDoc, isLoading: isAdminCheckLoading } = useDoc(adminDocRef);
-  const isActuallyAdmin = !!adminDoc;
+  const ADMIN_EMAIL = "theroasterop1@gmail.com";
+  const isActuallyAdmin = user?.email === ADMIN_EMAIL;
 
   // Conditional Queries
-  const configRef = useMemoFirebase(() => (db && isUnlocked) ? doc(db, "app_configuration", "main") : null, [db, isUnlocked]);
-  const blessingsRef = useMemoFirebase(() => (db && isUnlocked) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isUnlocked]);
+  const configRef = useMemoFirebase(() => (db && isActuallyAdmin) ? doc(db, "app_configuration", "main") : null, [db, isActuallyAdmin]);
+  const blessingsRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isActuallyAdmin]);
   
-  // These queries are only enabled if the user is unlocked AND verified as an admin in Firestore
   const allRegistrationsQuery = useMemoFirebase(() => 
-    (db && isUnlocked && isActuallyAdmin) ? collectionGroup(db, "darshan_registrations") : null, 
-  [db, isUnlocked, isActuallyAdmin]);
+    (db && isActuallyAdmin) ? collectionGroup(db, "darshan_registrations") : null, 
+  [db, isActuallyAdmin]);
   
   const allVolunteersQuery = useMemoFirebase(() => 
-    (db && isUnlocked && isActuallyAdmin) ? collectionGroup(db, "volunteers") : null, 
-  [db, isUnlocked, isActuallyAdmin]);
+    (db && isActuallyAdmin) ? collectionGroup(db, "volunteers") : null, 
+  [db, isActuallyAdmin]);
 
   const { data: config } = useDoc(configRef);
   const { data: blessings } = useCollection(blessingsRef);
-  const { data: allRegistrations, isLoading: regLoading, error: regError } = useCollection(allRegistrationsQuery);
-  const { data: allVolunteers, isLoading: volLoading, error: volError } = useCollection(allVolunteersQuery);
+  const { data: allRegistrations, isLoading: regLoading } = useCollection(allRegistrationsQuery);
+  const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
   const [liveUrl, setLiveUrl] = useState("");
   const [blessingImg, setBlessingImg] = useState("");
@@ -85,21 +80,12 @@ export default function AdminPanel() {
     }
   }, [config]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === "admin123") {
-      setIsUnlocked(true);
-      toast({ title: "Panel Unlocked", description: "You now have access to administrative tools." });
-    } else {
-      toast({ variant: "destructive", title: "Invalid Password" });
-    }
-  };
-
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: "Signed In", description: "Identity verified via Google." });
+      toast({ title: "Verification Attempted", description: "Checking administrator status..." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Sign In Failed", description: error.message });
     }
@@ -107,14 +93,6 @@ export default function AdminPanel() {
 
   const handleSignOut = async () => {
     await signOut(auth);
-    setIsUnlocked(false);
-  };
-
-  const copyUid = () => {
-    if (user?.uid) {
-      navigator.clipboard.writeText(user.uid);
-      toast({ title: "Copied", description: "UID copied to clipboard." });
-    }
   };
 
   const handleUpdateLiveLink = () => {
@@ -146,7 +124,7 @@ export default function AdminPanel() {
     toast({ title: "Removed", description: "Photo removed from blessings list." });
   };
 
-  if (authLoading || isAdminCheckLoading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="animate-spin h-8 w-8 text-primary" />
@@ -159,15 +137,18 @@ export default function AdminPanel() {
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)] px-4">
         <Card className="w-full max-w-md shadow-2xl border-primary/20">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-headline">Admin Login</CardTitle>
-            <CardDescription>Sign in with Google to verify your identity</CardDescription>
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <Lock className="text-primary h-6 w-6" />
+            </div>
+            <CardTitle className="text-3xl font-headline">Admin Access</CardTitle>
+            <CardDescription>Sign in with Google to access the management portal</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button onClick={handleGoogleSignIn} className="w-full h-12 flex items-center gap-2">
               <LogIn className="h-4 w-4" /> Sign in with Google
             </Button>
-            <p className="text-[10px] text-center text-muted-foreground">
-              Note: Your email must be registered in the roles_admin collection to view data.
+            <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest">
+              Authorized Personnel Only
             </p>
           </CardContent>
         </Card>
@@ -175,44 +156,25 @@ export default function AdminPanel() {
     );
   }
 
-  if (!isUnlocked) {
+  if (!isActuallyAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)] px-4">
-        <Card className="w-full max-w-md shadow-2xl border-primary/20">
+        <Card className="w-full max-w-md shadow-2xl border-destructive/20">
           <CardHeader className="text-center">
-            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <ShieldCheck className="text-primary h-6 w-6" />
+            <div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle className="text-destructive h-6 w-6" />
             </div>
-            <CardTitle className="text-3xl font-headline">Unlock Panel</CardTitle>
-            <CardDescription>Enter the administrative password</CardDescription>
+            <CardTitle className="text-2xl font-headline text-destructive">Access Denied</CardTitle>
+            <CardDescription>
+              Your account <strong>{user.email}</strong> does not have administrator privileges.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="pass">Password</Label>
-                <Input 
-                  id="pass" 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                />
-              </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Unlock</Button>
-            </form>
-
-            <div className="p-4 bg-muted rounded-lg space-y-2">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Your Unique UID (Required for Firestore Setup)</p>
-              <div className="flex items-center gap-2">
-                <code className="bg-background px-2 py-1 rounded border text-xs flex-grow truncate">{user.uid}</code>
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={copyUid}>
-                  <Copy className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            <Button variant="ghost" onClick={handleSignOut} className="w-full text-xs">
-              Not {user.email}? Sign out
+          <CardContent className="space-y-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Please sign in with the authorized admin email or contact the trust.
+            </p>
+            <Button variant="outline" onClick={handleSignOut} className="w-full">
+              Sign out and try another account
             </Button>
           </CardContent>
         </Card>
@@ -226,33 +188,13 @@ export default function AdminPanel() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-headline font-bold text-foreground">Admin Control Panel</h1>
-            <p className="text-muted-foreground">Logged in as {user.email}</p>
+            <p className="text-sm text-primary font-bold">Authorized Admin: {user.email}</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setIsUnlocked(false)}>Lock Panel</Button>
-            <Button variant="ghost" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" /> Logout</Button>
-          </div>
+          <Button variant="ghost" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" /> Logout</Button>
         </div>
 
-        {(!isActuallyAdmin || regError || volError) && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <div className="flex-grow">
-              <p className="font-bold">Admin Privileges Required</p>
-              <p>Your account ({user.email}) is authenticated but not yet authorized as an Admin in Firestore.</p>
-              <p className="mt-1 font-medium">To fix this, add your UID to the <code>roles_admin</code> collection in the Firebase Console.</p>
-              <div className="mt-2 flex items-center gap-2">
-                <code className="bg-destructive/5 px-2 py-0.5 rounded border border-destructive/20 text-xs font-mono">{user.uid}</code>
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={copyUid}>
-                  <Copy className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
         <Tabs defaultValue="live-darshan" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-7 h-auto p-1 bg-muted rounded-xl mb-8">
+          <TabsList className="grid grid-cols-2 md:grid-cols-6 h-auto p-1 bg-muted rounded-xl mb-8">
             <TabsTrigger value="live-darshan" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Video className="h-4 w-4 mr-2" /> Live
             </TabsTrigger>
@@ -268,11 +210,8 @@ export default function AdminPanel() {
             <TabsTrigger value="donations" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Heart className="h-4 w-4 mr-2" /> Donations
             </TabsTrigger>
-            <TabsTrigger value="settings" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Settings className="h-4 w-4 mr-2" /> Details
-            </TabsTrigger>
             <TabsTrigger value="setup" className="py-3 data-[state=active]:bg-accent data-[state=active]:text-white">
-              <ShieldCheck className="h-4 w-4 mr-2" /> Setup Guide
+              <ShieldCheck className="h-4 w-4 mr-2" /> Domain Setup
             </TabsTrigger>
           </TabsList>
 
@@ -280,78 +219,45 @@ export default function AdminPanel() {
             <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
               <CardHeader className="bg-accent/5">
                 <CardTitle className="flex items-center gap-2 text-accent">
-                  <ShieldCheck className="h-6 w-6" /> System Configuration Guide
+                  <ShieldCheck className="h-6 w-6" /> System Configuration
                 </CardTitle>
-                <CardDescription className="text-foreground font-medium">Follow these steps to ensure the portal runs smoothly.</CardDescription>
+                <CardDescription className="text-foreground font-medium">Domain and Email whitelisting instructions.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-8 pt-6">
                 
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-primary" /> 1. Grant Database Privileges (Fixes Permissions Error)
+                    <LogIn className="h-5 w-5 text-primary" /> 1. Domain Whitelisting
                   </h3>
-                  <p className="text-sm text-muted-foreground">Firestore requires you to be listed in the <code>roles_admin</code> collection to view registration data.</p>
-                  <div className="bg-muted p-4 rounded-lg space-y-2">
-                    <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Go to <strong>Build &gt; Firestore Database</strong> in the console.</li>
-                      <li>Click <strong>"Start collection"</strong>.</li>
-                      <li>Collection ID: <code>roles_admin</code></li>
-                      <li>Document ID: <code>{user.uid}</code></li>
-                      <li>Add a field: <code>uid</code> (string) = <code>{user.uid}</code></li>
-                      <li>Click <strong>Save</strong>.</li>
-                    </ol>
-                    <div className="mt-4 p-3 bg-primary/5 rounded border border-primary/20">
-                      <p className="text-xs font-bold text-primary mb-1">Your UID for step 1.4:</p>
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono">{user.uid}</code>
-                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={copyUid}>
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> 2. Clean User Emails (Customizing the Link)
-                  </h3>
-                  <p className="text-sm text-muted-foreground">To make the email sent to users look clean and professional (Subject & Body):</p>
-                  <div className="bg-muted p-4 rounded-lg space-y-3">
-                    <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Go to <strong>Authentication &gt; Templates</strong> in the console.</li>
-                      <li>Select the <strong>"Email address verification"</strong> or <strong>"Passwordless sign-in"</strong> template.</li>
-                      <li>Click the <strong>Edit (pencil) icon</strong>.</li>
-                      <li>Change the <strong>Sender name</strong> to <code>Sai Parivar Ambala</code>.</li>
-                      <li>Update the <strong>Subject</strong> and <strong>Message</strong> to your liking.</li>
-                      <li>Click <strong>Save</strong>.</li>
-                    </ol>
-                    <Button size="sm" variant="outline" className="w-full mt-2" asChild>
-                      <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/templates`} target="_blank">
-                        <ExternalLink className="h-3 w-3 mr-2" /> Open Email Templates
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <LogIn className="h-5 w-5 text-primary" /> 3. Domain Whitelisting
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Firebase blocks login links from unknown domains. You must add the current URL to the authorized list.</p>
+                  <p className="text-sm text-muted-foreground">Firebase blocks login links from unknown domains. You must add the current URL to the authorized list for Email Login to work.</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
                     <p className="text-xs font-mono break-all">Current Hostname: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
                     <ol className="text-sm list-decimal pl-5 space-y-1">
-                      <li>Go to <strong>Authentication &gt; Settings</strong> tab.</li>
+                      <li>Go to <strong>Authentication &gt; Settings</strong> tab in Firebase Console.</li>
                       <li>Select <strong>"Authorized domains"</strong>.</li>
                       <li>Click <strong>"Add domain"</strong>.</li>
                       <li>Paste the hostname above and click <strong>Add</strong>.</li>
                     </ol>
                     <Button size="sm" variant="outline" className="w-full" asChild>
                       <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
-                        <ExternalLink className="h-3 w-3 mr-2" /> Open Settings
+                        <ExternalLink className="h-3 w-3 mr-2" /> Open Firebase Settings
                       </a>
                     </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" /> 2. Email Customization
+                  </h3>
+                  <p className="text-sm text-muted-foreground">To make the magic links sent to devotees look professional:</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-3">
+                    <ol className="text-sm list-decimal pl-5 space-y-2">
+                      <li>Go to <strong>Authentication &gt; Templates</strong> in the console.</li>
+                      <li>Select the <strong>"Email address verification"</strong> or <strong>"Passwordless sign-in"</strong> template.</li>
+                      <li>Update the <strong>Sender name</strong> to <code>Sai Parivar Ambala</code>.</li>
+                      <li>Click <strong>Save</strong>.</li>
+                    </ol>
                   </div>
                 </div>
               </CardContent>
@@ -374,7 +280,6 @@ export default function AdminPanel() {
                     value={liveUrl}
                     onChange={(e) => setLiveUrl(e.target.value)}
                   />
-                  <p className="text-[10px] text-muted-foreground">Example: https://www.youtube.com/watch?v=VIDEO_ID</p>
                 </div>
                 <Button onClick={handleUpdateLiveLink} className="w-full bg-primary hover:bg-primary/90">
                   Save Live Stream Link
@@ -388,7 +293,6 @@ export default function AdminPanel() {
               <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle>Add Today's Darshan</CardTitle>
-                  <CardDescription>Upload photo and message for the "Blessing Column".</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -415,13 +319,13 @@ export default function AdminPanel() {
                       onChange={(e) => setBlessingCaption(e.target.value)}
                     />
                   </div>
-                  <Button onClick={handleAddBlessing} className="w-full bg-primary">Add to Blessings Column</Button>
+                  <Button onClick={handleAddBlessing} className="w-full bg-primary">Add Photo</Button>
                 </CardContent>
               </Card>
 
               <Card className="shadow-lg overflow-hidden">
                 <CardHeader>
-                  <CardTitle>Recent Blessings</CardTitle>
+                  <CardTitle>Recent Photos</CardTitle>
                 </CardHeader>
                 <div className="max-h-[500px] overflow-y-auto">
                   <Table>
@@ -438,7 +342,7 @@ export default function AdminPanel() {
                           <TableCell>
                             <img src={item.imageUrl} alt="Blessing" className="w-12 h-12 rounded object-cover" />
                           </TableCell>
-                          <TableCell className="text-xs font-mono">{item.blessingDate}</TableCell>
+                          <TableCell className="text-xs">{item.blessingDate}</TableCell>
                           <TableCell className="text-right">
                             <Button size="icon" variant="destructive" onClick={() => handleDeleteBlessing(item.id)}>
                               <Trash2 className="h-4 w-4" />
@@ -456,19 +360,16 @@ export default function AdminPanel() {
           <TabsContent value="registrations">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>Darshan Participants</CardTitle>
-                <CardDescription>Devotees registered for the event.</CardDescription>
+                <CardTitle>Darshan Registrations</CardTitle>
               </CardHeader>
               <CardContent>
-                {!isActuallyAdmin ? (
-                  <p className="text-center text-muted-foreground py-8">Complete Admin Setup to view registrations.</p>
-                ) : regLoading ? (
+                {regLoading ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                 ) : allRegistrations && allRegistrations.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Registration ID</TableHead>
+                        <TableHead>ID</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Date</TableHead>
@@ -488,7 +389,7 @@ export default function AdminPanel() {
                     </TableBody>
                   </Table>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">No registrations found yet.</p>
+                  <p className="text-center text-muted-foreground py-8">No registrations found.</p>
                 )}
               </CardContent>
             </Card>
@@ -497,29 +398,25 @@ export default function AdminPanel() {
           <TabsContent value="volunteers">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>Event Volunteers</CardTitle>
-                <CardDescription>People who signed up to serve.</CardDescription>
+                <CardTitle>Volunteers</CardTitle>
               </CardHeader>
               <CardContent>
-                {!isActuallyAdmin ? (
-                  <p className="text-center text-muted-foreground py-8">Complete Admin Setup to view volunteers.</p>
-                ) : volLoading ? (
+                {volLoading ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                 ) : allVolunteers && allVolunteers.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
                         <TableHead>Phone</TableHead>
-                        <TableHead>Service Area</TableHead>
+                        <TableHead>Service</TableHead>
                         <TableHead>Date</TableHead>
-                      </TableHeader>
+                      </TableRow>
+                    </TableHeader>
                     <TableBody>
                       {allVolunteers.map((vol) => (
                         <TableRow key={vol.id}>
                           <TableCell>{vol.name}</TableCell>
-                          <TableCell className="text-xs">{vol.email}</TableCell>
                           <TableCell>{vol.phoneNumber}</TableCell>
                           <TableCell>
                             <span className="text-xs bg-muted px-2 py-1 rounded">
@@ -534,18 +431,14 @@ export default function AdminPanel() {
                     </TableBody>
                   </Table>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">No volunteers found yet.</p>
+                  <p className="text-center text-muted-foreground py-8">No volunteers found.</p>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
           
           <TabsContent value="donations" className="text-center py-12 text-muted-foreground">
-             Donation management feature coming soon.
-          </TabsContent>
-          
-          <TabsContent value="settings" className="text-center py-12 text-muted-foreground">
-             Event settings feature coming soon.
+             Feature coming soon.
           </TabsContent>
         </Tabs>
       </div>
