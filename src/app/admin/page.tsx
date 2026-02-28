@@ -41,13 +41,13 @@ export default function AdminPanel() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [password, setPassword] = useState("");
 
-  // Firebase Refs
-  const configRef = useMemoFirebase(() => db ? doc(db, "app_configuration", "main") : null, [db]);
-  const blessingsRef = useMemoFirebase(() => db ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db]);
+  // Firebase Refs - only initialize if isAdmin is true to avoid permission errors
+  const configRef = useMemoFirebase(() => (db && isAdmin) ? doc(db, "app_configuration", "main") : null, [db, isAdmin]);
+  const blessingsRef = useMemoFirebase(() => (db && isAdmin) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isAdmin]);
   
   // Collection Group queries for all nested registrations
-  const allRegistrationsQuery = useMemoFirebase(() => db ? collectionGroup(db, "darshan_registrations") : null, [db]);
-  const allVolunteersQuery = useMemoFirebase(() => db ? collectionGroup(db, "volunteers") : null, [db]);
+  const allRegistrationsQuery = useMemoFirebase(() => (db && isAdmin) ? collectionGroup(db, "darshan_registrations") : null, [db, isAdmin]);
+  const allVolunteersQuery = useMemoFirebase(() => (db && isAdmin) ? collectionGroup(db, "volunteers") : null, [db, isAdmin]);
 
   // Data fetching
   const { data: config } = useDoc(configRef);
