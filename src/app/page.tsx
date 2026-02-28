@@ -43,8 +43,8 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[95vh] flex items-center justify-center text-center overflow-hidden">
         <Image
-          src={heroImg?.imageUrl || "https://picsum.photos/seed/sai-baba-throne/1920/1080"}
-          alt="Shirdi Sai Baba on Golden Throne"
+          src={heroImg?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=2000"}
+          alt="Shirdi Sai Baba"
           fill
           className="object-cover brightness-[0.4] object-top"
           priority
@@ -75,7 +75,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Today's Blessing / Daily Darshan Section */}
+      {/* Today's Blessing */}
       <section className="py-20 bg-background overflow-hidden">
         <div className="container px-4">
           <div className="flex flex-col lg:flex-row gap-16 items-center">
@@ -89,7 +89,7 @@ export default function Home() {
                   Daily Glimpse of <br /><span className="text-primary">Divine Grace</span>
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Start your day with the blessed sight of the Padukas. We share real-time updates and sacred photography from the event venue to keep your soul connected with Sai's presence.
+                  Start your day with the blessed sight of the Padukas. We share real-time updates and sacred photography from the event venue.
                 </p>
               </div>
 
@@ -113,177 +113,80 @@ export default function Home() {
                         <p className="text-base font-bold">{new Date(todayBlessing.blessingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                       </div>
                     </div>
-                    <Button asChild variant="outline" className="rounded-full px-8 h-12 hover:bg-primary hover:text-white border-primary text-primary transition-all">
-                      <Link href="/gallery" className="flex items-center gap-2">Explore Gallery <Star className="h-4 w-4" /></Link>
-                    </Button>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="p-8 bg-muted/30 rounded-3xl border-dashed border-2 border-muted flex flex-col items-center text-center">
-                  <Sparkles className="h-12 w-12 text-muted-foreground/30 mb-4" />
-                  <p className="text-muted-foreground font-medium">Wait for the divine sight... No blessing uploaded yet today.</p>
-                </div>
+                <p className="text-muted-foreground">Waiting for the divine sight of the day...</p>
               )}
             </div>
 
             <div className="flex-1 order-1 lg:order-2 w-full max-w-lg mx-auto">
-              {isBlessingLoading ? (
-                <Skeleton className="aspect-[3/4] rounded-[3rem]" />
-              ) : todayBlessing ? (
-                <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-[0_20px_50px_rgba(229,137,26,0.3)] border-[12px] border-white group">
+              <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-white bg-muted">
+                {todayBlessing ? (
                   <Image
                     src={todayBlessing.imageUrl}
                     alt="Daily Blessing"
                     fill
-                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                    className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-10">
-                    <span className="text-primary font-bold tracking-widest uppercase text-xs mb-2">Shri Sai Sansthan</span>
-                    <span className="text-white text-3xl font-bold font-headline">The Sacred Paduka</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-white bg-muted">
-                  <Image
-                    src="https://picsum.photos/seed/sai-paduka-fallback/800/1200"
-                    alt="Sacred Placeholder"
-                    fill
-                    className="object-cover opacity-50 grayscale"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
+                ) : (
+                  <div className="flex items-center justify-center h-full">
                     <Sparkles className="h-20 w-20 text-white/20" />
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Event Details Section */}
-      <section className="py-24 bg-muted/40 relative overflow-hidden">
-        <div className="absolute -top-24 -left-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
-        
+      {/* Event Details */}
+      <section className="py-24 bg-muted/40">
         <div className="container px-4">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-headline font-bold mb-6 text-foreground">A Day of Devotion</h2>
-            <div className="w-20 h-1.5 bg-primary mx-auto rounded-full"></div>
-            <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">Plan your visit to the Mahotsav. Every second spent in the presence of the Padukas is a step toward spiritual bliss.</p>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] bg-card hover:translate-y-[-8px] transition-all duration-300 rounded-[2rem] group overflow-hidden">
-              <CardContent className="pt-10 flex flex-col items-center text-center p-8">
-                <div className="p-5 bg-primary/10 rounded-3xl mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
-                  <Calendar className="h-10 w-10 text-primary transition-colors group-hover:text-white" />
+            <Card className="border-none shadow-lg rounded-[2rem] text-center p-8 group hover:translate-y-[-5px] transition-all">
+              <CardContent className="pt-6">
+                <div className="p-5 bg-primary/10 rounded-2xl mb-6 inline-block group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Calendar className="h-10 w-10 text-primary group-hover:text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3">Divine Date</h3>
-                <p className="text-lg text-muted-foreground font-medium">Sunday, 9th March</p>
-                <div className="mt-4 px-4 py-1.5 bg-accent/10 rounded-full text-accent font-bold text-sm">Save the Date</div>
+                <h3 className="text-2xl font-bold mb-2">9th March</h3>
+                <p className="text-muted-foreground">Sunday Mahotsav</p>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] bg-card hover:translate-y-[-8px] transition-all duration-300 rounded-[2rem] group overflow-hidden">
-              <CardContent className="pt-10 flex flex-col items-center text-center p-8">
-                <div className="p-5 bg-primary/10 rounded-3xl mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
-                  <MapPin className="h-10 w-10 text-primary transition-colors group-hover:text-white" />
+            <Card className="border-none shadow-lg rounded-[2rem] text-center p-8 group hover:translate-y-[-5px] transition-all">
+              <CardContent className="pt-6">
+                <div className="p-5 bg-primary/10 rounded-2xl mb-6 inline-block group-hover:bg-primary group-hover:text-white transition-colors">
+                  <MapPin className="h-10 w-10 text-primary group-hover:text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3">Sacred Venue</h3>
-                <p className="text-lg text-muted-foreground font-medium">Aggarwal Bhavan</p>
-                <p className="text-muted-foreground">Railway Station Area, Ambala</p>
+                <h3 className="text-2xl font-bold mb-2">Aggarwal Bhavan</h3>
+                <p className="text-muted-foreground">Ambala City</p>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] bg-card hover:translate-y-[-8px] transition-all duration-300 rounded-[2rem] group overflow-hidden">
-              <CardContent className="pt-10 flex flex-col items-center text-center p-8">
-                <div className="p-5 bg-primary/10 rounded-3xl mb-8 group-hover:bg-primary group-hover:text-white transition-colors">
-                  <Clock className="h-10 w-10 text-primary transition-colors group-hover:text-white" />
+            <Card className="border-none shadow-lg rounded-[2rem] text-center p-8 group hover:translate-y-[-5px] transition-all">
+              <CardContent className="pt-6">
+                <div className="p-5 bg-primary/10 rounded-2xl mb-6 inline-block group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Clock className="h-10 w-10 text-primary group-hover:text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3">Holy Schedule</h3>
-                <p className="text-lg text-muted-foreground font-medium">9:00 AM Onwards</p>
-                <p className="text-sm mt-3 text-accent font-bold bg-accent/5 px-4 py-1 rounded-full">Prasad starts at 1 PM</p>
+                <h3 className="text-2xl font-bold mb-2">9:00 AM</h3>
+                <p className="text-muted-foreground">Starts with Aarti</p>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Organizer Section */}
-      <section className="py-24 bg-background overflow-hidden">
+      {/* CTA */}
+      <section className="py-24 bg-accent text-white text-center">
         <div className="container px-4">
-          <div className="flex flex-col md:flex-row items-center gap-20">
-            <div className="flex-1 space-y-8 animate-in fade-in slide-in-from-left duration-1000">
-              <div className="space-y-4">
-                <h2 className="text-4xl md:text-5xl font-headline font-bold text-foreground leading-tight">Serving the Divine with <br /><span className="text-primary underline decoration-accent/30 underline-offset-8">Sai Parivar Ambala</span></h2>
-                <p className="text-xl text-muted-foreground leading-relaxed">
-                  We are a dedicated group of devotees committed to spreading Shirdi Sai Baba's message of Shraddha (Faith) and Saburi (Patience). Our mission is to serve every devotee with the same love that Baba showered upon humanity.
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-8 py-6">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-accent/10 rounded-lg"><Heart className="h-6 w-6 text-accent" /></div>
-                    <span className="font-bold text-xl">10+ Years</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground pl-11">Of Spiritual Service</p>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-primary/10 rounded-lg"><Users className="h-6 w-6 text-primary" /></div>
-                    <span className="font-bold text-xl">500+ Members</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground pl-11">Volunteering for Good</p>
-                </div>
-              </div>
-              <Button asChild className="bg-primary hover:bg-primary/90 rounded-full px-12 h-14 text-lg shadow-xl shadow-primary/20">
-                <Link href="/contact" className="flex items-center gap-2">Get in Touch <ArrowRight className="h-4 w-4" /></Link>
-              </Button>
-            </div>
-            <div className="flex-1 relative w-full aspect-[4/3] rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.15)] border-[15px] border-white transition-transform hover:scale-105 duration-500">
-              <Image
-                src={venueImg?.imageUrl || "https://picsum.photos/seed/ambala-venue/800/600"}
-                alt="Venue Image"
-                fill
-                className="object-cover"
-                data-ai-hint="building hall"
-              />
-              <div className="absolute top-8 right-8 p-4 bg-white/90 backdrop-blur rounded-2xl shadow-lg border border-primary/20">
-                <div className="text-primary font-bold text-sm mb-1 uppercase tracking-widest">Main Hall</div>
-                <div className="font-headline font-bold text-lg">Aggarwal Bhavan</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24 bg-accent text-white overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
-          <Star className="w-96 h-96 rotate-45" />
-        </div>
-        <div className="absolute -bottom-20 -left-20 p-12 opacity-10 pointer-events-none">
-          <Sparkles className="w-80 h-80" />
-        </div>
-        
-        <div className="container px-4 text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-headline font-bold mb-8 drop-shadow-md">Step into the Divine Aura</h2>
-          <p className="text-2xl opacity-90 mb-12 max-w-3xl mx-auto font-medium leading-relaxed">
-            Your presence is what makes this Mahotsav special. Register now to secure your darshan pass and join us in serving the community.
+          <h2 className="text-4xl md:text-6xl font-headline font-bold mb-8">Ready for Darshan?</h2>
+          <p className="text-xl mb-12 max-w-2xl mx-auto opacity-90">
+            Register your group and get your digital pass instantly. Limited entries available for the morning session.
           </p>
-          <div className="flex flex-wrap justify-center gap-6">
-            <Button asChild variant="secondary" size="lg" className="rounded-full px-12 h-16 text-xl font-bold text-accent shadow-2xl hover:scale-105 transition-transform bg-white border-none">
-              <Link href="/donations">Make an Offering</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="rounded-full px-12 h-16 text-xl font-bold border-2 border-white text-white hover:bg-white/10 shadow-2xl hover:scale-105 transition-transform">
-              <Link href="/volunteer">Serve as Volunteer</Link>
-            </Button>
-          </div>
-          <div className="mt-16 flex items-center justify-center gap-2 opacity-70">
-            <div className="h-px w-12 bg-white/40" />
-            <span className="text-sm font-bold tracking-widest uppercase">Om Sai Ram</span>
-            <div className="h-px w-12 bg-white/40" />
-          </div>
+          <Button asChild variant="secondary" size="lg" className="rounded-full px-12 h-16 text-xl font-bold text-accent shadow-2xl hover:scale-105 transition-transform bg-white border-none">
+            <Link href="/darshan">Register Now</Link>
+          </Button>
         </div>
       </section>
     </div>

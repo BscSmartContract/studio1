@@ -15,15 +15,11 @@ import {
   Send, 
   Sparkles, 
   ArrowLeft, 
-  Phone, 
-  User as UserIcon,
-  Users as UsersIcon,
-  Plus,
-  Minus,
-  Printer,
-  MessageSquare,
-  Ticket,
-  Download
+  Plus, 
+  Minus, 
+  Printer, 
+  MessageSquare, 
+  Download 
 } from "lucide-react";
 import { 
   useAuth, 
@@ -34,11 +30,7 @@ import {
   addDocumentNonBlocking 
 } from "@/firebase";
 import { sendLoginLink } from "@/firebase/non-blocking-login";
-import { 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut
-} from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { collection } from "firebase/firestore";
 import { sendConfirmationEmail } from "@/ai/flows/send-confirmation-email-flow";
 import { toPng } from 'html-to-image';
@@ -248,13 +240,13 @@ export default function DarshanPage() {
             </div>
 
             <div ref={passRef} className="bg-white p-4">
-              <Card className="max-w-2xl mx-auto shadow-2xl border-primary overflow-hidden rounded-3xl bg-white">
+              <Card className="max-w-2xl mx-auto shadow-2xl border-primary overflow-hidden rounded-3xl bg-white text-black">
                 <div className="h-4 bg-primary" />
                 <div className="p-8 space-y-8">
                   <div className="flex justify-between items-center border-b pb-6">
                     <div>
                       <h2 className="text-2xl font-bold text-primary">Sai Paduka Darshan</h2>
-                      <p className="text-muted-foreground">Entry Pass</p>
+                      <p className="text-muted-foreground">Official Entry Pass</p>
                       <div className="mt-4 inline-block px-4 py-1 bg-primary/10 rounded-full font-bold text-sm">
                         CODE: {uniqueCode}
                       </div>
@@ -264,78 +256,86 @@ export default function DarshanPage() {
 
                   <div className="grid grid-cols-2 gap-6 text-sm">
                     <div>
-                      <span className="text-xs font-bold text-muted-foreground uppercase">Devotee</span>
+                      <span className="text-xs font-bold text-muted-foreground uppercase">Devotee Details</span>
                       <p className="font-bold text-lg">{currentReg.userName}</p>
                       <p>{currentReg.userEmail}</p>
                       <p>{currentReg.userPhone}</p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-bold text-muted-foreground uppercase">Schedule</span>
-                      <p className="font-bold">9th March, 9:00 AM</p>
+                      <span className="text-xs font-bold text-muted-foreground uppercase">Venue & Time</span>
+                      <p className="font-bold">Sunday, 9th March</p>
+                      <p>9:00 AM Onwards</p>
                       <p>Aggarwal Bhavan, Ambala</p>
                     </div>
                   </div>
 
-                  <div className="bg-muted/30 rounded-2xl p-4">
-                    <h3 className="text-center font-bold text-primary mb-3">Attendees ({currentReg.totalPeople})</h3>
-                    <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-muted/30 rounded-2xl p-6">
+                    <h3 className="text-center font-bold text-primary mb-4">Attendees ({currentReg.totalPeople})</h3>
+                    <div className="grid grid-cols-2 gap-3">
                       {currentReg.devotees?.map((dev: any, i: number) => (
-                        <div key={i} className="text-xs p-2 bg-white rounded border flex justify-between">
-                          <span>{dev.name}</span>
-                          <span className="font-bold">Age: {dev.age}</span>
+                        <div key={i} className="text-sm p-3 bg-white rounded-xl border flex justify-between items-center">
+                          <span className="font-medium">{dev.name}</span>
+                          <span className="text-xs font-bold opacity-60">Age: {dev.age}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
+                <div className="bg-primary/5 p-4 text-center border-t">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Shraddha • Saburi</p>
+                </div>
               </Card>
             </div>
             
-            {confirmationMessage && (
-              <Card className="max-w-2xl mx-auto border-accent/20 bg-muted/10 print:hidden">
-                <CardHeader><CardTitle className="text-sm font-bold uppercase">Divine Blessing</CardTitle></CardHeader>
-                <CardContent className="whitespace-pre-wrap italic text-muted-foreground text-sm">
-                  {confirmationMessage}
-                </CardContent>
-              </Card>
-            )}
-            
-            <Button variant="ghost" onClick={handleSignOut} className="w-full print:hidden">Logout ({user.email})</Button>
+            <Button variant="ghost" onClick={handleSignOut} className="w-full print:hidden text-muted-foreground hover:text-primary">Logout ({user.email})</Button>
           </div>
         ) : (
           <Card className="max-w-2xl mx-auto shadow-2xl border-primary/20">
-            <CardHeader><CardTitle>Darshan Registration</CardTitle></CardHeader>
+            <CardHeader className="text-center">
+              <CardTitle className="text-3xl font-headline">Darshan Registration</CardTitle>
+              <CardDescription>Om Sai Ram. Please provide details of all group members.</CardDescription>
+            </CardHeader>
             <form onSubmit={handleRegister}>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-muted/30 rounded-3xl">
                   <div className="space-y-2">
-                    <Label>Contact Phone</Label>
-                    <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} required />
+                    <Label className="font-bold">Contact Phone Number</Label>
+                    <Input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="e.g. 98123 XXXXX" required className="h-12 text-lg" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Total People</Label>
-                    <div className="flex items-center gap-4 bg-white p-1 border rounded-lg">
-                      <Button type="button" variant="ghost" size="icon" onClick={() => setTotalPeople(Math.max(1, totalPeople - 1))}><Minus /></Button>
-                      <span className="font-bold">{totalPeople}</span>
-                      <Button type="button" variant="ghost" size="icon" onClick={() => setTotalPeople(totalPeople + 1)}><Plus /></Button>
+                    <Label className="font-bold">Total People in Group</Label>
+                    <div className="flex items-center gap-4 bg-white p-1 border rounded-2xl h-12">
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setTotalPeople(Math.max(1, totalPeople - 1))} className="h-10 w-10"><Minus className="h-4 w-4" /></Button>
+                      <span className="flex-1 text-center font-bold text-xl">{totalPeople}</span>
+                      <Button type="button" variant="ghost" size="icon" onClick={() => setTotalPeople(totalPeople + 1)} className="h-10 w-10"><Plus className="h-4 w-4" /></Button>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2 custom-scrollbar">
                   {attendees.map((a, i) => (
-                    <div key={i} className="p-4 border rounded-xl space-y-3 bg-muted/10">
-                      <Label className="text-xs uppercase font-bold text-primary">Person {i + 1}</Label>
-                      <div className="grid grid-cols-3 gap-3">
-                        <Input className="col-span-2" placeholder="Full Name" value={a.name} onChange={(e) => handleAttendeeChange(i, 'name', e.target.value)} required />
-                        <Input type="number" placeholder="Age" value={a.age} onChange={(e) => handleAttendeeChange(i, 'age', e.target.value)} required />
+                    <div key={i} className="p-6 border rounded-3xl space-y-4 bg-white shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                         <div className="h-6 w-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">{i + 1}</div>
+                         <Label className="text-xs uppercase font-bold text-primary tracking-widest">Devotee Information</Label>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-2">
+                          <Input placeholder="Full Name" value={a.name} onChange={(e) => handleAttendeeChange(i, 'name', e.target.value)} required className="h-12" />
+                        </div>
+                        <div>
+                          <Input type="number" placeholder="Age" value={a.age} onChange={(e) => handleAttendeeChange(i, 'age', e.target.value)} required className="h-12" />
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button type="submit" disabled={isSubmitting} className="w-full h-12 bg-primary">Confirm Registration</Button>
+              <CardFooter className="pb-10 pt-4">
+                <Button type="submit" disabled={isSubmitting} className="w-full h-16 bg-primary text-xl font-bold rounded-full shadow-xl shadow-primary/20">
+                   {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2" />}
+                   Confirm & Generate Pass
+                </Button>
               </CardFooter>
             </form>
           </Card>

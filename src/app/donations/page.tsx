@@ -54,7 +54,7 @@ export default function DonationsPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {donationPurposes.map((purpose, idx) => (
-                <Card key={idx} className="hover:shadow-md transition-shadow">
+                <Card key={idx} className="hover:shadow-md transition-shadow rounded-2xl">
                   <CardHeader className="pb-2">
                     <div className="bg-muted p-3 rounded-lg w-fit mb-2">
                       {purpose.icon}
@@ -68,20 +68,17 @@ export default function DonationsPage() {
               ))}
             </div>
             
-            <Card className="bg-primary/5 border-primary/20 p-8 text-center space-y-6">
-              <h3 className="text-2xl font-bold">General Donation</h3>
+            <Card className="bg-primary/5 border-primary/20 p-12 text-center space-y-6 rounded-[2rem] shadow-xl">
+              <h3 className="text-3xl font-bold">General Donation</h3>
               <p className="text-muted-foreground">For bank transfers and direct UPI donations, please use the details below.</p>
-              <div className="bg-white p-6 rounded-xl shadow-inner border border-border inline-block min-w-[300px]">
-                <p className="font-bold text-lg mb-1">Account Holder: Sai Parivar Ambala</p>
+              <div className="bg-white p-8 rounded-3xl shadow-inner border border-border inline-block min-w-[350px]">
+                <p className="font-bold text-xl mb-1">Account Holder: Sai Parivar Ambala</p>
                 <p className="text-sm">Account No: 01234567890123</p>
                 <p className="text-sm">IFSC: SBIN0001234</p>
-                <div className="mt-4 pt-4 border-t border-border">
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground block mb-2">UPI ID</span>
-                  <span className="text-xl font-bold text-primary">saipadav@upi</span>
+                <div className="mt-6 pt-6 border-t border-border">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground block mb-2 font-bold">Scan to Pay (UPI)</span>
+                  <span className="text-2xl font-bold text-primary">saipadav@upi</span>
                 </div>
-              </div>
-              <div>
-                <Button className="bg-primary hover:bg-primary/90 rounded-full px-10 h-12">Contact for Donation Receipt</Button>
               </div>
             </Card>
           </div>
@@ -91,31 +88,31 @@ export default function DonationsPage() {
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <Star className="text-yellow-500" /> Prominent Donors
             </h2>
-            <Card className="shadow-lg border-primary/10 overflow-hidden">
-              <div className="bg-primary py-4 px-6 text-white font-bold text-center">
+            <Card className="shadow-2xl border-primary/10 overflow-hidden rounded-[2rem]">
+              <div className="bg-primary py-6 px-6 text-white font-bold text-center text-xl">
                 Wall of Gratitude
               </div>
-              <div className="max-h-[600px] overflow-y-auto divide-y divide-border">
+              <div className="max-h-[600px] overflow-y-auto divide-y divide-border custom-scrollbar">
                 {isDonorsLoading ? (
                   <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
                 ) : donors && donors.length > 0 ? (
                   donors.map((donor) => (
-                    <div key={donor.id} className="p-4 hover:bg-muted/50 transition-colors">
-                      <p className="font-bold text-lg">{donor.name}</p>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">{donor.city}</p>
-                      <div className="mt-2 inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] font-bold rounded-full uppercase">
+                    <div key={donor.id} className="p-6 hover:bg-muted/50 transition-colors">
+                      <p className="font-bold text-xl">{donor.name}</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">{donor.city}</p>
+                      <div className="mt-3 inline-block px-4 py-1.5 bg-yellow-100 text-yellow-800 text-[10px] font-bold rounded-full uppercase tracking-tighter">
                         {donor.category}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="p-8 text-center text-muted-foreground italic text-sm">
+                  <div className="p-12 text-center text-muted-foreground italic text-sm">
                     No prominent donors listed yet. 
                   </div>
                 )}
               </div>
-              <div className="p-6 text-center bg-muted/20">
-                <p className="text-sm text-muted-foreground italic">"One who gives to the poor and needy, gives to me."</p>
+              <div className="p-8 text-center bg-muted/20 border-t">
+                <p className="text-sm text-muted-foreground italic leading-relaxed">"One who gives to the poor and needy, gives to me."</p>
               </div>
             </Card>
           </div>
