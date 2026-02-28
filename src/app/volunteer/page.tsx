@@ -35,6 +35,8 @@ export default function VolunteerPage() {
   const handleLogin = async () => {
     setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
     try {
       await signInWithPopup(auth, provider);
       toast({
@@ -42,10 +44,19 @@ export default function VolunteerPage() {
         description: "You are now logged in with Google.",
       });
     } catch (error: any) {
+      console.error("Login error:", error);
+      let errorMessage = "Could not sign in with Google.";
+      
+      if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google login is not enabled in the Firebase Console. Please follow the instructions in the Admin Panel > Setup Guide to enable it.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "The login popup was blocked. Please enable popups.";
+      }
+      
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message || "Could not sign in with Google.",
+        description: errorMessage,
       });
     } finally {
       setIsSubmitting(false);

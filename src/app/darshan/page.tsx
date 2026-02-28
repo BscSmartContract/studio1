@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ShieldCheck, Info, Loader2, LogOut } from "lucide-react";
 import { 
@@ -52,7 +52,7 @@ export default function DarshanPage() {
       if (error.code === 'auth/popup-blocked') {
         errorMessage = "The login popup was blocked by your browser. Please allow popups for this site.";
       } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = "Google login is not enabled in the Firebase Console. Please contact the administrator.";
+        errorMessage = "Google login is not enabled in the Firebase Console. Please follow the instructions in the Admin Panel > Setup Guide to enable it.";
       } else if (error.code === 'auth/unauthorized-domain') {
         errorMessage = "This domain is not authorized for Google Login. Please check Firebase Console > Authentication > Settings.";
       }
