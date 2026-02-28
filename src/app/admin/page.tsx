@@ -178,7 +178,6 @@ export default function AdminPanel() {
     if (!passCodeInput || !db) return;
     
     // Pass ID is the full Firestore ID. Pass Code is the first 8 chars.
-    // We search through local registrations first for performance.
     const cleanCode = passCodeInput.trim().toUpperCase();
     const match = allRegistrations?.find(r => 
       r.id.toUpperCase().startsWith(cleanCode) || r.id === passCodeInput

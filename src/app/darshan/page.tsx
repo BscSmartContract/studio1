@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,9 @@ import {
   Printer,
   MessageSquare,
   Ticket,
-  QrCode
+  QrCode,
+  Download,
+  Image as ImageIcon
 } from "lucide-react";
 import { 
   useAuth, 
@@ -43,14 +45,17 @@ import {
 } from "firebase/auth";
 import { collection } from "firebase/firestore";
 import { sendConfirmationEmail } from "@/ai/flows/send-confirmation-email-flow";
+import { toPng } from 'html-to-image';
 
 export default function DarshanPage() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const db = useFirestore();
+  const passRef = useRef<HTMLDivElement>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [loginMethod, setLoginMethod] = useState<'options' | 'email'>('options');
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
@@ -160,6 +165,24 @@ export default function DarshanPage() {
   const handlePrint = () => {
     if (typeof window !== 'undefined') {
       window.print();
+    }
+  };
+
+  const handleDownloadImage = async () => {
+    if (!passRef.current) return;
+    setIsDownloading(true);
+    try {
+      const dataUrl = await toPng(passRef.current, { cacheBust: true, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      link.download = `sai-darshan-pass-${currentReg?.id.substring(0, 8)}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast({ title: "Pass Downloaded", description: "You can now share this image on WhatsApp." });
+    } catch (err) {
+      console.error('Image generation failed', err);
+      toast({ variant: "destructive", title: "Download Failed", description: "Could not generate pass image." });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -335,87 +358,97 @@ export default function DarshanPage() {
           </Card>
         ) : isRegistered ? (
           <div className="space-y-8">
-             <div className="flex flex-col sm:flex-row gap-4 mb-4 print:hidden">
+             <div className="flex flex-col sm:flex-row flex-wrap gap-4 mb-4 print:hidden justify-center">
+                <Button 
+                  onClick={handleDownloadImage}
+                  disabled={isDownloading}
+                  className="bg-accent hover:bg-accent/90 text-white rounded-full h-12 px-8 shadow-md"
+                >
+                  {isDownloading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Download className="h-4 w-4 mr-2" />}
+                  Download Pass Image
+                </Button>
                 <Button 
                   onClick={handleShareWhatsApp}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-full h-12"
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-full h-12 px-8 shadow-md"
                 >
-                  <MessageSquare className="h-4 w-4 mr-2" /> Share on WhatsApp
+                  <MessageSquare className="h-4 w-4 mr-2" /> Share Details
                 </Button>
                 <Button 
                   variant="outline"
                   onClick={handlePrint}
-                  className="flex-1 border-primary text-primary hover:bg-primary/5 rounded-full h-12"
+                  className="border-primary text-primary hover:bg-primary/5 rounded-full h-12 px-8 shadow-md"
                 >
-                  <Printer className="h-4 w-4 mr-2" /> Save/Print Pass
+                  <Printer className="h-4 w-4 mr-2" /> Print Pass
                 </Button>
               </div>
 
-            <Card id="digital-pass" className="max-w-2xl mx-auto shadow-2xl border-primary/20 bg-white overflow-hidden print:border-primary print:shadow-none print:m-0">
-              <div className="h-4 bg-primary w-full" />
-              <div className="p-8 md:p-12 space-y-10">
-                {/* Pass Header */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b pb-8">
-                  <div className="text-center md:text-left">
-                    <h2 className="text-3xl font-headline font-bold text-primary mb-1">Sai Paduka Darshan</h2>
-                    <p className="text-muted-foreground font-medium">Official Digital Entry Pass</p>
-                    <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 rounded-full text-primary font-bold text-sm">
-                      <Ticket className="h-4 w-4" />
-                      CODE: {uniqueCode}
-                    </div>
-                  </div>
-                  <div className="bg-white p-3 border rounded-2xl shadow-sm">
-                    <img src={qrUrl} alt="Entry QR Code" className="w-32 h-32" />
-                    <p className="text-[10px] text-center mt-2 font-bold text-muted-foreground">SCAN AT ENTRY</p>
-                  </div>
-                </div>
-
-                {/* Devotee Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Primary Devotee</span>
-                    <p className="text-xl font-bold text-foreground">{currentReg.userName}</p>
-                    <div className="flex flex-col gap-1 mt-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-2"><Mail className="h-3 w-3" /> {currentReg.userEmail}</span>
-                      <span className="flex items-center gap-2"><Phone className="h-3 w-3" /> {currentReg.userPhone}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1 text-md md:text-right">
-                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Event Schedule</span>
-                     <p className="font-bold text-foreground">9th March, 9:00 AM</p>
-                     <p className="text-muted-foreground text-sm">Aggarwal Bhavan, Ambala</p>
-                     <div className="mt-4 inline-block px-4 py-1.5 bg-accent/10 rounded-full text-accent font-bold text-xs uppercase tracking-wider">
-                        Entry: Door 1
-                     </div>
-                  </div>
-                </div>
-
-                {/* Group Details */}
-                <div className="bg-muted/30 rounded-3xl p-6 border border-dashed border-primary/20">
-                  <h3 className="text-center font-bold text-lg mb-4 text-primary uppercase tracking-widest flex items-center justify-center gap-2">
-                    <UsersIcon className="h-4 w-4" /> Group Attendance ({currentReg.totalPeople})
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {currentReg.devotees?.map((dev: any, idx: number) => (
-                      <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-xl border text-sm shadow-sm">
-                        <span className="font-medium">{idx + 1}. {dev.name}</span>
-                        <span className="text-xs font-bold bg-primary/5 text-primary px-2 py-0.5 rounded-full">Age: {dev.age}</span>
+            <div ref={passRef} className="bg-white p-4">
+              <Card id="digital-pass" className="max-w-2xl mx-auto shadow-2xl border-primary/20 bg-white overflow-hidden print:border-primary print:shadow-none print:m-0 rounded-3xl">
+                <div className="h-4 bg-primary w-full" />
+                <div className="p-8 md:p-12 space-y-10">
+                  {/* Pass Header */}
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b pb-8">
+                    <div className="text-center md:text-left">
+                      <h2 className="text-3xl font-headline font-bold text-primary mb-1">Sai Paduka Darshan</h2>
+                      <p className="text-muted-foreground font-medium">Official Digital Entry Pass</p>
+                      <div className="mt-4 inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 rounded-full text-primary font-bold text-sm">
+                        <Ticket className="h-4 w-4" />
+                        CODE: {uniqueCode}
                       </div>
-                    ))}
+                    </div>
+                    <div className="bg-white p-3 border rounded-2xl shadow-sm">
+                      <img src={qrUrl} alt="Entry QR Code" className="w-32 h-32" />
+                      <p className="text-[10px] text-center mt-2 font-bold text-muted-foreground">SCAN AT ENTRY</p>
+                    </div>
                   </div>
-                </div>
 
-                <div className="text-center space-y-4 pt-6">
-                  <p className="text-xs text-muted-foreground leading-relaxed italic">
-                    "Hands that serve are holier than lips that pray."<br />
-                    Please present this pass at the verification desk upon arrival.
-                  </p>
-                  <div className="border-t pt-6 text-[10px] text-muted-foreground font-medium uppercase tracking-[0.2em]">
-                    Authorized by Sai Parivar Ambala
+                  {/* Devotee Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Primary Devotee</span>
+                      <p className="text-xl font-bold text-foreground">{currentReg.userName}</p>
+                      <div className="flex flex-col gap-1 mt-3 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-2"><Mail className="h-3 w-3" /> {currentReg.userEmail}</span>
+                        <span className="flex items-center gap-2"><Phone className="h-3 w-3" /> {currentReg.userPhone}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1 text-md md:text-right">
+                       <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Event Schedule</span>
+                       <p className="font-bold text-foreground">9th March, 9:00 AM</p>
+                       <p className="text-muted-foreground text-sm">Aggarwal Bhavan, Ambala</p>
+                       <div className="mt-4 inline-block px-4 py-1.5 bg-accent/10 rounded-full text-accent font-bold text-xs uppercase tracking-wider">
+                          Entry: Door 1
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* Group Details */}
+                  <div className="bg-muted/30 rounded-3xl p-6 border border-dashed border-primary/20">
+                    <h3 className="text-center font-bold text-lg mb-4 text-primary uppercase tracking-widest flex items-center justify-center gap-2">
+                      <UsersIcon className="h-4 w-4" /> Group Attendance ({currentReg.totalPeople})
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {currentReg.devotees?.map((dev: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-xl border text-sm shadow-sm">
+                          <span className="font-medium">{idx + 1}. {dev.name}</span>
+                          <span className="text-xs font-bold bg-primary/5 text-primary px-2 py-0.5 rounded-full">Age: {dev.age}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="text-center space-y-4 pt-6">
+                    <p className="text-xs text-muted-foreground leading-relaxed italic">
+                      "Hands that serve are holier than lips that pray."<br />
+                      Please present this pass at the verification desk upon arrival.
+                    </p>
+                    <div className="border-t pt-6 text-[10px] text-muted-foreground font-medium uppercase tracking-[0.2em]">
+                      Authorized by Sai Parivar Ambala
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </div>
 
             {confirmationMessage && (
               <Card className="max-w-2xl mx-auto border-accent/20 bg-[#FFFDF5] shadow-xl rounded-3xl print:hidden">
