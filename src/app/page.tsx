@@ -40,7 +40,7 @@ export default function Home() {
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
 
-  // Fallback Sai Baba Image - Using a high quality portrait placeholder
+  // Fallback Sai Baba Image - Using a high quality portrait placeholder that captures the full idol
   const fallbackSaiImage = PlaceHolderImages.find(img => img.id === "sai-baba")?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1080";
 
   return (
@@ -94,7 +94,7 @@ export default function Home() {
       {/* Divine Presence Section */}
       <section className="py-24 bg-white relative">
         <div className="container px-4">
-          <div className="max-w-5xl mx-auto space-y-16">
+          <div className="max-w-6xl mx-auto space-y-16">
             <div className="space-y-4 text-center">
               <div className="flex items-center justify-center gap-3">
                 <div className="h-[1px] w-12 bg-primary/30" />
@@ -136,19 +136,26 @@ export default function Home() {
                 )}
               </div>
 
-              <div className="order-1 lg:order-2">
-                <div className="relative aspect-[3/4] rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-primary/10 bg-muted/50 transition-transform duration-700 hover:scale-[1.01]">
+              <div className="order-1 lg:order-2 flex justify-center">
+                {/* 
+                  Container for the Idol Image:
+                  - Height fixed at 700px to accommodate tall vertical portrait.
+                  - Max-width ensures it stays proportional.
+                  - object-contain ensures NO CROPPING occurs.
+                */}
+                <div className="relative h-[700px] w-full max-w-sm rounded-[3rem] overflow-hidden shadow-2xl border-[12px] border-primary/10 bg-white transition-transform duration-700 hover:scale-[1.01] flex items-center justify-center">
                   <Image
                     src={todayBlessing?.imageUrl || fallbackSaiImage}
                     alt="Shirdi Sai Baba Sacred Idol"
                     fill
                     unoptimized={true}
-                    className="object-contain p-4"
+                    className="object-contain p-2"
+                    style={{ objectPosition: 'center' }}
                     data-ai-hint="shirdi sai"
                   />
                   {/* Decorative corner accent */}
-                  <div className="absolute top-6 right-6 p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
-                    <Sparkles className="h-6 w-6 text-white animate-pulse" />
+                  <div className="absolute top-6 right-6 p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/40 z-10">
+                    <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                   </div>
                 </div>
               </div>
@@ -157,7 +164,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section - Harmonized Background */}
+      {/* CTA Section - Harmonized Saffron Background */}
       <section className="py-32 bg-primary text-white overflow-hidden relative">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-white rounded-full blur-[150px]" />
