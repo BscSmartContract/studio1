@@ -226,6 +226,20 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "name", "city", "category"]
+    },
+    "GalleryImage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "GalleryImage",
+      "type": "object",
+      "description": "An image for the public Photo Gallery.",
+      "properties": {
+        "id": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "description": { "type": "string" },
+        "isVisible": { "type": "boolean", "default": true },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "imageUrl", "description"]
     }
   },
   "auth": {
@@ -284,6 +298,16 @@
             "$ref": "#/backend/entities/Donor"
           },
           "description": "Public collection of prominent donors for the Wall of Gratitude."
+        }
+      },
+      {
+        "path": "/gallery_images/{imageId}",
+        "definition": {
+          "entityName": "GalleryImage",
+          "schema": {
+            "$ref": "#/backend/entities/GalleryImage"
+          },
+          "description": "Public collection of images for the photo gallery."
         }
       }
     ]
