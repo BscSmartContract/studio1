@@ -36,7 +36,7 @@ export default function Home() {
           src={heroImg?.imageUrl || "https://picsum.photos/seed/sai-hero/1920/1080"}
           alt="Divine Sai Baba Background"
           fill
-          className="object-cover brightness-[0.35]"
+          className="object-cover object-top brightness-[0.35]"
           priority
           data-ai-hint="shirdi sai"
         />
