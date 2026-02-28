@@ -1,40 +1,95 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheck, Info } from "lucide-react";
+import { ShieldCheck, Info, Loader2 } from "lucide-react";
+import { 
+  useAuth, 
+  useUser, 
+  useFirestore, 
+  useCollection, 
+  useMemoFirebase,
+  addDocumentNonBlocking 
+} from "@/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { collection, query, where } from "firebase/firestore";
 
 export default function DarshanPage() {
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const db = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
 
-  const handleLogin = () => {
+  // Check if current user is already registered
+  const registrationsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, "users", user.uid, "darshan_registrations");
+  }, [db, user]);
+
+  const { data: registrations, isLoading: isRegLoading } = useCollection(registrationsQuery);
+  const isRegistered = registrations && registrations.length > 0;
+
+  const handleLogin = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsAuthenticated(true);
-      setIsSubmitting(false);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
       toast({
         title: "Authenticated Successfully",
         description: "Welcome! You can now register for Darshan.",
       });
-    }, 1200);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "Could not sign in with Google.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRegister = () => {
+    if (!db || !user) return;
     setIsSubmitting(true);
+    
+    const regData = {
+      externalAuthUserId: user.uid,
+      userName: user.displayName || "Anonymous",
+      userEmail: user.email || "No Email",
+      registrationDate: new Date().toISOString(),
+      status: "Confirmed"
+    };
+
+    const userRegRef = collection(db, "users", user.uid, "darshan_registrations");
+    
+    addDocumentNonBlocking(userRegRef, regData);
+    
+    // Also add to a global collection for easier admin viewing if allowed, 
+    // but based on rules we use the nested path. 
+    // For the admin to see everything, we'd ideally use a collection group query or a flat collection.
+    // Given the current backend.json, we'll stick to the nested path.
+    
     setTimeout(() => {
       setIsSubmitting(false);
-      setIsRegistered(true);
       toast({
         title: "Registration Complete",
         description: "You have been registered for Sai Paduka Darshan on 9th March.",
       });
-    }, 1500);
+    }, 1000);
   };
+
+  if (isUserLoading || isRegLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="py-12 md:py-24 bg-background min-h-[calc(100vh-80px)]">
@@ -46,7 +101,7 @@ export default function DarshanPage() {
           </p>
         </div>
 
-        {!isAuthenticated ? (
+        {!user ? (
           <Card className="max-w-md mx-auto shadow-2xl border-primary/20 bg-muted/30">
             <CardHeader className="text-center">
               <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
@@ -83,13 +138,13 @@ export default function DarshanPage() {
               </div>
               <CardTitle className="text-2xl text-green-800">Registration Confirmed!</CardTitle>
               <CardDescription>
-                Thank you for registering. Please show your confirmation email at the entrance.
+                Thank you for registering, {user.displayName}. Please show your confirmation pass at the entrance.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-4 bg-white rounded-lg border border-dashed border-green-300 text-center">
                 <span className="text-xs uppercase tracking-widest text-muted-foreground block mb-1">Entry Pass ID</span>
-                <span className="text-2xl font-mono font-bold text-foreground">SAI-2025-0309-881</span>
+                <span className="text-2xl font-mono font-bold text-foreground">SAI-{registrations[0].id.substring(0, 8).toUpperCase()}</span>
               </div>
               <div className="flex items-start gap-3 text-sm text-green-700">
                 <Info className="h-5 w-5 shrink-0" />
@@ -101,7 +156,7 @@ export default function DarshanPage() {
           <Card className="max-w-xl mx-auto shadow-2xl border-primary/20">
             <CardHeader>
               <CardTitle>Confirm Your Darshan</CardTitle>
-              <CardDescription>You are logged in. Click the button below to confirm your registration for 9th March.</CardDescription>
+              <CardDescription>You are logged in as {user.email}. Click the button below to confirm your registration for 9th March.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-muted p-4 rounded-lg">

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -12,26 +13,24 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Users, 
   HandHeart, 
-  Image as ImageIcon, 
   Settings, 
   Heart, 
   Plus,
   Trash2,
   Video,
   Sparkles,
-  RefreshCw
+  Loader2
 } from "lucide-react";
 import { 
   useFirestore, 
   useDoc, 
   useCollection, 
   useMemoFirebase,
-  setDocumentNonBlocking,
   addDocumentNonBlocking,
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from "@/firebase";
-import { doc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, collection, collectionGroup, query, orderBy } from "firebase/firestore";
 
 export default function AdminPanel() {
   const { toast } = useToast();
@@ -41,11 +40,19 @@ export default function AdminPanel() {
 
   // Firebase Refs
   const configRef = useMemoFirebase(() => db ? doc(db, "app_configuration", "main") : null, [db]);
-  const blessingsRef = useMemoFirebase(() => db ? collection(db, "daily_blessing_photos") : null, [db]);
+  const blessingsRef = useMemoFirebase(() => db ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db]);
+  
+  // Note: Collection Group queries require indexes to be created in the Firebase Console.
+  // In a real app, you'd likely use a flat collection for admins or set up the index.
+  // For this prototype, we'll try to list them if indexes exist or show a message.
+  const allRegistrationsQuery = useMemoFirebase(() => db ? collectionGroup(db, "darshan_registrations") : null, [db]);
+  const allVolunteersQuery = useMemoFirebase(() => db ? collectionGroup(db, "volunteers") : null, [db]);
 
   // Data fetching
   const { data: config } = useDoc(configRef);
   const { data: blessings } = useCollection(blessingsRef);
+  const { data: allRegistrations, isLoading: regLoading } = useCollection(allRegistrationsQuery);
+  const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
   // Form states
   const [liveUrl, setLiveUrl] = useState("");
@@ -79,8 +86,9 @@ export default function AdminPanel() {
   };
 
   const handleAddBlessing = () => {
-    if (!blessingsRef || !blessingImg) return;
-    addDocumentNonBlocking(blessingsRef, {
+    if (!db || !blessingImg) return;
+    const blessingsCol = collection(db, "daily_blessing_photos");
+    addDocumentNonBlocking(blessingsCol, {
       imageUrl: blessingImg,
       blessingDate,
       caption: blessingCaption,
@@ -255,32 +263,42 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          {/* Registrations Tab (Mock UI for now, ready for Firebase) */}
+          {/* Registrations Tab */}
           <TabsContent value="registrations">
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle>Darshan Participants</CardTitle>
-                <CardDescription>Registered devotees for 9th March.</CardDescription>
+                <CardDescription>Devotees registered for the event.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Registration ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="font-mono">SAI-881</TableCell>
-                      <TableCell>Amit Kumar</TableCell>
-                      <TableCell>amit.k@gmail.com</TableCell>
-                      <TableCell>Oct 24, 2024</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                {regLoading ? (
+                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+                ) : allRegistrations && allRegistrations.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Registration ID</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allRegistrations.map((reg) => (
+                        <TableRow key={reg.id}>
+                          <TableCell className="font-mono text-xs">SAI-{reg.id.substring(0,8).toUpperCase()}</TableCell>
+                          <TableCell>{reg.userName || "N/A"}</TableCell>
+                          <TableCell>{reg.userEmail || "N/A"}</TableCell>
+                          <TableCell className="text-xs">
+                            {reg.registrationDate ? new Date(reg.registrationDate).toLocaleDateString() : "N/A"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No registrations found yet.</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -293,45 +311,53 @@ export default function AdminPanel() {
                 <CardDescription>People who signed up to serve.</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Service Area</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Rahul Singh</TableCell>
-                      <TableCell>9876543210</TableCell>
-                      <TableCell>Crowd Management</TableCell>
-                      <TableCell><span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-bold">Approved</span></TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                {volLoading ? (
+                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+                ) : allVolunteers && allVolunteers.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Service Area</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allVolunteers.map((vol) => (
+                        <TableRow key={vol.id}>
+                          <TableCell>{vol.name}</TableCell>
+                          <TableCell className="text-xs">{vol.email}</TableCell>
+                          <TableCell>{vol.phoneNumber}</TableCell>
+                          <TableCell>
+                            <span className="text-xs bg-muted px-2 py-1 rounded">
+                              {vol.areaOfService?.join(", ")}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {vol.registrationDate ? new Date(vol.registrationDate).toLocaleDateString() : "N/A"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No volunteers found yet.</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Donations Tab */}
+          {/* Donations Tab (UI Only for now) */}
           <TabsContent value="donations">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle>Manage Donation Purposes</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>New Purpose Title</Label>
-                    <Input placeholder="e.g. Bhandara" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea placeholder="Describe why this sewa is important..." />
-                  </div>
-                  <Button className="w-full bg-primary hover:bg-primary/90">Add Purpose</Button>
+                <CardContent className="space-y-4 text-muted-foreground">
+                  Feature coming soon to manage dynamic purposes.
                 </CardContent>
               </Card>
 
@@ -339,18 +365,8 @@ export default function AdminPanel() {
                 <CardHeader>
                   <CardTitle>Prominent Donors List</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Donor Name</Label>
-                    <Input placeholder="Enter name" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Contribution Level</Label>
-                    <Input placeholder="e.g. Platinum Supporter" />
-                  </div>
-                  <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                    <Plus className="h-4 w-4" /> Add to Wall of Gratitude
-                  </Button>
+                <CardContent className="space-y-4 text-muted-foreground">
+                  Feature coming soon to manage donor recognition.
                 </CardContent>
               </Card>
             </div>
@@ -361,7 +377,7 @@ export default function AdminPanel() {
             <Card className="shadow-lg max-w-2xl mx-auto">
               <CardHeader>
                 <CardTitle>Event Details & Venue</CardTitle>
-                <CardDescription>Edit the core event information visible on the website.</CardDescription>
+                <CardDescription>Core event information management.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">

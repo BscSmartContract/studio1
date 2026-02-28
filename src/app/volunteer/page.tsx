@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -7,11 +8,23 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Heart, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
+import { 
+  useAuth, 
+  useUser, 
+  useFirestore, 
+  useCollection, 
+  useMemoFirebase,
+  addDocumentNonBlocking 
+} from "@/firebase";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { collection } from "firebase/firestore";
 
 export default function VolunteerPage() {
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const db = useFirestore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -19,21 +32,29 @@ export default function VolunteerPage() {
     service: "",
   });
 
-  const handleLogin = () => {
-    // Mock Google Authentication
+  const handleLogin = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsAuthenticated(true);
-      setIsSubmitting(false);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
       toast({
         title: "Authenticated Successfully",
         description: "You are now logged in with Google.",
       });
-    }, 1500);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "Could not sign in with Google.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!db || !user) return;
     if (!formData.name || !formData.phone || !formData.service) {
       toast({
         variant: "destructive",
@@ -44,6 +65,19 @@ export default function VolunteerPage() {
     }
     
     setIsSubmitting(true);
+    
+    const volunteerData = {
+      externalAuthUserId: user.uid,
+      name: formData.name,
+      phoneNumber: formData.phone,
+      email: user.email,
+      areaOfService: [formData.service],
+      registrationDate: new Date().toISOString(),
+    };
+
+    const volunteerRef = collection(db, "users", user.uid, "volunteers");
+    addDocumentNonBlocking(volunteerRef, volunteerData);
+
     setTimeout(() => {
       setIsSubmitting(false);
       toast({
@@ -51,8 +85,16 @@ export default function VolunteerPage() {
         description: "Thank you for volunteering! Our team will contact you soon.",
       });
       setFormData({ name: "", phone: "", service: "" });
-    }, 2000);
+    }, 1500);
   };
+
+  if (isUserLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="py-12 md:py-24 bg-background min-h-[calc(100vh-80px)]">
@@ -64,7 +106,7 @@ export default function VolunteerPage() {
           </p>
         </div>
 
-        {!isAuthenticated ? (
+        {!user ? (
           <Card className="max-w-md mx-auto shadow-2xl border-primary/20 bg-muted/30">
             <CardHeader className="text-center">
               <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
@@ -134,7 +176,7 @@ export default function VolunteerPage() {
             <Card className="md:col-span-2 shadow-xl border-primary/20">
               <CardHeader>
                 <CardTitle>Volunteer Signup Form</CardTitle>
-                <CardDescription>Enter your details below to register as a volunteer for the event.</CardDescription>
+                <CardDescription>Logged in as {user.email}. Enter your details below to register as a volunteer.</CardDescription>
               </CardHeader>
               <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-6">
