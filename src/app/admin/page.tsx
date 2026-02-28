@@ -22,9 +22,13 @@ import {
   Loader2,
   AlertCircle,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  LogIn,
+  LogOut
 } from "lucide-react";
 import { 
+  useAuth,
+  useUser,
   useFirestore, 
   useDoc, 
   useCollection, 
@@ -34,25 +38,28 @@ import {
   deleteDocumentNonBlocking
 } from "@/firebase";
 import { doc, collection, collectionGroup, query, orderBy } from "firebase/firestore";
+import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 
 export default function AdminPanel() {
   const { toast } = useToast();
   const db = useFirestore();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const auth = useAuth();
+  const { user, isUserLoading: authLoading } = useUser();
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const [password, setPassword] = useState("");
 
-  // Firebase Refs - only initialize if isAdmin is true to avoid permission errors
-  const configRef = useMemoFirebase(() => (db && isAdmin) ? doc(db, "app_configuration", "main") : null, [db, isAdmin]);
-  const blessingsRef = useMemoFirebase(() => (db && isAdmin) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isAdmin]);
+  // Firebase Refs - only initialize if unlocked to avoid permission errors
+  const configRef = useMemoFirebase(() => (db && isUnlocked) ? doc(db, "app_configuration", "main") : null, [db, isUnlocked]);
+  const blessingsRef = useMemoFirebase(() => (db && isUnlocked) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isUnlocked]);
   
   // Collection Group queries for all nested registrations
-  const allRegistrationsQuery = useMemoFirebase(() => (db && isAdmin) ? collectionGroup(db, "darshan_registrations") : null, [db, isAdmin]);
-  const allVolunteersQuery = useMemoFirebase(() => (db && isAdmin) ? collectionGroup(db, "volunteers") : null, [db, isAdmin]);
+  const allRegistrationsQuery = useMemoFirebase(() => (db && isUnlocked) ? collectionGroup(db, "darshan_registrations") : null, [db, isUnlocked]);
+  const allVolunteersQuery = useMemoFirebase(() => (db && isUnlocked) ? collectionGroup(db, "volunteers") : null, [db, isUnlocked]);
 
   // Data fetching
   const { data: config } = useDoc(configRef);
   const { data: blessings } = useCollection(blessingsRef);
-  const { data: allRegistrations, isLoading: regLoading } = useCollection(allRegistrationsQuery);
+  const { data: allRegistrations, isLoading: regLoading, error: regError } = useCollection(allRegistrationsQuery);
   const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
   // Form states
@@ -70,11 +77,26 @@ export default function AdminPanel() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === "admin123") {
-      setIsAdmin(true);
-      toast({ title: "Logged In", description: "Welcome to Sai Paduka Admin Panel." });
+      setIsUnlocked(true);
+      toast({ title: "Panel Unlocked", description: "You now have access to administrative tools." });
     } else {
-      toast({ variant: "destructive", title: "Invalid Credentials" });
+      toast({ variant: "destructive", title: "Invalid Password" });
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast({ title: "Signed In", description: "Identity verified via Google." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Sign In Failed", description: error.message });
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    setIsUnlocked(false);
   };
 
   const handleUpdateLiveLink = () => {
@@ -106,13 +128,45 @@ export default function AdminPanel() {
     toast({ title: "Removed", description: "Photo removed from blessings list." });
   };
 
-  if (!isAdmin) {
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)] px-4">
         <Card className="w-full max-w-md shadow-2xl border-primary/20">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-headline">Admin Access</CardTitle>
-            <CardDescription>Enter admin password to continue</CardDescription>
+            <CardTitle className="text-3xl font-headline">Admin Login</CardTitle>
+            <CardDescription>Sign in with Google to verify your identity</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button onClick={handleGoogleSignIn} className="w-full h-12 flex items-center gap-2">
+              <LogIn className="h-4 w-4" /> Sign in with Google
+            </Button>
+            <p className="text-[10px] text-center text-muted-foreground">
+              Note: Your email must be registered in the roles_admin collection to view data.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!isUnlocked) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)] px-4">
+        <Card className="w-full max-w-md shadow-2xl border-primary/20">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <ShieldCheck className="text-primary h-6 w-6" />
+            </div>
+            <CardTitle className="text-3xl font-headline">Unlock Panel</CardTitle>
+            <CardDescription>Enter the administrative password</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
@@ -126,7 +180,10 @@ export default function AdminPanel() {
                   placeholder="Enter password"
                 />
               </div>
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Unlock Panel</Button>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Unlock</Button>
+              <Button variant="ghost" onClick={handleSignOut} className="w-full text-xs">
+                Not {user.email}? Sign out
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -140,10 +197,20 @@ export default function AdminPanel() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-headline font-bold text-foreground">Admin Control Panel</h1>
-            <p className="text-muted-foreground">Manage Sai Paduka event registrations and content.</p>
+            <p className="text-muted-foreground">Logged in as {user.email}</p>
           </div>
-          <Button variant="outline" onClick={() => setIsAdmin(false)}>Logout</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsUnlocked(false)}>Lock Panel</Button>
+            <Button variant="ghost" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" /> Logout</Button>
+          </div>
         </div>
+
+        {regError && (
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            <span>Permission Denied: Your account ({user.email}) is not authorized as an Admin in Firestore. Check the Setup Guide.</span>
+          </div>
+        )}
 
         <Tabs defaultValue="live-darshan" className="w-full">
           <TabsList className="grid grid-cols-2 md:grid-cols-7 h-auto p-1 bg-muted rounded-xl mb-8">
@@ -175,44 +242,36 @@ export default function AdminPanel() {
             <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
               <CardHeader className="bg-accent/5">
                 <CardTitle className="flex items-center gap-2 text-accent">
-                  <AlertCircle className="h-6 w-6" /> Google Authentication Setup Guide
+                  <AlertCircle className="h-6 w-6" /> Required Administrative Setup
                 </CardTitle>
-                <CardDescription className="text-foreground">Follow these steps to enable Google Login for your devotees.</CardDescription>
+                <CardDescription className="text-foreground">Follow these steps to fully enable data management.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 pt-6">
-                <div className="bg-primary/10 p-4 rounded-lg border border-primary/20 mb-6">
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2">Step 1: Grant Database Privileges</h3>
+                  <p className="text-sm text-muted-foreground">Even after logging in, Firestore requires you to be listed in the <code>roles_admin</code> collection for security.</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-2">
+                    <ol className="text-sm list-decimal pl-5 space-y-1">
+                      <li>Go to <strong>Build &gt; Firestore Database</strong> in the console.</li>
+                      <li>Click <strong>"Start collection"</strong>.</li>
+                      <li>Collection ID: <code>roles_admin</code></li>
+                      <li>Document ID: <code>{user.uid}</code> (Copy this value)</li>
+                      <li>Add a field: <code>uid</code> (string) = <code>{user.uid}</code></li>
+                      <li>Click <strong>Save</strong>.</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
                   <h3 className="font-bold text-primary mb-2 flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4" /> Quick Link
+                    <ExternalLink className="h-4 w-4" /> Authentication Settings
                   </h3>
-                  <p className="text-sm mb-4">Click the button below to go directly to the page where you need to enable Google Login.</p>
+                  <p className="text-sm mb-4">If you haven't enabled Google Login yet, click below.</p>
                   <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90" asChild>
-                    <a href="https://console.firebase.google.com/project/studio-2851341323-b12c8/authentication/providers" target="_blank">
-                      Open Authentication Settings Directly
+                    <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
+                      Open Authentication Console
                     </a>
                   </Button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-lg border-b pb-2">Step 1: Enable Google Provider</h3>
-                    <p className="text-sm text-muted-foreground">On the page that opens, click <strong>"Add new provider"</strong>, then select <strong>"Google"</strong>.</p>
-                    <ul className="text-sm list-disc pl-5 space-y-1 text-muted-foreground">
-                      <li>Enable the switch at the top.</li>
-                      <li>Select your support email from the list.</li>
-                      <li>Click <strong>"Save"</strong>.</li>
-                    </ul>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-bold text-lg border-b pb-2">Step 2: Authorized Domains</h3>
-                    <p className="text-sm text-muted-foreground">In Authentication, click the <strong>Settings</strong> tab, then <strong>Authorized domains</strong>.</p>
-                    <p className="text-sm text-muted-foreground">Ensure your current website URL (the one you see in the browser address bar) is added here. If it's not listed, Google will block the login.</p>
-                  </div>
-                </div>
-
-                <div className="mt-8 p-4 bg-muted rounded-xl border border-border">
-                  <p className="text-sm font-medium">Common Login Issue: "auth/unauthorized-domain"</p>
-                  <p className="text-xs text-muted-foreground mt-1">If devotees see an error saying the domain is unauthorized, it means you haven't completed Step 2 above. Firebase only allows logins from domains you specifically list for security reasons.</p>
                 </div>
               </CardContent>
             </Card>
@@ -400,59 +459,13 @@ export default function AdminPanel() {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Donations Tab (UI Only for now) */}
-          <TabsContent value="donations">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle>Manage Donation Purposes</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-muted-foreground">
-                  Feature coming soon to manage dynamic purposes.
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle>Prominent Donors List</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-muted-foreground">
-                  Feature coming soon to manage donor recognition.
-                </CardContent>
-              </Card>
-            </div>
+          
+          <TabsContent value="donations" className="text-center py-12 text-muted-foreground">
+             Donation management feature coming soon.
           </TabsContent>
-
-          {/* Settings Tab */}
-          <TabsContent value="settings">
-            <Card className="shadow-lg max-w-2xl mx-auto">
-              <CardHeader>
-                <CardTitle>Event Details & Venue</CardTitle>
-                <CardDescription>Core event information management.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Venue Address</Label>
-                  <Textarea defaultValue="Aggarwal Bhavan, Ambala City" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Google Maps Iframe URL</Label>
-                  <Input placeholder="https://www.google.com/maps/embed?..." />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Event Date</Label>
-                    <Input type="text" defaultValue="9th March" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Event Name</Label>
-                    <Input type="text" defaultValue="Sai Paduka Event" />
-                  </div>
-                </div>
-                <Button className="w-full bg-primary hover:bg-primary/90 h-12">Save All Changes</Button>
-              </CardContent>
-            </Card>
+          
+          <TabsContent value="settings" className="text-center py-12 text-muted-foreground">
+             Event settings feature coming soon.
           </TabsContent>
         </Tabs>
       </div>
