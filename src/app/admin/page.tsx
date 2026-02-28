@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -195,7 +194,7 @@ export default function AdminPanel() {
                     <h3 className="font-bold text-lg border-b pb-2">Step 2: Find the "Build" Menu</h3>
                     <p className="text-sm text-muted-foreground">On the left sidebar, look for the <strong>Build</strong> category. Click it to expand.</p>
                     <div className="p-3 bg-muted rounded border text-xs font-mono">
-                      Sidebar > Build > Authentication
+                      Sidebar {" > "} Build {" > "} Authentication
                     </div>
                   </div>
 
