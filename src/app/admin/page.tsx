@@ -420,7 +420,7 @@ export default function AdminPanel() {
                         <TableHead>Phone</TableHead>
                         <TableHead>Service</TableHead>
                         <TableHead>Date</TableHead>
-                      </TableHeader>
+                      </TableRow>
                     </TableHeader>
                     <TableBody>
                       {allVolunteers.map((vol) => (
