@@ -192,8 +192,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-32 bg-accent text-white overflow-hidden relative">
+      {/* CTA Section - Harmonized Background */}
+      <section className="py-32 bg-primary text-white overflow-hidden relative">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-white rounded-full blur-[150px]" />
         </div>
@@ -203,7 +203,7 @@ export default function Home() {
             Join the grand celebration. Register your family and friends to receive your digital entry pass instantly.
           </p>
           <div className="flex flex-col items-center gap-6">
-            <Button asChild variant="secondary" size="lg" className="rounded-full px-16 h-20 text-2xl font-extrabold text-accent shadow-2xl hover:scale-105 transition-transform bg-white border-none">
+            <Button asChild variant="secondary" size="lg" className="rounded-full px-16 h-20 text-2xl font-extrabold text-primary shadow-2xl hover:scale-105 transition-transform bg-white border-none">
               <Link href="/darshan">Secure Your Pass</Link>
             </Button>
             <p className="text-sm opacity-60 font-bold uppercase tracking-[0.2em]">Limited Entries for Morning Session</p>
