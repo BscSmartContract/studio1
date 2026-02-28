@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +19,9 @@ import {
   Phone, 
   User as UserIcon,
   Users as UsersIcon,
-  ScrollText
+  ScrollText,
+  Plus,
+  Minus
 } from "lucide-react";
 import { 
   useAuth, 
@@ -220,7 +223,7 @@ export default function DarshanPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4">Darshan Registration</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Book your divine slot. Please tell us how many people are coming.
+            Book your divine slot. Please provide details of all individuals attending.
           </p>
         </div>
 
@@ -309,56 +312,62 @@ export default function DarshanPage() {
               <div className="mx-auto bg-green-100 p-4 rounded-full w-fit mb-4">
                 <CheckCircle2 className="h-10 w-10 text-green-600" />
               </div>
-              <CardTitle className="text-2xl font-headline text-green-800">Registration Confirmed!</CardTitle>
-              <CardDescription>
-                Om Sai Ram, {registrations[0].userName}.
+              <CardTitle className="text-3xl font-headline text-green-800">Registration Confirmed!</CardTitle>
+              <CardDescription className="text-lg">
+                Om Sai Ram, {registrations[0]?.userName}. Your registration is complete.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 pb-10 px-8">
+            <CardContent className="space-y-8 pb-10 px-8">
               {confirmationMessage && (
-                <div className="bg-white rounded-2xl border border-primary/20 p-6 shadow-sm relative">
-                  <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <ScrollText className="h-12 w-12 text-primary" />
+                <div className="bg-[#FFFDF5] rounded-3xl border border-primary/20 p-8 shadow-sm relative overflow-hidden">
+                   <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                    <ScrollText className="h-24 w-24 text-primary" />
                   </div>
-                  <h3 className="font-bold text-primary mb-2 flex items-center gap-2">
+                  <h3 className="font-bold text-primary mb-4 flex items-center gap-2 uppercase tracking-widest text-sm">
                     <Sparkles className="h-4 w-4" /> Divine Message
                   </h3>
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground font-body italic">
+                  <div className="whitespace-pre-wrap text-base leading-relaxed text-muted-foreground font-body italic">
                     {confirmationMessage}
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-primary/10 text-xs text-primary/60 font-medium">
+                    Blessings from Sai Parivar Ambala
                   </div>
                 </div>
               )}
 
-              <div className="bg-white rounded-2xl border border-dashed border-green-300 p-6 shadow-sm">
-                <h3 className="text-center font-bold text-lg mb-4 text-primary">Group Summary</h3>
+              <div className="bg-white rounded-3xl border border-dashed border-green-300 p-8 shadow-sm">
+                <h3 className="text-center font-bold text-xl mb-6 text-primary flex items-center justify-center gap-2">
+                  <UsersIcon className="h-5 w-5" /> Group Summary
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center">
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Total People</span>
+                    <span className="text-3xl font-bold text-primary">{registrations[0]?.totalPeople}</span>
+                  </div>
+                  <div className="p-4 bg-muted/30 rounded-2xl flex flex-col items-center justify-center">
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Contact Phone</span>
+                    <span className="text-lg font-bold text-foreground">{registrations[0]?.userPhone}</span>
+                  </div>
+                </div>
+                
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground font-medium">Total People:</span>
-                    <span className="font-bold text-foreground bg-primary/10 px-3 py-1 rounded-full">{registrations[0].totalPeople}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground font-medium">Contact Phone:</span>
-                    <span className="font-bold text-foreground">{registrations[0].userPhone}</span>
-                  </div>
-                  <div className="mt-4 pt-4 border-t">
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Devotee List</p>
-                    <div className="space-y-2">
-                      {registrations[0].devotees?.map((dev: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center bg-muted/30 p-2 rounded-lg text-sm">
-                          <span>{idx + 1}. {dev.name}</span>
-                          <span className="text-xs font-bold">Age: {dev.age}</span>
-                        </div>
-                      ))}
-                    </div>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3 text-center">Devotee Attendance List</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {registrations[0]?.devotees?.map((dev: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center bg-background p-3 rounded-xl border text-sm shadow-sm">
+                        <span className="font-medium">{idx + 1}. {dev.name}</span>
+                        <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">Age: {dev.age}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-              <p className="text-center text-xs text-muted-foreground">
-                The above message has been sent to your registered email for your records.
+              <p className="text-center text-sm text-muted-foreground">
+                A copy of this divine message has been drafted for your registered email address.
               </p>
             </CardContent>
-            <CardFooter className="flex justify-center border-t bg-muted/20 py-4">
-              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground">
+            <CardFooter className="flex justify-center border-t bg-muted/20 py-6">
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-muted-foreground hover:text-primary">
                 <LogOut className="h-4 w-4 mr-2" /> Sign out ({user.email || 'Devotee'})
               </Button>
             </CardFooter>
@@ -369,12 +378,12 @@ export default function DarshanPage() {
             
             <CardHeader className="pt-10 px-8">
               <CardTitle className="text-3xl font-headline">Devotee Group Details</CardTitle>
-              <CardDescription className="text-lg">Please provide details of all individuals attending Darshan.</CardDescription>
+              <CardDescription className="text-lg">Please provide the names and ages of all individuals attending Darshan.</CardDescription>
             </CardHeader>
             <form onSubmit={handleRegister}>
               <CardContent className="space-y-8 pb-6 pt-4 px-8">
                 {/* Contact Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-muted/30 rounded-2xl border">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-muted/30 rounded-3xl border">
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" /> Contact Phone</Label>
                     <Input 
@@ -382,30 +391,30 @@ export default function DarshanPage() {
                       value={contactPhone} 
                       onChange={(e) => setContactPhone(e.target.value)} 
                       required 
-                      className="h-12 bg-white"
+                      className="h-12 bg-white rounded-xl"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2"><UsersIcon className="h-4 w-4 text-primary" /> Total People</Label>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4 bg-white rounded-xl p-1 border">
                       <Button 
                         type="button" 
-                        variant="outline" 
+                        variant="ghost" 
                         size="icon" 
                         onClick={() => setTotalPeople(Math.max(1, totalPeople - 1))}
-                        className="rounded-full h-10 w-10 border-primary/20"
+                        className="rounded-lg h-10 w-10 text-primary hover:bg-primary/10"
                       >
-                        -
+                        <Minus className="h-4 w-4" />
                       </Button>
-                      <span className="text-xl font-bold w-8 text-center">{totalPeople}</span>
+                      <span className="text-xl font-bold flex-grow text-center">{totalPeople}</span>
                       <Button 
                         type="button" 
-                        variant="outline" 
+                        variant="ghost" 
                         size="icon" 
                         onClick={() => setTotalPeople(totalPeople + 1)}
-                        className="rounded-full h-10 w-10 border-primary/20"
+                        className="rounded-lg h-10 w-10 text-primary hover:bg-primary/10"
                       >
-                        +
+                        <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -413,35 +422,37 @@ export default function DarshanPage() {
 
                 {/* Attendee Details */}
                 <div className="space-y-6">
-                  <h3 className="font-bold text-lg flex items-center gap-2 text-primary">
+                  <h3 className="font-bold text-xl flex items-center gap-2 text-primary">
                     <UserIcon className="h-5 w-5" /> Devotee Information
                   </h3>
-                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                     {attendees.map((attendee, index) => (
-                      <div key={index} className="p-5 border rounded-2xl space-y-4 bg-muted/5">
+                      <div key={index} className="p-6 border rounded-3xl space-y-4 bg-muted/10 relative overflow-hidden">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                            Person {index + 1} {index === 0 && "(Primary)"}
+                          <span className="text-xs font-bold uppercase tracking-widest text-primary/60 bg-primary/5 px-3 py-1 rounded-full">
+                            Person {index + 1} {index === 0 && "(Primary Devotee)"}
                           </span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div className="sm:col-span-2 space-y-1.5">
-                            <Label className="text-xs">Full Name</Label>
+                            <Label className="text-xs font-bold">Full Name</Label>
                             <Input 
-                              placeholder="Name" 
+                              placeholder="e.g. Rahul Sharma" 
                               value={attendee.name}
                               onChange={(e) => handleAttendeeChange(index, 'name', e.target.value)}
                               required
+                              className="h-11 bg-white"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Age</Label>
+                            <Label className="text-xs font-bold">Age</Label>
                             <Input 
                               type="number" 
                               placeholder="Age" 
                               value={attendee.age}
                               onChange={(e) => handleAttendeeChange(index, 'age', e.target.value)}
                               required
+                              className="h-11 bg-white"
                             />
                           </div>
                         </div>
@@ -454,12 +465,12 @@ export default function DarshanPage() {
                 <Button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-primary hover:bg-primary/90 h-16 text-xl shadow-lg rounded-full font-headline font-bold"
+                  className="w-full bg-primary hover:bg-primary/90 h-16 text-xl shadow-lg rounded-full font-headline font-bold transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  {isSubmitting ? "Submitting Registration..." : "Complete Registration"}
+                  {isSubmitting ? "Processing Divine Booking..." : "Confirm Divine Booking"}
                 </Button>
-                <Button variant="ghost" onClick={handleSignOut} className="text-xs text-muted-foreground">
-                  Cancel & Sign Out
+                <Button variant="ghost" type="button" onClick={handleSignOut} className="text-xs text-muted-foreground">
+                  Cancel Registration & Sign Out
                 </Button>
               </CardFooter>
             </form>
