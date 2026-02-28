@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,10 @@ import {
   Smartphone,
   Lock,
   Copy,
-  Info
+  Info,
+  ScanLine,
+  CheckCircle2,
+  QrCode
 } from "lucide-react";
 import { 
   useAuth,
@@ -42,7 +45,7 @@ import {
   addDocumentNonBlocking,
   deleteDocumentNonBlocking
 } from "@/firebase";
-import { doc, collection, collectionGroup, query, orderBy } from "firebase/firestore";
+import { doc, collection, collectionGroup, query, orderBy, getDocs } from "firebase/firestore";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import {
   Dialog,
@@ -52,6 +55,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AdminPanel() {
   const { toast } = useToast();
@@ -84,11 +88,47 @@ export default function AdminPanel() {
   const [blessingCaption, setBlessingCaption] = useState("");
   const [blessingDate, setBlessingDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Check-in logic
+  const [passCodeInput, setPassCodeInput] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [foundRegistration, setFoundRegistration] = useState<any>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     if (config) {
       setLiveUrl(config.liveDarshanYoutubeLink || "");
     }
   }, [config]);
+
+  useEffect(() => {
+    if (scanning) {
+      const getCameraPermission = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({video: true});
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser settings to use this app.',
+          });
+        }
+      };
+      getCameraPermission();
+    } else {
+      // Stop the stream if scanning is turned off
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+    }
+  }, [scanning, toast]);
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
@@ -132,6 +172,38 @@ export default function AdminPanel() {
     if (!db) return;
     deleteDocumentNonBlocking(doc(db, "daily_blessing_photos", id));
     toast({ title: "Removed", description: "Photo removed from blessings list." });
+  };
+
+  const handleSearchPass = async () => {
+    if (!passCodeInput || !db) return;
+    
+    // Pass ID is the full Firestore ID. Pass Code is the first 8 chars.
+    // We search through local registrations first for performance.
+    const cleanCode = passCodeInput.trim().toUpperCase();
+    const match = allRegistrations?.find(r => 
+      r.id.toUpperCase().startsWith(cleanCode) || r.id === passCodeInput
+    );
+
+    if (match) {
+      setFoundRegistration(match);
+      toast({ title: "Pass Found", description: `Registration for ${match.userName} loaded.` });
+    } else {
+      setFoundRegistration(null);
+      toast({ variant: "destructive", title: "Not Found", description: "No registration matches this code." });
+    }
+  };
+
+  const handleCheckIn = () => {
+    if (!foundRegistration || !db) return;
+    
+    const regRef = doc(db, "users", foundRegistration.externalAuthUserId, "darshan_registrations", foundRegistration.id);
+    updateDocumentNonBlocking(regRef, {
+      isCheckedIn: true,
+      checkInTime: new Date().toISOString()
+    });
+
+    setFoundRegistration({ ...foundRegistration, isCheckedIn: true });
+    toast({ title: "Check-in Successful", description: "Devotee entry has been recorded." });
   };
 
   const copyToClipboard = (text: string) => {
@@ -214,27 +286,128 @@ export default function AdminPanel() {
           <Button variant="ghost" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" /> Logout</Button>
         </div>
 
-        <Tabs defaultValue="live-darshan" className="w-full">
+        <Tabs defaultValue="entry-checkin" className="w-full">
           <TabsList className="grid grid-cols-2 md:grid-cols-6 h-auto p-1 bg-muted rounded-xl mb-8">
-            <TabsTrigger value="live-darshan" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Video className="h-4 w-4 mr-2" /> Live
-            </TabsTrigger>
-            <TabsTrigger value="blessings" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Sparkles className="h-4 w-4 mr-2" /> Blessings
+            <TabsTrigger value="entry-checkin" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+              <ScanLine className="h-4 w-4 mr-2" /> Entry
             </TabsTrigger>
             <TabsTrigger value="registrations" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Users className="h-4 w-4 mr-2" /> Darshan
             </TabsTrigger>
+            <TabsTrigger value="blessings" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Sparkles className="h-4 w-4 mr-2" /> Blessings
+            </TabsTrigger>
             <TabsTrigger value="volunteers" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <HandHeart className="h-4 w-4 mr-2" /> Volunteers
             </TabsTrigger>
-            <TabsTrigger value="donations" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-              <Heart className="h-4 w-4 mr-2" /> Donations
+            <TabsTrigger value="live-darshan" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Video className="h-4 w-4 mr-2" /> Live
             </TabsTrigger>
             <TabsTrigger value="setup" className="py-3 data-[state=active]:bg-accent data-[state=active]:text-white">
-              <ShieldCheck className="h-4 w-4 mr-2" /> Setup Guide
+              <ShieldCheck className="h-4 w-4 mr-2" /> Setup
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="entry-checkin">
+             <div className="max-w-4xl mx-auto space-y-8">
+                <Card className="shadow-lg border-primary/20">
+                  <CardHeader className="text-center">
+                    <CardTitle className="flex items-center justify-center gap-2">
+                      <ScanLine className="text-primary" /> Venue Entry Check-in
+                    </CardTitle>
+                    <CardDescription>Verify devotee passes and record entry</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex flex-col md:flex-row gap-4 items-end">
+                      <div className="flex-1 space-y-2">
+                        <Label>Enter Pass Code (8 characters)</Label>
+                        <Input 
+                          placeholder="e.g. 7A8B9C10" 
+                          value={passCodeInput} 
+                          onChange={(e) => setPassCodeInput(e.target.value.toUpperCase())}
+                          className="h-12 text-xl font-bold tracking-widest text-center"
+                        />
+                      </div>
+                      <Button onClick={handleSearchPass} className="h-12 px-8 bg-primary">Search Devotee</Button>
+                      <Button variant="outline" className="h-12 px-6" onClick={() => setScanning(!scanning)}>
+                         <QrCode className="h-4 w-4 mr-2" /> {scanning ? "Close Camera" : "Open Scanner"}
+                      </Button>
+                    </div>
+
+                    {scanning && (
+                      <div className="space-y-4">
+                        <video ref={videoRef} className="w-full aspect-video rounded-3xl bg-black border-4 border-primary/20 shadow-xl" autoPlay muted />
+                        {hasCameraPermission === false && (
+                          <Alert variant="destructive">
+                            <AlertTitle>Camera Access Required</AlertTitle>
+                            <AlertDescription>Please allow camera access to scan QR codes.</AlertDescription>
+                          </Alert>
+                        )}
+                        <p className="text-center text-xs text-muted-foreground animate-pulse">
+                          Hold the devotee's QR code in front of the camera to scan...
+                        </p>
+                      </div>
+                    )}
+
+                    {foundRegistration && (
+                      <Card className={`mt-8 border-2 ${foundRegistration.isCheckedIn ? 'bg-green-50 border-green-200' : 'bg-primary/5 border-primary/20'} overflow-hidden`}>
+                        <div className="p-6">
+                           <div className="flex justify-between items-start mb-6">
+                              <div>
+                                <h3 className="text-2xl font-bold">{foundRegistration.userName}</h3>
+                                <p className="text-sm text-muted-foreground">{foundRegistration.userPhone} | {foundRegistration.userEmail}</p>
+                              </div>
+                              {foundRegistration.isCheckedIn ? (
+                                <div className="bg-green-600 text-white px-4 py-1.5 rounded-full font-bold text-xs flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3" /> CHECKED IN
+                                </div>
+                              ) : (
+                                <div className="bg-primary text-white px-4 py-1.5 rounded-full font-bold text-xs">
+                                  PENDING ENTRY
+                                </div>
+                              )}
+                           </div>
+                           
+                           <div className="grid grid-cols-2 gap-4 mb-6">
+                              <div className="p-4 bg-white rounded-2xl shadow-sm border">
+                                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Group Size</span>
+                                 <span className="text-2xl font-bold text-primary">{foundRegistration.totalPeople} Persons</span>
+                              </div>
+                              <div className="p-4 bg-white rounded-2xl shadow-sm border">
+                                 <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Pass Code</span>
+                                 <span className="text-lg font-bold font-mono">{foundRegistration.id.substring(0, 8).toUpperCase()}</span>
+                              </div>
+                           </div>
+
+                           <div className="space-y-3">
+                              <h4 className="font-bold text-xs uppercase tracking-widest text-muted-foreground">Attendance List</h4>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                 {foundRegistration.devotees?.map((dev: any, i: number) => (
+                                   <div key={i} className="flex justify-between items-center p-2 bg-white rounded-lg border text-sm">
+                                      <span>{dev.name}</span>
+                                      <span className="text-[10px] bg-muted px-2 py-0.5 rounded">Age: {dev.age}</span>
+                                   </div>
+                                 ))}
+                              </div>
+                           </div>
+                           
+                           {!foundRegistration.isCheckedIn && (
+                             <Button onClick={handleCheckIn} className="w-full mt-8 h-16 text-xl font-bold bg-green-600 hover:bg-green-700 shadow-lg rounded-2xl">
+                               Confirm & Complete Entry
+                             </Button>
+                           )}
+                           {foundRegistration.isCheckedIn && foundRegistration.checkInTime && (
+                             <p className="mt-6 text-center text-sm font-medium text-green-700">
+                               Checked in at: {new Date(foundRegistration.checkInTime).toLocaleString()}
+                             </p>
+                           )}
+                        </div>
+                      </Card>
+                    )}
+                  </CardContent>
+                </Card>
+             </div>
+          </TabsContent>
 
           <TabsContent value="setup">
             <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
@@ -406,7 +579,7 @@ export default function AdminPanel() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Contact Person</TableHead>
-                        <TableHead>Phone</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Total People</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead className="text-right">Details</TableHead>
@@ -415,8 +588,17 @@ export default function AdminPanel() {
                     <TableBody>
                       {allRegistrations.map((reg) => (
                         <TableRow key={reg.id}>
-                          <TableCell className="font-medium">{reg.userName || "N/A"}</TableCell>
-                          <TableCell>{reg.userPhone || "N/A"}</TableCell>
+                          <TableCell className="font-medium">
+                             <div>{reg.userName || "N/A"}</div>
+                             <div className="text-[10px] text-muted-foreground font-mono">{reg.id.substring(0, 8).toUpperCase()}</div>
+                          </TableCell>
+                          <TableCell>
+                            {reg.isCheckedIn ? (
+                              <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">IN</span>
+                            ) : (
+                              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">WAITING</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                              <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs">
                                {reg.totalPeople || 0}
@@ -501,10 +683,6 @@ export default function AdminPanel() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-          
-          <TabsContent value="donations" className="text-center py-12 text-muted-foreground">
-             Feature coming soon.
           </TabsContent>
         </Tabs>
       </div>

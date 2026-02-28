@@ -171,6 +171,15 @@
           "type": "string",
           "description": "The timestamp when the user registered for Darshan.",
           "format": "date-time"
+        },
+        "isCheckedIn": {
+          "type": "boolean",
+          "description": "Whether the group has checked in at the venue entry."
+        },
+        "checkInTime": {
+          "type": "string",
+          "description": "The timestamp when the user checked in.",
+          "format": "date-time"
         }
       },
       "required": [
