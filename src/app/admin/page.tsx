@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -244,7 +243,7 @@ export default function AdminPanel() {
                   <p className="text-sm text-muted-foreground">Devotees need OTP verification for Darshan registrations.</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
                     <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Open <strong>Authentication > Sign-in method</strong> in Firebase Console.</li>
+                      <li>Open <strong>Authentication &gt; Sign-in method</strong> in Firebase Console.</li>
                       <li>Click <strong>Add new provider</strong>.</li>
                       <li>Select <strong>Phone</strong> and toggle it to <strong>Enable</strong>.</li>
                       <li>Click <strong>Save</strong>.</li>
@@ -260,7 +259,7 @@ export default function AdminPanel() {
                   <div className="bg-muted p-4 rounded-lg space-y-3">
                     <p className="text-xs font-mono break-all bg-white p-2 rounded border">Hostname: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
                     <ol className="text-sm list-decimal pl-5 space-y-1">
-                      <li>Go to <strong>Authentication > Settings</strong> tab.</li>
+                      <li>Go to <strong>Authentication &gt; Settings</strong> tab.</li>
                       <li>Select <strong>Authorized domains</strong>.</li>
                       <li>Click <strong>Add domain</strong> and paste the hostname above.</li>
                     </ol>
@@ -279,7 +278,7 @@ export default function AdminPanel() {
                   <p className="text-sm text-muted-foreground">Make the magic links look professional:</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
                     <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Go to <strong>Authentication > Templates</strong>.</li>
+                      <li>Go to <strong>Authentication &gt; Templates</strong>.</li>
                       <li>Update <strong>Sender name</strong> to <code>Sai Parivar Ambala</code>.</li>
                       <li>Click <strong>Save</strong>.</li>
                     </ol>
