@@ -7,9 +7,17 @@ import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, where } from "firebase/firestore";
 import { Loader2, Sparkles } from "lucide-react";
 
+/**
+ * Public Gallery Page
+ * 
+ * Fetches and displays images marked as 'isVisible' from the gallery_images collection.
+ * Uses real-time listeners through useCollection.
+ */
 export default function GalleryPage() {
   const db = useFirestore();
 
+  // Memoize the public gallery query
+  // Must match security rules: resource.data.isVisible == true
   const galleryQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
@@ -44,7 +52,7 @@ export default function GalleryPage() {
                   src={image.imageUrl}
                   alt={image.description || "Sai Gallery Image"}
                   fill
-                  unoptimized={true} // Bypasses Next.js image optimization to avoid 429 upstream errors
+                  unoptimized={true} // Bypasses Next.js image optimization for external URLs
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
