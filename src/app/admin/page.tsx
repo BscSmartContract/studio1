@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,7 +26,8 @@ import {
   LogIn,
   LogOut,
   Mail,
-  Edit3
+  Edit3,
+  Copy
 } from "lucide-react";
 import { 
   useAuth,
@@ -93,6 +95,13 @@ export default function AdminPanel() {
   const handleSignOut = async () => {
     await signOut(auth);
     setIsUnlocked(false);
+  };
+
+  const copyUid = () => {
+    if (user?.uid) {
+      navigator.clipboard.writeText(user.uid);
+      toast({ title: "Copied", description: "UID copied to clipboard." });
+    }
   };
 
   const handleUpdateLiveLink = () => {
@@ -164,7 +173,7 @@ export default function AdminPanel() {
             <CardTitle className="text-3xl font-headline">Unlock Panel</CardTitle>
             <CardDescription>Enter the administrative password</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="pass">Password</Label>
@@ -177,10 +186,21 @@ export default function AdminPanel() {
                 />
               </div>
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Unlock</Button>
-              <Button variant="ghost" onClick={handleSignOut} className="w-full text-xs">
-                Not {user.email}? Sign out
-              </Button>
             </form>
+
+            <div className="p-4 bg-muted rounded-lg space-y-2">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Your Unique UID (Required for Firestore Setup)</p>
+              <div className="flex items-center gap-2">
+                <code className="bg-background px-2 py-1 rounded border text-xs flex-grow truncate">{user.uid}</code>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={copyUid}>
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+
+            <Button variant="ghost" onClick={handleSignOut} className="w-full text-xs">
+              Not {user.email}? Sign out
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -203,8 +223,17 @@ export default function AdminPanel() {
 
         {regError && (
           <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            <span>Permission Denied: Your account ({user.email}) is not authorized as an Admin in Firestore. See Setup Guide.</span>
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <div className="flex-grow">
+              <p className="font-bold">Permission Denied</p>
+              <p>Your account ({user.email}) is not authorized as an Admin. Add your UID to <code>roles_admin</code> collection.</p>
+              <div className="mt-2 flex items-center gap-2">
+                <code className="bg-destructive/5 px-2 py-0.5 rounded border border-destructive/20 text-xs">{user.uid}</code>
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={copyUid}>
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -279,6 +308,15 @@ export default function AdminPanel() {
                       <li>Add a field: <code>uid</code> (string) = <code>{user.uid}</code></li>
                       <li>Click <strong>Save</strong>.</li>
                     </ol>
+                    <div className="mt-4 p-3 bg-primary/5 rounded border border-primary/20">
+                      <p className="text-xs font-bold text-primary mb-1">Your UID for step 2.4:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs font-mono">{user.uid}</code>
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={copyUid}>
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
