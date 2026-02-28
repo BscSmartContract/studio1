@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -5,7 +6,17 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { Calendar, MapPin, Clock, Heart, Users, Star, Sparkles, PlayCircle, ArrowLeft } from "lucide-react";
+import { 
+  Calendar, 
+  MapPin, 
+  Clock, 
+  Heart, 
+  Users, 
+  Star, 
+  Sparkles, 
+  PlayCircle, 
+  ArrowRight 
+} from "lucide-react";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,28 +41,28 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative h-[90vh] flex items-center justify-center text-center overflow-hidden">
+      <section className="relative h-[95vh] flex items-center justify-center text-center overflow-hidden">
         <Image
           src={heroImg?.imageUrl || "https://picsum.photos/seed/sai-baba-throne/1920/1080"}
           alt="Shirdi Sai Baba on Golden Throne"
           fill
-          className="object-cover brightness-[0.45] object-top"
+          className="object-cover brightness-[0.4] object-top"
           priority
           data-ai-hint="shirdi sai"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/20 to-background" />
         <div className="relative z-10 container px-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="inline-block px-6 py-2 mb-8 rounded-full bg-primary/20 backdrop-blur-md border border-primary/40 text-primary-foreground text-sm font-bold tracking-[0.2em] uppercase">
             Om Sai Ram
           </div>
-          <h1 className="text-5xl md:text-8xl font-headline font-extrabold text-white mb-6 drop-shadow-[0_5px_15px_rgba(0,0,0,0.5)] leading-tight">
+          <h1 className="text-5xl md:text-8xl font-headline font-extrabold text-white mb-6 drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] leading-tight">
             Sai Paduka <span className="text-primary italic">Mahotsav</span>
           </h1>
-          <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed font-medium">
+          <p className="text-xl md:text-2xl text-white/95 mb-12 max-w-3xl mx-auto leading-relaxed font-medium drop-shadow-md">
             Join the sacred gathering of Sai Parivar Ambala. Experience the divine grace of Shirdi Sai Baba's Original Padukas in an atmosphere of ultimate peace and devotion.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white min-w-[240px] h-16 text-xl rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95">
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white min-w-[240px] h-16 text-xl rounded-full shadow-2xl transition-transform hover:scale-105 active:scale-95 border-none">
               <Link href="/darshan">Get Your Entry Pass</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white/40 backdrop-blur-md min-w-[240px] h-16 text-xl rounded-full shadow-xl transition-transform hover:scale-105 active:scale-95">
@@ -226,7 +237,7 @@ export default function Home() {
                 </div>
               </div>
               <Button asChild className="bg-primary hover:bg-primary/90 rounded-full px-12 h-14 text-lg shadow-xl shadow-primary/20">
-                <Link href="/contact" className="flex items-center gap-2">Get in Touch <ArrowLeft className="h-4 w-4" /></Link>
+                <Link href="/contact" className="flex items-center gap-2">Get in Touch <ArrowRight className="h-4 w-4" /></Link>
               </Button>
             </div>
             <div className="flex-1 relative w-full aspect-[4/3] rounded-[3rem] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.15)] border-[15px] border-white transition-transform hover:scale-105 duration-500">
