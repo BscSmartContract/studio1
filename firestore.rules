@@ -70,9 +70,9 @@ service cloud.firestore {
     }
 
     match /gallery_images/{imageId} {
-      // Admin can see everything; public can only see visible items
-      allow list: if isAdmin() || (resource.data.isVisible == true);
-      allow get: if isAdmin() || (resource.data.isVisible == true);
+      // Separated rules to ensure admin access isn't blocked by resource evaluation errors
+      allow list, get: if isAdmin();
+      allow list, get: if resource.data.isVisible == true;
       allow write: if isAdmin();
     }
 
