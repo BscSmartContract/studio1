@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "hero-bg",
-      "description": "Saffron spiritual background",
-      "imageUrl": "https://images.unsplash.com/photo-1768655012921-161d5fb4b0de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzcGlyaXR1YWwlMjBzYWZmcm9ufGVufDB8fHx8MTc3MjMwNjcwOHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "spiritual saffron"
+      "description": "Divine Shirdi Sai Baba Portrait",
+      "imageUrl": "https://images.unsplash.com/photo-1669631756612-1087033ecda2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaGlyZGklMjBzYWl8ZW58MHx8fHwxNzcyMzE2NTA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "shirdi sai"
     },
     {
       "id": "sai-baba",

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -33,11 +34,11 @@ export default function Home() {
       <section className="relative h-[85vh] flex items-center justify-center text-center overflow-hidden">
         <Image
           src={heroImg?.imageUrl || "https://picsum.photos/seed/sai-hero/1920/1080"}
-          alt="Hero Background"
+          alt="Divine Sai Baba Background"
           fill
-          className="object-cover brightness-[0.4]"
+          className="object-cover brightness-[0.35]"
           priority
-          data-ai-hint="spiritual saffron"
+          data-ai-hint="shirdi sai"
         />
         <div className="relative z-10 container px-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-primary-foreground text-sm font-medium tracking-wider">
