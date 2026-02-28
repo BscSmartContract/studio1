@@ -26,8 +26,9 @@ import {
   LogIn,
   LogOut,
   Mail,
-  Copy,
-  Lock
+  Smartphone,
+  Lock,
+  Copy
 } from "lucide-react";
 import { 
   useAuth,
@@ -124,6 +125,11 @@ export default function AdminPanel() {
     toast({ title: "Removed", description: "Photo removed from blessings list." });
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copied!", description: "Value copied to clipboard." });
+  };
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -170,8 +176,14 @@ export default function AdminPanel() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
+            <div className="p-3 bg-muted rounded border text-xs font-mono break-all flex items-center justify-between gap-2">
+              <span>UID: {user.uid}</span>
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(user.uid)}>
+                <Copy className="h-3 w-3" />
+              </Button>
+            </div>
             <p className="text-sm text-muted-foreground">
-              Please sign in with the authorized admin email or contact the trust.
+              Please sign in with the authorized admin email <strong>{ADMIN_EMAIL}</strong>.
             </p>
             <Button variant="outline" onClick={handleSignOut} className="w-full">
               Sign out and try another account
@@ -211,7 +223,7 @@ export default function AdminPanel() {
               <Heart className="h-4 w-4 mr-2" /> Donations
             </TabsTrigger>
             <TabsTrigger value="setup" className="py-3 data-[state=active]:bg-accent data-[state=active]:text-white">
-              <ShieldCheck className="h-4 w-4 mr-2" /> Domain Setup
+              <ShieldCheck className="h-4 w-4 mr-2" /> Setup Guide
             </TabsTrigger>
           </TabsList>
 
@@ -219,28 +231,42 @@ export default function AdminPanel() {
             <Card className="shadow-lg max-w-4xl mx-auto border-accent/20">
               <CardHeader className="bg-accent/5">
                 <CardTitle className="flex items-center gap-2 text-accent">
-                  <ShieldCheck className="h-6 w-6" /> System Configuration
+                  <ShieldCheck className="h-6 w-6" /> Platform Configuration
                 </CardTitle>
-                <CardDescription className="text-foreground font-medium">Domain and Email whitelisting instructions.</CardDescription>
+                <CardDescription className="text-foreground font-medium">Critical instructions for enabling all features.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-8 pt-6">
                 
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <LogIn className="h-5 w-5 text-primary" /> 1. Domain Whitelisting
+                    <Smartphone className="h-5 w-5 text-primary" /> 1. Enable Phone OTP
                   </h3>
-                  <p className="text-sm text-muted-foreground">Firebase blocks login links from unknown domains. You must add the current URL to the authorized list for Email Login to work.</p>
+                  <p className="text-sm text-muted-foreground">Devotees need OTP verification for Darshan registrations.</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
-                    <p className="text-xs font-mono break-all">Current Hostname: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
+                    <ol className="text-sm list-decimal pl-5 space-y-2">
+                      <li>Open <strong>Authentication > Sign-in method</strong> in Firebase Console.</li>
+                      <li>Click <strong>Add new provider</strong>.</li>
+                      <li>Select <strong>Phone</strong> and toggle it to <strong>Enable</strong>.</li>
+                      <li>Click <strong>Save</strong>.</li>
+                    </ol>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-primary" /> 2. Authorized Domains
+                  </h3>
+                  <p className="text-sm text-muted-foreground">Firebase blocks Phone/Email login links from unknown domains. Add the current URL.</p>
+                  <div className="bg-muted p-4 rounded-lg space-y-3">
+                    <p className="text-xs font-mono break-all bg-white p-2 rounded border">Hostname: <strong>{typeof window !== 'undefined' ? window.location.hostname : 'loading...'}</strong></p>
                     <ol className="text-sm list-decimal pl-5 space-y-1">
-                      <li>Go to <strong>Authentication &gt; Settings</strong> tab in Firebase Console.</li>
-                      <li>Select <strong>"Authorized domains"</strong>.</li>
-                      <li>Click <strong>"Add domain"</strong>.</li>
-                      <li>Paste the hostname above and click <strong>Add</strong>.</li>
+                      <li>Go to <strong>Authentication > Settings</strong> tab.</li>
+                      <li>Select <strong>Authorized domains</strong>.</li>
+                      <li>Click <strong>Add domain</strong> and paste the hostname above.</li>
                     </ol>
                     <Button size="sm" variant="outline" className="w-full" asChild>
-                      <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/providers`} target="_blank">
-                        <ExternalLink className="h-3 w-3 mr-2" /> Open Firebase Settings
+                      <a href={`https://console.firebase.google.com/project/${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-2851341323-b12c8'}/authentication/settings`} target="_blank">
+                        <ExternalLink className="h-3 w-3 mr-2" /> Open Auth Settings
                       </a>
                     </Button>
                   </div>
@@ -248,14 +274,13 @@ export default function AdminPanel() {
 
                 <div className="space-y-4">
                   <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                    <Mail className="h-5 w-5 text-primary" /> 2. Email Customization
+                    <Mail className="h-5 w-5 text-primary" /> 3. Branding Emails
                   </h3>
-                  <p className="text-sm text-muted-foreground">To make the magic links sent to devotees look professional:</p>
+                  <p className="text-sm text-muted-foreground">Make the magic links look professional:</p>
                   <div className="bg-muted p-4 rounded-lg space-y-3">
                     <ol className="text-sm list-decimal pl-5 space-y-2">
-                      <li>Go to <strong>Authentication &gt; Templates</strong> in the console.</li>
-                      <li>Select the <strong>"Email address verification"</strong> or <strong>"Passwordless sign-in"</strong> template.</li>
-                      <li>Update the <strong>Sender name</strong> to <code>Sai Parivar Ambala</code>.</li>
+                      <li>Go to <strong>Authentication > Templates</strong>.</li>
+                      <li>Update <strong>Sender name</strong> to <code>Sai Parivar Ambala</code>.</li>
                       <li>Click <strong>Save</strong>.</li>
                     </ol>
                   </div>
@@ -371,7 +396,7 @@ export default function AdminPanel() {
                       <TableRow>
                         <TableHead>ID</TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
                         <TableHead>Date</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -380,7 +405,7 @@ export default function AdminPanel() {
                         <TableRow key={reg.id}>
                           <TableCell className="font-mono text-xs">SAI-{reg.id.substring(0,8).toUpperCase()}</TableCell>
                           <TableCell>{reg.userName || "N/A"}</TableCell>
-                          <TableCell>{reg.userEmail || "N/A"}</TableCell>
+                          <TableCell>{reg.userPhone || "N/A"}</TableCell>
                           <TableCell className="text-xs">
                             {reg.registrationDate ? new Date(reg.registrationDate).toLocaleDateString() : "N/A"}
                           </TableCell>
