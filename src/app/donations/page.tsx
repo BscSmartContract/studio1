@@ -1,6 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Star, Sparkles, IndianRupee } from "lucide-react";
+import { Heart, Star, Sparkles, IndianRupee, Loader2 } from "lucide-react";
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy } from "firebase/firestore";
 
 const donationPurposes = [
   {
@@ -20,14 +25,16 @@ const donationPurposes = [
   },
 ];
 
-const prominentDonors = [
-  { name: "Smt. Shanti Devi", city: "Ambala City", amount: "Premium Contributor" },
-  { name: "Sh. Rakesh Gupta", city: "Chandigarh", amount: "Platinum Supporter" },
-  { name: "Sai Sewa Samiti", city: "Delhi", amount: "Grand Patron" },
-  { name: "Aggarwal Family", city: "Ambala Cantt", amount: "Gold Member" },
-];
-
 export default function DonationsPage() {
+  const db = useFirestore();
+
+  const donorsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, "prominent_donors"), orderBy("displayOrder", "asc"));
+  }, [db]);
+
+  const { data: donors, isLoading: isDonorsLoading } = useCollection(donorsQuery);
+
   return (
     <div className="py-12 md:py-24 bg-background">
       <div className="container px-4 mx-auto">
@@ -88,16 +95,24 @@ export default function DonationsPage() {
               <div className="bg-primary py-4 px-6 text-white font-bold text-center">
                 Wall of Gratitude
               </div>
-              <div className="divide-y divide-border">
-                {prominentDonors.map((donor, idx) => (
-                  <div key={idx} className="p-4 hover:bg-muted/50 transition-colors">
-                    <p className="font-bold text-lg">{donor.name}</p>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">{donor.city}</p>
-                    <div className="mt-2 inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] font-bold rounded-full uppercase">
-                      {donor.amount}
+              <div className="max-h-[600px] overflow-y-auto divide-y divide-border">
+                {isDonorsLoading ? (
+                  <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
+                ) : donors && donors.length > 0 ? (
+                  donors.map((donor) => (
+                    <div key={donor.id} className="p-4 hover:bg-muted/50 transition-colors">
+                      <p className="font-bold text-lg">{donor.name}</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider">{donor.city}</p>
+                      <div className="mt-2 inline-block px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] font-bold rounded-full uppercase">
+                        {donor.category}
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-muted-foreground italic text-sm">
+                    No prominent donors listed yet. 
                   </div>
-                ))}
+                )}
               </div>
               <div className="p-6 text-center bg-muted/20">
                 <p className="text-sm text-muted-foreground italic">"One who gives to the poor and needy, gives to me."</p>

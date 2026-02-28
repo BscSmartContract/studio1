@@ -27,7 +27,9 @@ import {
   ShieldCheck,
   Trash2,
   CheckCircle2,
-  Circle
+  Circle,
+  Star,
+  Plus
 } from "lucide-react";
 import { 
   useAuth,
@@ -63,6 +65,7 @@ export default function AdminPanel() {
   // Conditional Queries
   const configRef = useMemoFirebase(() => (db && isActuallyAdmin) ? doc(db, "app_configuration", "main") : null, [db, isActuallyAdmin]);
   const blessingsRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isActuallyAdmin]);
+  const donorsRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "prominent_donors"), orderBy("displayOrder", "asc")) : null, [db, isActuallyAdmin]);
   
   const allRegistrationsQuery = useMemoFirebase(() => 
     (db && isActuallyAdmin) ? collectionGroup(db, "darshan_registrations") : null, 
@@ -74,6 +77,7 @@ export default function AdminPanel() {
 
   const { data: config } = useDoc(configRef);
   const { data: blessings } = useCollection(blessingsRef);
+  const { data: donors } = useCollection(donorsRef);
   const { data: allRegistrations, isLoading: regLoading } = useCollection(allRegistrationsQuery);
   const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
@@ -81,6 +85,12 @@ export default function AdminPanel() {
   const [blessingImg, setBlessingImg] = useState("");
   const [blessingCaption, setBlessingCaption] = useState("");
   const [blessingDate, setBlessingDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Donor states
+  const [donorName, setDonorName] = useState("");
+  const [donorCity, setDonorCity] = useState("");
+  const [donorCategory, setDonorCategory] = useState("Premium Contributor");
+  const [donorOrder, setDonorOrder] = useState("1");
 
   // Entry Check-in logic
   const [passCodeInput, setPassCodeInput] = useState("");
@@ -168,6 +178,27 @@ export default function AdminPanel() {
     toast({ title: "Removed", description: "Photo removed from blessings list." });
   };
 
+  const handleAddDonor = () => {
+    if (!db || !donorName) return;
+    const donorsCol = collection(db, "prominent_donors");
+    addDocumentNonBlocking(donorsCol, {
+      name: donorName,
+      city: donorCity,
+      category: donorCategory,
+      displayOrder: parseInt(donorOrder) || 1,
+      createdAt: new Date().toISOString()
+    });
+    setDonorName("");
+    setDonorCity("");
+    toast({ title: "Donor Added", description: "Donor has been added to the Wall of Gratitude." });
+  };
+
+  const handleDeleteDonor = (id: string) => {
+    if (!db) return;
+    deleteDocumentNonBlocking(doc(db, "prominent_donors", id));
+    toast({ title: "Removed", description: "Donor removed from list." });
+  };
+
   const handleSearchPass = async () => {
     if (!passCodeInput || !allRegistrations) return;
     
@@ -198,7 +229,7 @@ export default function AdminPanel() {
     const regRef = doc(db, "users", foundRegistration.externalAuthUserId, "darshan_registrations", foundRegistration.id);
     updateDocumentNonBlocking(regRef, {
       devotees: updatedDevotees,
-      isCheckedIn: true // Mark group as having started check-in
+      isCheckedIn: true 
     });
 
     setFoundRegistration({ ...foundRegistration, devotees: updatedDevotees, isCheckedIn: true });
@@ -272,12 +303,15 @@ export default function AdminPanel() {
         </div>
 
         <Tabs defaultValue="entry-checkin" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-6 h-auto p-1 bg-muted rounded-xl mb-8">
+          <TabsList className="grid grid-cols-2 md:grid-cols-7 h-auto p-1 bg-muted rounded-xl mb-8">
             <TabsTrigger value="entry-checkin" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <ScanLine className="h-4 w-4 mr-2" /> Entry
             </TabsTrigger>
             <TabsTrigger value="registrations" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Users className="h-4 w-4 mr-2" /> Darshan
+            </TabsTrigger>
+            <TabsTrigger value="donors" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+              <Star className="h-4 w-4 mr-2" /> Donors
             </TabsTrigger>
             <TabsTrigger value="blessings" className="py-3 data-[state=active]:bg-primary data-[state=active]:text-white">
               <Sparkles className="h-4 w-4 mr-2" /> Blessings
@@ -473,6 +507,68 @@ export default function AdminPanel() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="donors">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle>Add Prominent Donor</CardTitle>
+                  <CardDescription>Donors will appear on the Wall of Gratitude.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Donor Name</Label>
+                    <Input value={donorName} onChange={(e) => setDonorName(e.target.value)} placeholder="e.g. Sh. Rakesh Gupta" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>City</Label>
+                    <Input value={donorCity} onChange={(e) => setDonorCity(e.target.value)} placeholder="e.g. Ambala City" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Category/Honor</Label>
+                    <Input value={donorCategory} onChange={(e) => setDonorCategory(e.target.value)} placeholder="e.g. Gold Member" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Display Order (1 = Top)</Label>
+                    <Input type="number" value={donorOrder} onChange={(e) => setDonorOrder(e.target.value)} />
+                  </div>
+                  <Button onClick={handleAddDonor} className="w-full bg-primary">
+                    <Plus className="h-4 w-4 mr-2" /> Add to Wall
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg overflow-hidden">
+                <CardHeader>
+                  <CardTitle>Current Wall of Gratitude</CardTitle>
+                </CardHeader>
+                <div className="max-h-[500px] overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {donors?.map((donor) => (
+                        <TableRow key={donor.id}>
+                          <TableCell className="font-bold">{donor.name}</TableCell>
+                          <TableCell className="text-xs">{donor.category}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="icon" variant="destructive" onClick={() => handleDeleteDonor(donor.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="volunteers">
