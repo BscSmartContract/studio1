@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,9 +17,7 @@ import {
   CheckCircle2, 
   Phone, 
   User as UserIcon,
-  Users as UsersIcon,
-  Plus,
-  Trash2
+  Users as UsersIcon
 } from "lucide-react";
 import { 
   useAuth, 
@@ -37,6 +34,7 @@ import {
   signOut
 } from "firebase/auth";
 import { collection } from "firebase/firestore";
+import { sendConfirmationEmail } from "@/ai/flows/send-confirmation-email-flow";
 
 export default function DarshanPage() {
   const { toast } = useToast();
@@ -141,7 +139,7 @@ export default function DarshanPage() {
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!db || !user) return;
     
@@ -169,16 +167,36 @@ export default function DarshanPage() {
       registrationDate: new Date().toISOString()
     };
 
-    const userRegRef = collection(db, "users", user.uid, "darshan_registrations");
-    addDocumentNonBlocking(userRegRef, regData);
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Save registration to Firestore
+      const userRegRef = collection(db, "users", user.uid, "darshan_registrations");
+      addDocumentNonBlocking(userRegRef, regData);
+      
+      // Trigger AI Confirmation Email Flow
+      if (user.email) {
+        await sendConfirmationEmail({
+          userEmail: user.email,
+          userName: regData.userName,
+          totalPeople: regData.totalPeople,
+          devotees: regData.devotees,
+          eventDate: "9th March"
+        });
+      }
+
       toast({
         title: "Registration Complete",
-        description: "Your group has been registered for Sai Paduka Darshan.",
+        description: "Confirmation sent to your registered mail.",
       });
-    }, 1000);
+    } catch (err) {
+      console.error("Registration error:", err);
+      toast({
+        variant: "destructive",
+        title: "Registration Issue",
+        description: "We saved your slot, but could not send the email confirmation.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isUserLoading || isRegLoading) {
@@ -314,7 +332,7 @@ export default function DarshanPage() {
                 </div>
               </div>
               <p className="text-center text-xs text-muted-foreground">
-                Please provide this contact phone or primary name at the entry gate.
+                Confirmation details have been sent to your registered email.
               </p>
             </CardContent>
             <CardFooter className="flex justify-center border-t bg-muted/20 py-4">
