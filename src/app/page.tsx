@@ -40,8 +40,8 @@ export default function Home() {
   const eventDateRaw = config?.eventDate || "2026-03-09";
   const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
 
-  // Fallback Sai Baba Image - A high quality vertical portrait
-  const fallbackSaiImage = PlaceHolderImages.find(img => img.id === "sai-v-portrait")?.imageUrl || "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1080";
+  // Fallback Shrine Image - A high quality landscape view of the Samadhi Mandir
+  const fallbackSaiImage = "https://images.unsplash.com/photo-1669631756612-1087033ecda2?q=80&w=1200";
 
   return (
     <div className="flex flex-col">
@@ -106,10 +106,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Divine Presence Section - NO CROPPING */}
+      {/* Divine Presence Section - OPTIMIZED FOR FULL SHRINE VIEW */}
       <section className="py-24 bg-white relative">
         <div className="container px-4">
-          <div className="max-w-6xl mx-auto space-y-16">
+          <div className="max-w-7xl mx-auto space-y-16">
             <div className="space-y-4 text-center">
               <div className="flex items-center justify-center gap-3">
                 <div className="h-[1px] w-12 bg-primary/30" />
@@ -121,56 +121,46 @@ export default function Home() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              <div className="space-y-8 order-2 lg:order-1">
+            <div className="flex flex-col items-center gap-12">
+              <div className="w-full max-w-5xl space-y-8 text-center">
                 {isBlessingLoading ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-10 w-full rounded-xl" />
-                    <Skeleton className="h-20 w-3/4 rounded-xl" />
-                  </div>
+                  <Skeleton className="h-10 w-3/4 mx-auto rounded-xl" />
                 ) : (
-                  <div className="space-y-8">
-                    <blockquote className="text-3xl md:text-4xl font-headline italic text-foreground font-medium leading-snug">
+                  <div className="space-y-6">
+                    <blockquote className="text-2xl md:text-4xl font-headline italic text-foreground font-medium leading-snug">
                       "{todayBlessing?.caption || "Shraddha and Saburi. Your faith will guide you to my door. Why fear when I am here?"}"
                     </blockquote>
-                    <div className="flex items-center gap-4 bg-muted/30 p-5 rounded-3xl w-fit">
-                      <div className="p-4 bg-primary/10 rounded-2xl">
-                        <Calendar className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-[0.15em] mb-1">Darshan Record</p>
-                        <p className="text-lg font-bold">
-                          {todayBlessing 
-                            ? new Date(todayBlessing.blessingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
-                            : "Daily Divine Blessing"
-                          }
-                        </p>
-                      </div>
+                    <div className="flex items-center justify-center gap-4 bg-muted/30 p-4 rounded-3xl w-fit mx-auto">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      <p className="text-sm font-bold">
+                        {todayBlessing 
+                          ? new Date(todayBlessing.blessingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+                          : "Daily Divine Blessing"
+                        }
+                      </p>
                     </div>
                   </div>
                 )}
               </div>
 
               {/* 
-                THE DIVINE PORTRAIT CONTAINER:
-                - Large height (800px) and width (max-w-lg) to accommodate the full portrait.
-                - object-contain ensures that the portrait is never cropped, showing the full Samadhi Mandir idol.
+                THE SACRED SHRINE CONTAINER:
+                - Aspect-video for horizontal altar images.
+                - object-contain ensures the FULL shrine image is visible.
               */}
-              <div className="order-1 lg:order-2 flex justify-center w-full">
-                <div className="relative h-[800px] w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-[0_35px_60px_-15px_rgba(0,0,0,0.1)] border-[8px] border-primary/5 bg-white flex items-center justify-center group transition-all duration-700">
-                  <Image
-                    src={todayBlessing?.imageUrl || fallbackSaiImage}
-                    alt="Shirdi Sai Baba Sacred Idol Portrait"
-                    fill
-                    unoptimized={true}
-                    className="object-contain p-4"
-                    style={{ objectPosition: 'center' }}
-                    data-ai-hint="shirdi sai"
-                  />
-                  {/* Decorative corner accent */}
-                  <div className="absolute top-8 right-8 p-3 bg-white/30 backdrop-blur-md rounded-2xl border border-white/40 z-10 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-                  </div>
+              <div className="relative w-full max-w-5xl aspect-[16/10] md:aspect-video rounded-[2.5rem] overflow-hidden shadow-[0_35px_60px_-15px_rgba(0,0,0,0.15)] border-[10px] border-primary/5 bg-white group transition-all duration-700">
+                <Image
+                  src={todayBlessing?.imageUrl || fallbackSaiImage}
+                  alt="Shirdi Sai Baba Sacred Samadhi Mandir"
+                  fill
+                  unoptimized={true}
+                  className="object-contain p-2"
+                  style={{ objectPosition: 'center' }}
+                  data-ai-hint="shirdi shrine"
+                />
+                {/* Decorative corner accent */}
+                <div className="absolute top-8 right-8 p-3 bg-white/30 backdrop-blur-md rounded-2xl border border-white/40 z-10 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                 </div>
               </div>
             </div>
