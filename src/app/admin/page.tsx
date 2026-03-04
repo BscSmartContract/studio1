@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -31,7 +32,8 @@ import {
   Plus,
   Settings,
   Image as ImageIcon,
-  Wand2
+  Wand2,
+  BellRing
 } from "lucide-react";
 import { 
   useAuth,
@@ -69,6 +71,7 @@ export default function AdminPanel() {
   const configRef = useMemoFirebase(() => (db && isActuallyAdmin) ? doc(db, "app_configuration", "main") : null, [db, isActuallyAdmin]);
   const blessingsRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "daily_blessing_photos"), orderBy("blessingDate", "desc")) : null, [db, isActuallyAdmin]);
   const donorsRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "prominent_donors"), orderBy("displayOrder", "asc")) : null, [db, isActuallyAdmin]);
+  const subscribersRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "subscribers"), orderBy("subscribedAt", "desc")) : null, [db, isActuallyAdmin]);
   
   const allRegistrationsQuery = useMemoFirebase(() => 
     (db && isActuallyAdmin) ? collectionGroup(db, "darshan_registrations") : null, 
@@ -81,6 +84,7 @@ export default function AdminPanel() {
   const { data: config } = useDoc(configRef);
   const { data: blessings } = useCollection(blessingsRef);
   const { data: donors } = useCollection(donorsRef);
+  const { data: subscribers, isLoading: subLoading } = useCollection(subscribersRef);
   const { data: allRegistrations, isLoading: regLoading } = useCollection(allRegistrationsQuery);
   const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
@@ -238,6 +242,12 @@ export default function AdminPanel() {
     toast({ title: "Check-in Successful", description: `Entry recorded for ${updatedDevotees[devoteeIndex].name}.` });
   };
 
+  const handleDeleteSubscriber = (id: string) => {
+    if (!db) return;
+    deleteDocumentNonBlocking(doc(db, "subscribers", id));
+    toast({ title: "Removed", description: "Subscriber removed." });
+  };
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -305,7 +315,7 @@ export default function AdminPanel() {
         </div>
 
         <Tabs defaultValue="entry-checkin" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 h-auto p-1 bg-muted rounded-xl mb-8">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 h-auto p-1 bg-muted rounded-xl mb-8">
             <TabsTrigger value="entry-checkin" className="py-3">
               <ScanLine className="h-4 w-4 mr-2" /> Entry
             </TabsTrigger>
@@ -314,6 +324,9 @@ export default function AdminPanel() {
             </TabsTrigger>
             <TabsTrigger value="donors" className="py-3">
               <Star className="h-4 w-4 mr-2" /> Donors
+            </TabsTrigger>
+            <TabsTrigger value="subscribers" className="py-3">
+              <BellRing className="h-4 w-4 mr-2" /> Stay Tuned
             </TabsTrigger>
             <TabsTrigger value="blessings" className="py-3">
               <Sparkles className="h-4 w-4 mr-2" /> Blessings
@@ -556,6 +569,51 @@ export default function AdminPanel() {
                 </div>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="subscribers">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle>Stay Tuned Subscribers</CardTitle>
+                <CardDescription>Devotees waiting for upcoming event alerts.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {subLoading ? (
+                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+                ) : subscribers && subscribers.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {subscribers.map((sub) => (
+                        <TableRow key={sub.id}>
+                          <TableCell className="font-bold">{sub.name}</TableCell>
+                          <TableCell>{sub.email}</TableCell>
+                          <TableCell>{sub.phone || "-"}</TableCell>
+                          <TableCell className="text-xs">
+                            {sub.subscribedAt ? new Date(sub.subscribedAt).toLocaleDateString() : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                             <Button size="icon" variant="ghost" onClick={() => handleDeleteSubscriber(sub.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                             </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No subscribers yet.</p>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="blessings">

@@ -59,6 +59,19 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "category"]
+    },
+    "Subscriber": {
+      "title": "Subscriber",
+      "type": "object",
+      "description": "Devotees interested in upcoming events.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "subscribedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "subscribedAt"]
     }
   },
   "auth": {
@@ -80,6 +93,10 @@
     "/prominent_donors/{donorId}": {
       "schema": "Donor",
       "description": "Wall of Gratitude donors."
+    },
+    "/subscribers/{subscriberId}": {
+      "schema": "Subscriber",
+      "description": "Mailing list for upcoming events."
     }
   }
 }

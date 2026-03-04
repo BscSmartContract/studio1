@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, PlayCircle, ChevronDown, Calendar, LogIn, LogOut } from "lucide-react";
+import { Menu, X, PlayCircle, ChevronDown, Calendar, LogIn, LogOut, BellRing } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +77,13 @@ export function Navbar() {
                     Live Darshan
                   </Link>
                 </DropdownMenuItem>
+
+                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                  <Link href="/stay-tuned" className="flex items-center py-2">
+                    <BellRing className="w-4 h-4 mr-2 text-primary" />
+                    Stay Tuned
+                  </Link>
+                </DropdownMenuItem>
                 
                 <div className="h-px bg-muted my-1" />
 
@@ -138,6 +145,15 @@ export function Navbar() {
             >
               <PlayCircle className="w-4 h-4 mr-2 text-accent" />
               Live Darshan
+            </Link>
+
+            <Link
+              href="/stay-tuned"
+              className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
+              onClick={() => setIsOpen(false)}
+            >
+              <BellRing className="w-4 h-4 mr-2 text-primary" />
+              Stay Tuned
             </Link>
             
             {user ? (

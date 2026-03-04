@@ -73,6 +73,11 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /subscribers/{subscriberId} {
+      allow create: if true;
+      allow list, get, delete: if isAdmin();
+    }
+
     // Support for 'Trigger Email' Extension
     match /mail/{mailId} {
       allow get: if isSignedIn() && (resource.data.to == request.auth.token.email || isAdmin());
