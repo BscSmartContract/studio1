@@ -99,9 +99,14 @@ export function Footer() {
              </div>
           </div>
 
-          <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
-            © {new Date().getFullYear()} Sai Parivar Ambala. All rights reserved. 
-          </p>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
+              © {new Date().getFullYear()} Sai Parivar Ambala. All rights reserved. 
+            </p>
+            <p className="text-[10px] text-primary/60 font-bold uppercase tracking-widest">
+              Made with love by Sai devotees
+            </p>
+          </div>
         </div>
       </div>
     </footer>
