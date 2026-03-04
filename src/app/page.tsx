@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -104,7 +103,7 @@ export default function Home() {
               ) : (
                 <div className="space-y-8">
                   <blockquote className="text-2xl md:text-4xl font-headline italic text-foreground font-medium leading-relaxed px-4">
-                    "{todayBlessing?.caption || "Shraddha and Saburi. Your faith will guide you to my door. Why fear when I am here?"}"
+                    "{todayBlessing?.caption || "श्रद्धा और सबुरी। तुम्हारा विश्वास तुम्हें मेरे द्वार तक लाएगा। जब मैं यहाँ हूँ तो डर किस बात का?"}"
                   </blockquote>
                   <div className="flex items-center justify-center gap-4 bg-primary/5 p-4 rounded-full w-fit mx-auto border border-primary/10">
                     <Calendar className="h-5 w-5 text-primary" />

@@ -1,6 +1,5 @@
-
 import Link from "next/link";
-import { Mail, Phone, MapPin, Instagram, Facebook, Sparkles, Heart } from "lucide-react";
+import { Mail, Phone, MapPin, Instagram, Facebook, Sparkles } from "lucide-react";
 
 export function Footer() {
   return (
@@ -46,7 +45,7 @@ export function Footer() {
             </h4>
             <div className="bg-primary/5 p-4 rounded-2xl border border-primary/10 italic text-sm text-muted-foreground leading-relaxed relative">
               <span className="absolute -top-2 -left-1 text-4xl text-primary/20 font-serif">"</span>
-              Why fear when I am here? Cast all your burdens on Me and I shall bear them. Shraddha and Saburi are the two pillars of faith.
+              क्यों डरते हो जब मैं हूँ? अपने सभी बोझ मुझ पर डाल दो और मैं उन्हें उठा लूँगा। श्रद्धा और सबुरी विश्वास के दो स्तंभ हैं।
               <p className="mt-2 font-bold text-primary not-italic">— Shirdi Sai Baba</p>
             </div>
           </div>
