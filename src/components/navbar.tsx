@@ -1,10 +1,9 @@
-
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, PlayCircle, ChevronDown, Calendar, HandHeart, Heart } from "lucide-react";
+import { Menu, X, PlayCircle, ChevronDown, Calendar } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,9 +22,6 @@ export function Navbar() {
 
   const moreLinks = [
     { name: "Event Schedule", href: "/events", icon: <Calendar className="w-4 h-4 mr-2" /> },
-    { name: "Volunteer", href: "/volunteer", icon: <HandHeart className="w-4 h-4 mr-2" /> },
-    { name: "Donations", href: "/donations", icon: <Heart className="w-4 h-4 mr-2" /> },
-    { name: "Contact", href: "/contact", icon: <Menu className="w-4 h-4 mr-2" /> },
   ];
 
   return (

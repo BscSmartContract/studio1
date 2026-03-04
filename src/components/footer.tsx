@@ -54,10 +54,10 @@ export function Footer() {
           <div className="space-y-4 md:col-span-1">
             <h4 className="font-headline font-semibold text-lg">Quick Links</h4>
             <ul className="space-y-2 text-sm">
+              <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
+              <li><Link href="/live" className="hover:text-primary transition-colors">Live Darshan</Link></li>
               <li><Link href="/darshan" className="hover:text-primary transition-colors">Darshan Registration</Link></li>
-              <li><Link href="/volunteer" className="hover:text-primary transition-colors">Volunteer Signup</Link></li>
-              <li><Link href="/donations" className="hover:text-primary transition-colors">Donation Page</Link></li>
-              <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
+              <li><Link href="/events" className="hover:text-primary transition-colors">Event Schedule</Link></li>
             </ul>
           </div>
 
