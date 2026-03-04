@@ -104,7 +104,7 @@ export function Footer() {
               © {new Date().getFullYear()} Sai Parivar Ambala. All rights reserved. 
             </p>
             <p className="text-[10px] text-primary/60 font-bold uppercase tracking-widest">
-              Made with love by Sai devotees
+              For Sai Devotees • Made with love
             </p>
           </div>
         </div>
