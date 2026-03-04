@@ -38,7 +38,7 @@ export default function StayTunedPage() {
       const result = await sendOtp({ email });
       setGeneratedOtp(result.code);
       
-      // Store code in Firestore for verification (TTL simulated)
+      // 1. Store code in Firestore for verification
       const otpRef = doc(db, "verification_codes", email);
       setDocumentNonBlocking(otpRef, {
         email,
@@ -46,8 +46,18 @@ export default function StayTunedPage() {
         expiresAt: new Date(Date.now() + 10 * 60000).toISOString() // 10 mins
       }, { merge: true });
 
+      // 2. Trigger actual email notification via the "mail" collection
+      const mailColRef = collection(db, "mail");
+      addDocumentNonBlocking(mailColRef, {
+        to: email,
+        message: {
+          subject: "Sai Parivar Ambala - Sacred Verification Code",
+          text: result.message // result.message is drafted by AI with a divine tone
+        }
+      });
+
       setStep('otp');
-      toast({ title: "Code Sent", description: "Please check your inbox (simulated in console)." });
+      toast({ title: "Code Sent", description: "The divine code has been sent to your email." });
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Could not send verification code." });
     } finally {

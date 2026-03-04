@@ -84,6 +84,22 @@
         "expiresAt": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "code", "expiresAt"]
+    },
+    "Mail": {
+      "title": "Mail",
+      "type": "object",
+      "description": "Trigger Email extension document.",
+      "properties": {
+        "to": { "type": "string" },
+        "message": {
+          "type": "object",
+          "properties": {
+            "subject": { "type": "string" },
+            "text": { "type": "string" }
+          }
+        }
+      },
+      "required": ["to", "message"]
     }
   },
   "auth": {
@@ -113,6 +129,10 @@
     "/verification_codes/{email}": {
       "schema": "VerificationCode",
       "description": "Temporary OTP storage for verification."
+    },
+    "/mail/{mailId}": {
+      "schema": "Mail",
+      "description": "Trigger Email collection for automatic notifications."
     }
   }
 }
