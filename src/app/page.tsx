@@ -137,7 +137,7 @@ export default function Home() {
               <Link href="/darshan">Darshan</Link>
             </Button>
             <p className="text-sm opacity-70 font-bold uppercase tracking-[0.2em] flex items-center gap-2">
-              <Sparkles className="h-4 w-4" /> Limited Entries Available <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" /> Shraddha • Saburi <Sparkles className="h-4 w-4" />
             </p>
           </div>
         </div>
