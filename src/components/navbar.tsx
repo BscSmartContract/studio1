@@ -72,6 +72,13 @@ export function Navbar() {
                     Event Schedule
                   </Link>
                 </DropdownMenuItem>
+
+                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                  <Link href="/live" className="flex items-center py-2">
+                    <PlayCircle className="w-4 h-4 mr-2 text-accent" />
+                    Live Darshan
+                  </Link>
+                </DropdownMenuItem>
                 
                 <div className="h-px bg-muted my-1" />
 
@@ -125,6 +132,15 @@ export function Navbar() {
             >
               <Calendar className="w-4 h-4 mr-2" />
               Event Schedule
+            </Link>
+            
+            <Link
+              href="/live"
+              className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
+              onClick={() => setIsOpen(false)}
+            >
+              <PlayCircle className="w-4 h-4 mr-2 text-accent" />
+              Live Darshan
             </Link>
             
             {user ? (
