@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -292,7 +291,7 @@ export default function DarshanPage() {
         ) : (
           <Card className="max-w-2xl mx-auto shadow-2xl border-primary/20">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-headline">Darshan Registration</CardTitle>
+              <CardTitle className="text-3xl font-headline">Darshan</CardTitle>
               <CardDescription>Om Sai Ram. Please provide details of all group members.</CardDescription>
             </CardHeader>
             <form onSubmit={handleRegister}>

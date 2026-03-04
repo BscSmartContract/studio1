@@ -39,7 +39,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -66,10 +66,6 @@ export function Navbar() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-md font-bold px-6 rounded-full transition-all hover:scale-105 active:scale-95">
-              <Link href="/darshan">Register</Link>
-            </Button>
           </div>
 
           {/* Mobile Toggle */}
@@ -109,11 +105,6 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <div className="flex flex-col space-y-3 pt-4">
-              <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-12 rounded-full shadow-lg shadow-primary/20">
-                <Link href="/darshan" onClick={() => setIsOpen(false)}>Register for Darshan</Link>
-              </Button>
-            </div>
           </div>
         </div>
       )}

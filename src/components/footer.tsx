@@ -56,7 +56,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
               <li><Link href="/live" className="hover:text-primary transition-colors">Live Darshan</Link></li>
-              <li><Link href="/darshan" className="hover:text-primary transition-colors">Darshan Registration</Link></li>
+              <li><Link href="/darshan" className="hover:text-primary transition-colors">Darshan</Link></li>
               <li><Link href="/events" className="hover:text-primary transition-colors">Event Schedule</Link></li>
             </ul>
           </div>

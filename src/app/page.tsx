@@ -67,7 +67,7 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full max-w-2xl">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white w-full h-16 text-xl font-bold rounded-full shadow-lg shadow-primary/20 transition-all active:scale-95">
-              <Link href="/darshan">Register for Darshan</Link>
+              <Link href="/darshan">Darshan</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="w-full h-16 text-lg font-bold rounded-full border-primary/30 bg-white hover:bg-muted transition-all text-primary">
               <Link href="/live" className="flex items-center justify-center">
@@ -130,11 +130,11 @@ export default function Home() {
         <div className="container px-4 relative z-10 text-center">
           <h2 className="text-5xl md:text-7xl font-headline font-bold mb-8 tracking-tighter">Om Sai Ram</h2>
           <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto opacity-90 leading-relaxed font-medium">
-            Join the grand celebration. Register your family and friends to receive your digital entry pass instantly and join the divine journey.
+            Join the grand celebration. Access your digital entry pass instantly and join the divine journey.
           </p>
           <div className="flex flex-col items-center gap-6">
             <Button asChild variant="secondary" size="lg" className="rounded-full px-12 h-20 text-2xl font-extrabold text-primary shadow-xl bg-white hover:scale-105 transition-transform">
-              <Link href="/darshan">Secure Your Pass</Link>
+              <Link href="/darshan">Darshan</Link>
             </Button>
             <p className="text-sm opacity-70 font-bold uppercase tracking-[0.2em] flex items-center gap-2">
               <Sparkles className="h-4 w-4" /> Limited Entries Available <Sparkles className="h-4 w-4" />
