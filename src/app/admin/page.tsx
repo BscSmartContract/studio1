@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -31,7 +30,8 @@ import {
   Star,
   Plus,
   Settings,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Wand2
 } from "lucide-react";
 import { 
   useAuth,
@@ -54,6 +54,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { generateBlessing } from "@/ai/flows/generate-blessing-flow";
 
 export default function AdminPanel() {
   const { toast } = useToast();
@@ -94,6 +95,7 @@ export default function AdminPanel() {
   const [blessingImg, setBlessingImg] = useState("");
   const [blessingCaption, setBlessingCaption] = useState("");
   const [blessingDate, setBlessingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
   // Donor states
   const [donorName, setDonorName] = useState("");
@@ -142,8 +144,24 @@ export default function AdminPanel() {
     toast({ title: "Site Settings Updated", description: "The portal configuration has been saved successfully." });
   };
 
+  const handleAiGenerateBlessing = async () => {
+    setIsGeneratingAi(true);
+    try {
+      const aiMessage = await generateBlessing({});
+      setBlessingCaption(aiMessage);
+      toast({ title: "AI Message Generated", description: "Baba's divine message is ready." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "AI Error", description: "Could not generate message at this time." });
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
+
   const handleAddBlessing = () => {
-    if (!db || !blessingImg) return;
+    if (!db || !blessingImg) {
+       toast({ variant: "destructive", title: "Missing Image", description: "Please provide an image URL for the blessing." });
+       return;
+    }
     const blessingsCol = collection(db, "daily_blessing_photos");
     addDocumentNonBlocking(blessingsCol, {
       imageUrl: blessingImg,
@@ -545,10 +563,11 @@ export default function AdminPanel() {
               <Card className="shadow-lg">
                 <CardHeader>
                   <CardTitle>Add Today's Darshan</CardTitle>
+                  <CardDescription>Upload a photo and add a sacred teaching.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Image URL</Label>
+                    <Label>Image URL (Required)</Label>
                     <Input 
                       placeholder="Enter image URL" 
                       value={blessingImg}
@@ -564,14 +583,27 @@ export default function AdminPanel() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Message/Caption</Label>
+                    <div className="flex justify-between items-center mb-1">
+                      <Label>Message/Caption (Hindi Only)</Label>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-[10px] font-bold h-6 gap-1 text-primary hover:bg-primary/10"
+                        onClick={handleAiGenerateBlessing}
+                        disabled={isGeneratingAi}
+                      >
+                        {isGeneratingAi ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                        Magic Hindi Teaching
+                      </Button>
+                    </div>
                     <Textarea 
-                      placeholder="e.g. May Sai Baba guide your path..." 
+                      placeholder="e.g. श्रद्धा और सबुरी। बाबा सदा तुम्हारे साथ हैं..." 
                       value={blessingCaption}
                       onChange={(e) => setBlessingCaption(e.target.value)}
+                      className="min-h-[100px]"
                     />
                   </div>
-                  <Button onClick={handleAddBlessing} className="w-full bg-primary">Add Photo</Button>
+                  <Button onClick={handleAddBlessing} className="w-full bg-primary font-bold">Add to Divine Section</Button>
                 </CardContent>
               </Card>
 
