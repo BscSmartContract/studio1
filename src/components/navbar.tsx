@@ -1,27 +1,37 @@
+
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, PlayCircle, ChevronDown, Calendar } from "lucide-react";
+import { Menu, X, PlayCircle, ChevronDown, Calendar, LogIn, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth, useUser } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useUser();
+  const auth = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Sign out error", error);
+    }
+  };
 
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Live Darshan", href: "/live", icon: <PlayCircle className="w-4 h-4 mr-1 text-accent animate-pulse" /> },
     { name: "Darshan", href: "/darshan" },
-  ];
-
-  const moreLinks = [
-    { name: "Event Schedule", href: "/events", icon: <Calendar className="w-4 h-4 mr-2" /> },
   ];
 
   return (
@@ -56,14 +66,28 @@ export function Navbar() {
                 More <ChevronDown className="ml-1 h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 rounded-xl p-2">
-                {moreLinks.map((link) => (
-                  <DropdownMenuItem key={link.name} asChild className="rounded-lg cursor-pointer">
-                    <Link href={link.href} className="flex items-center py-2">
-                      {link.icon}
-                      {link.name}
+                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                  <Link href="/events" className="flex items-center py-2">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Event Schedule
+                  </Link>
+                </DropdownMenuItem>
+                
+                <div className="h-px bg-muted my-1" />
+
+                {user ? (
+                  <DropdownMenuItem onClick={handleSignOut} className="rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                    <Link href="/darshan" className="flex items-center py-2">
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Login
                     </Link>
                   </DropdownMenuItem>
-                ))}
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -94,17 +118,33 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
-            {moreLinks.map((link) => (
+            <Link
+              href="/events"
+              className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
+              onClick={() => setIsOpen(false)}
+            >
+              <Calendar className="w-4 h-4 mr-2" />
+              Event Schedule
+            </Link>
+            
+            {user ? (
+              <button
+                className="text-lg font-medium text-destructive text-left py-2 flex items-center"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </button>
+            ) : (
               <Link
-                key={link.name}
-                href={link.href}
-                className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
+                href="/darshan"
+                className="text-lg font-medium hover:text-primary py-2 flex items-center"
                 onClick={() => setIsOpen(false)}
               >
-                {link.icon}
-                {link.name}
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
               </Link>
-            ))}
+            )}
           </div>
         </div>
       )}
