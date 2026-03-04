@@ -4,7 +4,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, PlayCircle } from "lucide-react";
+import { Menu, X, PlayCircle, ChevronDown, Calendar, HandHeart, Heart } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,9 +19,13 @@ export function Navbar() {
     { name: "Home", href: "/" },
     { name: "Live Darshan", href: "/live", icon: <PlayCircle className="w-4 h-4 mr-1 text-accent animate-pulse" /> },
     { name: "Darshan", href: "/darshan" },
-    { name: "Volunteer", href: "/volunteer" },
-    { name: "Donations", href: "/donations" },
-    { name: "Contact", href: "/contact" },
+  ];
+
+  const moreLinks = [
+    { name: "Event Schedule", href: "/events", icon: <Calendar className="w-4 h-4 mr-2" /> },
+    { name: "Volunteer", href: "/volunteer", icon: <HandHeart className="w-4 h-4 mr-2" /> },
+    { name: "Donations", href: "/donations", icon: <Heart className="w-4 h-4 mr-2" /> },
+    { name: "Contact", href: "/contact", icon: <Menu className="w-4 h-4 mr-2" /> },
   ];
 
   return (
@@ -44,6 +54,23 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-sm font-medium hover:text-primary transition-colors duration-200 flex items-center outline-none">
+                More <ChevronDown className="ml-1 h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 rounded-xl p-2">
+                {moreLinks.map((link) => (
+                  <DropdownMenuItem key={link.name} asChild className="rounded-lg cursor-pointer">
+                    <Link href={link.href} className="flex items-center py-2">
+                      {link.icon}
+                      {link.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-md font-bold px-6 rounded-full transition-all hover:scale-105 active:scale-95">
               <Link href="/darshan">Register</Link>
             </Button>
@@ -65,6 +92,17 @@ export function Navbar() {
         <div className="md:hidden bg-background border-b border-border animate-in slide-in-from-top duration-300">
           <div className="flex flex-col space-y-4 px-4 py-6">
             {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
+                onClick={() => setIsOpen(false)}
+              >
+                {link.icon}
+                {link.name}
+              </Link>
+            ))}
+            {moreLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
