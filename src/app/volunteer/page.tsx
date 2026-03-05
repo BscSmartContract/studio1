@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, CheckCircle2, ShieldCheck, Loader2, Mail, Send, LogOut, ArrowLeft, Sparkles } from "lucide-react";
+import { Heart, CheckCircle2, ShieldCheck, Loader2, Mail, Send, LogOut, ArrowLeft, Sparkles, Info } from "lucide-react";
 import { 
   useAuth, 
   useUser, 
@@ -170,6 +171,10 @@ export default function VolunteerPage() {
                       Check your inbox at:<br />
                       <strong className="text-foreground">{email}</strong>
                     </p>
+                    <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-white/50 rounded-xl text-[10px] text-muted-foreground">
+                      <Info className="h-3 w-3 text-primary shrink-0" />
+                      <span>Didn't receive the link? Please check your <strong>spam/junk folder</strong>.</span>
+                    </div>
                   </div>
                   <Button variant="outline" size="sm" onClick={() => setEmailSent(false)} className="text-xs">
                     Try different email

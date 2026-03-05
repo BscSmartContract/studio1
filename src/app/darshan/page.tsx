@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -18,7 +19,8 @@ import {
   Minus, 
   Printer, 
   MessageSquare, 
-  Download 
+  Download,
+  Info
 } from "lucide-react";
 import { 
   useAuth, 
@@ -102,6 +104,7 @@ export default function DarshanPage() {
     try {
       await sendLoginLink(auth, email);
       setEmailSent(true);
+      toast({ title: "Link Sent", description: `A divine login link has been sent to ${email}.` });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Delivery Failed", description: error.message });
     } finally {
@@ -208,17 +211,48 @@ export default function DarshanPage() {
             <CardHeader className="text-center">
               <ShieldCheck className="h-10 w-10 text-primary mx-auto mb-4" />
               <CardTitle>Verify Identity</CardTitle>
+              <CardDescription>Om Sai Ram. Please authenticate to access your Darshan pass.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               {loginMethod === 'options' ? (
-                <>
-                  <Button onClick={handleGoogleLogin} className="w-full h-12">Continue with Google</Button>
-                  <Button onClick={() => setLoginMethod('email')} variant="outline" className="w-full h-12">Email Link</Button>
-                </>
+                <div className="space-y-4">
+                  <Button onClick={handleGoogleLogin} className="w-full h-12 flex items-center justify-center gap-2">
+                    Continue with Google
+                  </Button>
+                  <Button onClick={() => setLoginMethod('email')} variant="outline" className="w-full h-12 flex items-center justify-center gap-2 border-primary/30">
+                    <Mail className="h-4 w-4 text-primary" /> Continue with Email Link
+                  </Button>
+                </div>
+              ) : emailSent ? (
+                <div className="text-center space-y-4 py-4">
+                  <div className="bg-primary/5 p-6 rounded-full w-fit mx-auto">
+                    <Mail className="h-10 w-10 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-bold">Divine Link Sent</h3>
+                  <p className="text-sm text-muted-foreground">
+                    A sacred login link has been sent to <strong>{email}</strong>.
+                  </p>
+                  <div className="flex items-center justify-center gap-2 p-3 bg-muted/50 rounded-xl text-[10px] text-muted-foreground">
+                    <Info className="h-3 w-3 text-primary shrink-0" />
+                    <span>Didn't receive the link? Please check your <strong>spam/junk folder</strong>.</span>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setEmailSent(false)} className="text-xs">
+                    <ArrowLeft className="h-3 w-3 mr-1" /> Try another email
+                  </Button>
+                </div>
               ) : (
                 <form onSubmit={handleEmailLogin} className="space-y-4">
-                  <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>Send Link</Button>
+                  <div className="space-y-2">
+                    <Label>Email Address</Label>
+                    <Input type="email" placeholder="devotee@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="h-12" />
+                  </div>
+                  <Button type="submit" className="w-full h-12" disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Send className="mr-2 h-4 w-4" />}
+                    Send Login Link
+                  </Button>
+                  <Button variant="ghost" onClick={() => setLoginMethod('options')} className="w-full text-xs">
+                    <ArrowLeft className="h-3 w-3 mr-1" /> Back to options
+                  </Button>
                 </form>
               )}
             </CardContent>

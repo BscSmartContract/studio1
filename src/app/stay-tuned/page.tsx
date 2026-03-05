@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft } from "lucide-react";
+import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft, Info } from "lucide-react";
 import { useFirestore, setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase";
 import { doc, collection } from "firebase/firestore";
 import { sendOtp } from "@/ai/flows/send-otp-flow";
@@ -52,7 +52,7 @@ export default function StayTunedPage() {
         to: email,
         message: {
           subject: "Sai Parivar Ambala - Sacred Verification Code",
-          text: result.message // result.message is drafted by AI with a divine tone
+          text: result.message 
         }
       });
 
@@ -180,7 +180,7 @@ export default function StayTunedPage() {
                 <CardDescription>Enter the 6-digit code sent to {email}</CardDescription>
               </CardHeader>
               <CardContent className="px-8 space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-2 text-center">
                   <Label>Verification Code</Label>
                   <Input 
                     placeholder="XXXXXX" 
@@ -190,6 +190,10 @@ export default function StayTunedPage() {
                     required 
                     className="h-14 text-center text-2xl font-bold tracking-[0.5em] rounded-xl"
                   />
+                  <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-muted/50 rounded-xl text-[10px] text-muted-foreground font-medium">
+                    <Info className="h-3 w-3 text-primary" />
+                    <span>Didn't receive the code? Please check your <strong>spam/junk folder</strong>.</span>
+                  </div>
                 </div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => setStep('email')} className="text-xs text-muted-foreground w-full">
                    <ArrowLeft className="h-3 w-3 mr-1" /> Use different email
