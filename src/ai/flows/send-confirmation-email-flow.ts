@@ -1,13 +1,15 @@
+
 'use server';
 /**
- * @fileOverview A flow to generate and "send" spiritual confirmation emails to devotees.
+ * @fileOverview A flow to generate and send spiritual confirmation emails to devotees via SendGrid.
  *
- * - sendConfirmationEmail - A function that drafts a confirmation email using Genkit.
+ * - sendConfirmationEmail - A function that drafts and sends a confirmation email.
  * - RegistrationEmailInput - The input type for the confirmation flow.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { sendMail } from '@/lib/mail-service';
 
 const RegistrationEmailInputSchema = z.object({
   userEmail: z.string().email().describe("The devotee's registered email address."),
@@ -52,23 +54,21 @@ Draft the email body in plain text.`,
 });
 
 /**
- * Generates a confirmation email body and simulates the sending process.
- * In a production environment, this would integrate with an SMTP service or Email API.
+ * Generates a confirmation email body and sends it via SendGrid.
  */
 export async function sendConfirmationEmail(input: RegistrationEmailInput) {
   const { text } = await prompt(input);
   
-  // For the prototype, we log the generated email to the console.
-  // This demonstrates the AI logic and allows verification of the content.
-  console.log(`\n--- [OUTGOING EMAIL SIMULATION] ---`);
-  console.log(`TO: ${input.userEmail}`);
-  console.log(`SUBJECT: Sai Paduka Darshan - Registration Confirmation`);
-  console.log(`BODY:\n${text}`);
-  console.log(`--- [END OF EMAIL] ---\n`);
+  // Real dispatch via SendGrid
+  const result = await sendMail(
+    input.userEmail,
+    "Sai Paduka Darshan - Registration Confirmation",
+    text
+  );
   
   return { 
-    success: true, 
-    message: "Confirmation drafted and logged.",
+    success: result.success, 
+    message: result.success ? "Confirmation sent successfully." : "Failed to send email.",
     draftedContent: text 
   };
 }

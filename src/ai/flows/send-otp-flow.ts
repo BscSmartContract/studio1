@@ -1,13 +1,14 @@
 
 'use server';
 /**
- * @fileOverview A flow to generate a sacred 6-digit verification code (OTP) for devotees.
+ * @fileOverview A flow to generate a sacred 6-digit verification code (OTP) and send it via SendGrid.
  *
- * - sendOtp - Generates a code and simulates sending it via email.
+ * - sendOtp - Generates a code and sends it via SendGrid.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { sendMail } from '@/lib/mail-service';
 
 const SendOtpInputSchema = z.object({
   email: z.string().email().describe("The devotee's email address.")
@@ -16,7 +17,7 @@ export type SendOtpInput = z.infer<typeof SendOtpInputSchema>;
 
 const SendOtpOutputSchema = z.object({
   code: z.string().describe("The generated 6-digit code."),
-  message: z.string().describe("Simulated delivery status.")
+  message: z.string().describe("Simulated or actual delivery status.")
 });
 export type SendOtpOutput = z.infer<typeof SendOtpOutputSchema>;
 
@@ -34,22 +35,26 @@ const sendOtpFlow = ai.defineFlow(
     // Generate a simple 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Simulate a sacred tone for the message
+    // Generate a divine message for the email
     const { text } = await ai.generate({
-      prompt: `A devotee with email ${input.email} is requesting a verification code. 
+      prompt: `Generate a short, divine email message for a devotee requesting a verification code. 
       The code is ${code}. 
-      Generate a short, 1-sentence divine confirmation message in English starting with 'Om Sai Ram'.`,
+      The message should start with 'Om Sai Ram' and be filled with grace.
+      Email should be in English.`,
     });
 
-    console.log(`\n--- [OTP DELIVERY SIMULATION] ---`);
-    console.log(`TO: ${input.email}`);
-    console.log(`YOUR SACRED CODE: ${code}`);
-    console.log(`MESSAGE: ${text}`);
-    console.log(`--- [END OF SIMULATION] ---\n`);
+    const finalMessage = text || `Om Sai Ram. Your sacred verification code for upcoming Sai events is ${code}.`;
+
+    // Real dispatch via SendGrid
+    await sendMail(
+      input.email,
+      "Sai Parivar Ambala - Sacred Verification Code",
+      finalMessage
+    );
 
     return {
       code,
-      message: text || `Om Sai Ram. Your verification code is ${code}.`
+      message: finalMessage
     };
   }
 );
