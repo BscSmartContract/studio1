@@ -86,8 +86,10 @@ service cloud.firestore {
 
     // Support for 'Trigger Email' Extension
     match /mail/{mailId} {
-      allow get: if isSignedIn() && (resource.data.to == request.auth.token.email || isAdmin());
-      allow create: if isSignedIn() && (request.resource.data.to == request.auth.token.email || isAdmin());
+      // Allow authenticated users to see their own emails, or admin to see all
+      allow get: if (isSignedIn() && resource.data.to == request.auth.token.email) || isAdmin();
+      // Allow public creation so unauthenticated users can trigger OTP/Confirmation emails
+      allow create: if true;
       allow list, update, delete: if isAdmin();
     }
   }
