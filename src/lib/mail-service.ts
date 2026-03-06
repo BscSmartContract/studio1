@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview A central service to handle real-world email dispatching via Brevo (Sendinblue).
  */
@@ -7,11 +6,13 @@ export async function sendMail(to: string, subject: string, text: string) {
   const apiKey = process.env.BREVO_API_KEY;
 
   if (!apiKey) {
-    console.warn('[MAIL SERVICE] Brevo API Key missing. Skipping email send.');
+    console.error('[MAIL SERVICE] Brevo API Key is missing from environment variables.');
     return { success: false, error: 'API Key missing' };
   }
 
   try {
+    console.log(`[MAIL SERVICE] Attempting to send divine email to: ${to}`);
+    
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -22,7 +23,7 @@ export async function sendMail(to: string, subject: string, text: string) {
       body: JSON.stringify({
         sender: {
           name: 'Sai Parivar Ambala',
-          email: 'saibabatrustambala@gmail.com', // MUST be a verified sender/domain in Brevo
+          email: 'saibabatrustambala@gmail.com', // This MUST be a verified sender in Brevo
         },
         to: [
           {
@@ -34,12 +35,18 @@ export async function sendMail(to: string, subject: string, text: string) {
       }),
     });
 
+    const result = await response.json();
+
     if (response.ok) {
-      return { success: true };
+      console.log('[MAIL SERVICE] Email sent successfully:', result.messageId || 'Success');
+      return { success: true, messageId: result.messageId };
     } else {
-      const errorData = await response.json();
-      console.error('[MAIL SERVICE] Brevo API Error:', errorData);
-      return { success: false, error: errorData.message || 'Failed to send email via Brevo' };
+      console.error('[MAIL SERVICE] Brevo API Error:', result);
+      return { 
+        success: false, 
+        error: result.message || 'Failed to send email via Brevo',
+        code: result.code 
+      };
     }
   } catch (error: any) {
     console.error('[MAIL SERVICE] Connection Error:', error);
