@@ -1,14 +1,27 @@
-
 /**
  * @fileOverview A central service to handle real-world email dispatching via Brevo (Sendinblue).
+ * It now handles both raw API keys and the Base64-encoded JSON format provided.
  */
 
 export async function sendMail(to: string, subject: string, text: string) {
-  const apiKey = process.env.BREVO_API_KEY;
+  let apiKey = process.env.BREVO_API_KEY;
 
   if (!apiKey) {
     console.error('[MAIL SERVICE] Brevo API Key is missing from environment variables.');
     return { success: false, error: 'API Key missing' };
+  }
+
+  // Handle Base64 encoded JSON if provided (common in some environment setups)
+  if (apiKey.startsWith('eyJ')) {
+    try {
+      const decoded = Buffer.from(apiKey, 'base64').toString();
+      const parsed = JSON.parse(decoded);
+      if (parsed.api_key) {
+        apiKey = parsed.api_key;
+      }
+    } catch (e) {
+      console.error('[MAIL SERVICE] Failed to decode Base64 API key:', e);
+    }
   }
 
   try {
@@ -43,12 +56,11 @@ export async function sendMail(to: string, subject: string, text: string) {
       return { success: true, messageId: result.messageId };
     } else {
       console.error('[MAIL SERVICE] Brevo API Error:', result);
-      // Helpful hint for common Brevo errors
       let errorMessage = result.message || 'Failed to send email via Brevo';
       if (result.code === 'unauthorized') {
-        errorMessage = 'Invalid API Key. Please check your Brevo SMTP & API settings.';
+        errorMessage = 'Invalid API Key or Unauthorized domain. Please check Brevo SMTP & API settings.';
       } else if (result.code === 'missing_parameter') {
-        errorMessage = 'Sender email might not be verified in your Brevo account.';
+        errorMessage = 'Sender email might not be verified in Brevo.';
       }
       
       return { 
