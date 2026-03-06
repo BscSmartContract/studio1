@@ -228,11 +228,12 @@ export default function StayTunedPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Phone Number (Optional)</Label>
+                  <Label>Phone Number</Label>
                   <Input 
                     placeholder="98XXX XXXXX" 
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    required
                     className="h-12 rounded-xl"
                   />
                 </div>

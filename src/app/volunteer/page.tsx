@@ -224,15 +224,15 @@ export default function VolunteerPage() {
                 <CardContent className="space-y-6 px-8">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-muted-foreground">Full Name</Label>
-                    <Input id="name" placeholder="Enter your name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="h-12" />
+                    <Input id="name" placeholder="Enter your name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required className="h-12" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="text-muted-foreground">Phone Number</Label>
-                    <Input id="phone" placeholder="98XXX XXXXX" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="h-12" />
+                    <Input id="phone" placeholder="98XXX XXXXX" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} required className="h-12" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="service" className="text-muted-foreground">Area of Service</Label>
-                    <Select value={formData.service} onValueChange={(value) => setFormData({...formData, service: value})}>
+                    <Select value={formData.service} onValueChange={(value) => setFormData({...formData, service: value})} required>
                       <SelectTrigger className="h-12">
                         <SelectValue placeholder="Select service area" />
                       </SelectTrigger>

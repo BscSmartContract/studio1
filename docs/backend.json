@@ -44,7 +44,7 @@
         "registrationDate": { "type": "string", "format": "date-time" },
         "isCheckedIn": { "type": "boolean" }
       },
-      "required": ["externalAuthUserId", "userName", "totalPeople", "registrationDate"]
+      "required": ["externalAuthUserId", "userName", "userPhone", "totalPeople", "registrationDate"]
     },
     "Donor": {
       "title": "Donor",
@@ -72,7 +72,7 @@
         "subscribedAt": { "type": "string", "format": "date-time" },
         "isVerified": { "type": "boolean" }
       },
-      "required": ["name", "email", "subscribedAt"]
+      "required": ["name", "email", "phone", "subscribedAt"]
     },
     "VerificationCode": {
       "title": "VerificationCode",
