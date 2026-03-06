@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft, Info, Phone } from "lucide-react";
+import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft, Info } from "lucide-react";
 import { useFirestore, setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase";
-import { doc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, collection } from "firebase/firestore";
 import { sendOtp } from "@/ai/flows/send-otp-flow";
 
 type Step = 'email' | 'otp' | 'details' | 'success';
@@ -36,41 +36,35 @@ export default function StayTunedPage() {
     setIsLoading(true);
     try {
       const cleanEmail = email.trim().toLowerCase();
-      const cleanPhone = phone.trim();
       
-      // Check for duplicates (Email OR Phone)
-      const subscribersRef = collection(db, "subscribers");
-      
-      // Check Email
-      const emailQ = query(subscribersRef, where("email", "==", cleanEmail));
-      const emailSnap = await getDocs(emailQ);
-      
-      if (!emailSnap.empty) {
+      // Call server-side flow which handles duplicate checks and OTP sending
+      const result = await sendOtp({ 
+        email: cleanEmail,
+        phone: phone.trim()
+      });
+
+      if (result.alreadyRegistered) {
         toast({ 
           title: "Already Registered", 
-          description: "Om Sai Ram. This email is already registered for upcoming event updates." 
+          description: result.message 
         });
         setIsLoading(false);
         return;
       }
 
-      // Check Phone
-      const phoneQ = query(subscribersRef, where("phone", "==", cleanPhone));
-      const phoneSnap = await getDocs(phoneQ);
-
-      if (!phoneSnap.empty) {
+      if (!result.success || !result.code) {
         toast({ 
-          title: "Already Registered", 
-          description: "Om Sai Ram. This phone number is already registered for upcoming event updates." 
+          variant: "destructive", 
+          title: "Divine Message Error", 
+          description: result.error || "Could not dispatch the verification code." 
         });
         setIsLoading(false);
         return;
       }
 
-      const result = await sendOtp({ email: cleanEmail });
       setGeneratedOtp(result.code);
       
-      // Store code in Firestore for verification
+      // Store code in Firestore for verification (non-blocking)
       const otpRef = doc(db, "verification_codes", cleanEmail);
       setDocumentNonBlocking(otpRef, {
         email: cleanEmail,
@@ -78,7 +72,7 @@ export default function StayTunedPage() {
         expiresAt: new Date(Date.now() + 10 * 60000).toISOString() // 10 mins
       }, { merge: true });
 
-      // Trigger actual email notification via the "mail" collection
+      // Also track in mail collection for record (optional since flow sent it)
       const mailColRef = collection(db, "mail");
       addDocumentNonBlocking(mailColRef, {
         to: cleanEmail,
@@ -91,7 +85,7 @@ export default function StayTunedPage() {
       setStep('otp');
       toast({ title: "Code Sent", description: "The divine code has been sent to your email." });
     } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "Could not send verification code." });
+      toast({ variant: "destructive", title: "Error", description: "An unexpected error occurred. Please try again." });
     } finally {
       setIsLoading(false);
     }
