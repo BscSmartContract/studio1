@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, ChevronDown, Calendar, LogIn, LogOut } from "lucide-react";
+import { Menu, X, ChevronDown, Calendar, LogIn, LogOut, Youtube } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +29,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "/" },
+    { name: "Live Darshan", href: "/live", icon: <Youtube className="w-4 h-4 mr-1 text-red-600" /> },
     { name: "Volunteer", href: "/volunteer" },
     { name: "Stay Tuned", href: "/stay-tuned" },
   ];
@@ -53,8 +54,9 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-sm font-medium hover:text-primary transition-colors duration-200"
+                className="text-sm font-medium hover:text-primary transition-colors duration-200 flex items-center"
               >
+                {link.icon}
                 {link.name}
               </Link>
             ))}
@@ -105,6 +107,7 @@ export function Navbar() {
                 className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
                 onClick={() => setIsOpen(false)}
               >
+                {link.icon && <span className="mr-2">{link.icon}</span>}
                 {link.name}
               </Link>
             ))}

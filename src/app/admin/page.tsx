@@ -26,7 +26,8 @@ import {
   Image as ImageIcon,
   Wand2,
   BellRing,
-  ShieldCheck
+  ShieldCheck,
+  Youtube
 } from "lucide-react";
 import { 
   useAuth,
@@ -73,6 +74,7 @@ export default function AdminPanel() {
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [organizerName, setOrganizerName] = useState("");
+  const [liveStreamUrl, setLiveStreamUrl] = useState("");
 
   // Blessing states
   const [blessingImg, setBlessingImg] = useState("");
@@ -92,6 +94,7 @@ export default function AdminPanel() {
       setEventName(config.eventName || "Sai Paduka Mahotsav");
       setEventDate(config.eventDate || "2026-03-09");
       setOrganizerName(config.organizerName || "Sai Parivar Ambala");
+      setLiveStreamUrl(config.liveStreamUrl || "");
     }
   }, [config]);
 
@@ -120,6 +123,7 @@ export default function AdminPanel() {
       eventName,
       eventDate,
       organizerName,
+      liveStreamUrl,
       lastUpdatedAt: new Date().toISOString()
     }, { merge: true });
     toast({ title: "Site Settings Updated", description: "The portal configuration has been saved successfully." });
@@ -535,6 +539,14 @@ export default function AdminPanel() {
                   <div className="space-y-2">
                     <Label>Organizer Name</Label>
                     <Input value={organizerName} onChange={(e) => setOrganizerName(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2"><Youtube className="h-4 w-4 text-red-600" /> Live Stream YouTube URL</Label>
+                    <Input 
+                      placeholder="https://www.youtube.com/watch?v=..." 
+                      value={liveStreamUrl} 
+                      onChange={(e) => setLiveStreamUrl(e.target.value)} 
+                    />
                   </div>
                   <Button onClick={handleUpdateConfig} className="w-full bg-primary font-bold">
                     Save Changes

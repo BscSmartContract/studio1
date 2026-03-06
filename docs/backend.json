@@ -10,6 +10,7 @@
         "eventName": { "type": "string" },
         "eventDate": { "type": "string", "format": "date" },
         "organizerName": { "type": "string" },
+        "liveStreamUrl": { "type": "string", "format": "uri" },
         "lastUpdatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["eventName", "organizerName", "lastUpdatedAt"]

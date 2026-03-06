@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-import { Mail, Phone, MapPin, Instagram, Facebook, Sparkles } from "lucide-react";
+import { Mail, Phone, MapPin, Instagram, Facebook, Sparkles, Youtube } from "lucide-react";
 
 export function Footer() {
   return (
@@ -56,6 +56,7 @@ export function Footer() {
             <h4 className="font-headline font-semibold text-lg">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
+              <li><Link href="/live" className="hover:text-primary transition-colors flex items-center gap-1"><Youtube className="h-3 w-3 text-red-600" /> Live Darshan</Link></li>
               <li><Link href="/volunteer" className="hover:text-primary transition-colors">Volunteer Signup</Link></li>
               <li><Link href="/stay-tuned" className="hover:text-primary transition-colors">Stay Tuned</Link></li>
               <li><Link href="/events" className="hover:text-primary transition-colors">Event Schedule</Link></li>
