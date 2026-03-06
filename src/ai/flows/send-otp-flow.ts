@@ -1,8 +1,8 @@
 
 'use server';
 /**
- * @fileOverview A flow to generate a sacred 6-digit verification code (OTP) and send it in Hindi via Brevo.
- * It also checks if the devotee is already registered to prevent duplicates.
+ * @fileOverview A server-side flow to generate a sacred 6-digit verification code (OTP) and send it in Hindi via Brevo.
+ * This flow executes strictly on the server, keeping the API keys secure.
  *
  * - sendOtp - Checks for duplicates, generates a code, and sends it via Brevo.
  */
@@ -15,7 +15,6 @@ import { getFirestore, collection, query, where, getDocs, limit } from 'firebase
 import { firebaseConfig } from '@/firebase/config';
 
 // Initialize Firebase for server-side Firestore access within the flow
-// Note: This uses the client SDK on the server, which is fine for public querying
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -49,7 +48,7 @@ const sendOtpFlow = ai.defineFlow(
     const cleanPhone = input.phone.trim();
 
     try {
-      // 1. Check for duplicates in Firestore
+      // 1. Check for duplicates in Firestore (Administrative Check)
       const subscribersRef = collection(db, "subscribers");
       
       // Check Email
@@ -79,19 +78,20 @@ const sendOtpFlow = ai.defineFlow(
       
       // 3. Generate a divine message for the email in Hindi
       const { text } = await ai.generate({
-        prompt: `Generate a short, divine email message in Hindi (Devanagari script) for a devotee requesting a verification code. 
+        prompt: `Generate a short, divine email message in Hindi (Devanagari script) for a devotee requesting a verification code for upcoming event alerts. 
         The code is ${code}. 
         Guidelines:
         1. Start with 'Om Sai Ram'.
         2. Use ONLY Hindi (Devanagari script).
-        3. The message should be filled with grace and spiritual warmth.
+        3. The tone should be filled with grace and spiritual warmth.
         4. Clearly include the verification code ${code}.
-        5. Keep the message concise.`,
+        5. Mention that Baba is always with them.
+        6. Keep the message concise.`,
       });
 
       const finalMessage = text || `Om Sai Ram. आगामी साईं आयोजनों के लिए आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
 
-      // 4. Real dispatch via Brevo
+      // 4. Real dispatch via Brevo (Strictly Server-Side)
       const mailResult = await sendMail(
         cleanEmail,
         "Sai Parivar Ambala - Sacred Verification Code",
