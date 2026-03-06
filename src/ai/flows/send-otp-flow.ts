@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A server-side flow to generate a sacred 6-digit verification code (OTP) and send it in Hindi via Brevo.
@@ -13,9 +12,14 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
+// Vercel Server Action Timeout (60 seconds for Hobby/Pro)
+export const maxDuration = 60;
+
 // Initialize Firebase for server-side Firestore access within the flow
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+function getDb() {
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  return getFirestore(app);
+}
 
 const SendOtpInputSchema = z.object({
   email: z.string().email().describe("The devotee's email address."),
@@ -45,6 +49,7 @@ const sendOtpFlow = ai.defineFlow(
   async (input) => {
     const cleanEmail = input.email.trim().toLowerCase();
     const cleanPhone = input.phone.trim();
+    const db = getDb();
 
     try {
       console.log(`[FLOW] Starting OTP process for ${cleanEmail}`);
@@ -95,18 +100,21 @@ const sendOtpFlow = ai.defineFlow(
       const finalMessage = text || `Om Sai Ram. आगामी साईं आयोजनों के लिए आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
 
       // 4. Real dispatch via Brevo (Strictly Server-Side)
-      console.log(`[FLOW] Dispatching email to ${cleanEmail}`);
+      console.log(`[MAIL] Dispatching to ${cleanEmail}`);
       const mailResult = await sendMail(
         cleanEmail,
         "Sai Parivar Ambala - Sacred Verification Code",
         finalMessage
       );
 
+      if (!mailResult.success) {
+        throw new Error(mailResult.error || "Email delivery failed");
+      }
+
       return {
         code,
         message: finalMessage,
-        success: mailResult.success,
-        error: mailResult.error
+        success: true
       };
     } catch (err: any) {
       console.error("[FLOW] Error in sendOtpFlow:", err);

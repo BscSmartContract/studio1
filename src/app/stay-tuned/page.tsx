@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -34,18 +33,15 @@ export default function StayTunedPage() {
     if (!email || !phone || !db) return;
     
     setIsLoading(true);
-    console.log("Initiating OTP request for:", email);
     
     try {
       const cleanEmail = email.trim().toLowerCase();
       
-      // Call server-side flow which handles duplicate checks and OTP sending
+      // Call server-side flow
       const result = await sendOtp({ 
         email: cleanEmail,
         phone: phone.trim()
       });
-
-      console.log("OTP result received:", result);
 
       if (result.alreadyRegistered) {
         toast({ 
@@ -59,32 +55,23 @@ export default function StayTunedPage() {
       if (!result.success || !result.code) {
         toast({ 
           variant: "destructive", 
-          title: "Delivery Error", 
-          description: result.error || "Could not dispatch the verification code." 
+          title: "Divine Message Delayed", 
+          description: result.error || result.message || "Please check your connection." 
         });
         setIsLoading(false);
         return;
       }
 
+      // Success Path
       setGeneratedOtp(result.code);
       
-      // Store code in Firestore for verification (non-blocking)
+      // Store code for verification
       const otpRef = doc(db, "verification_codes", cleanEmail);
       setDocumentNonBlocking(otpRef, {
         email: cleanEmail,
         code: result.code,
-        expiresAt: new Date(Date.now() + 10 * 60000).toISOString() // 10 mins
+        expiresAt: new Date(Date.now() + 10 * 60000).toISOString()
       }, { merge: true });
-
-      // Also track in mail collection for record
-      const mailColRef = collection(db, "mail");
-      addDocumentNonBlocking(mailColRef, {
-        to: cleanEmail,
-        message: {
-          subject: "Sai Parivar Ambala - Sacred Verification Code",
-          text: result.message 
-        }
-      });
 
       setStep('otp');
       toast({ title: "Code Sent", description: "The divine code has been sent to your email." });
@@ -93,7 +80,7 @@ export default function StayTunedPage() {
       toast({ 
         variant: "destructive", 
         title: "Connection Error", 
-        description: "Baba is testing our patience. Please check your internet connection and try again." 
+        description: "Baba is testing our patience. Please check your internet and try again." 
       });
     } finally {
       setIsLoading(false);
@@ -104,7 +91,7 @@ export default function StayTunedPage() {
     e.preventDefault();
     if (otpInput === generatedOtp) {
       setStep('details');
-      toast({ title: "Verified", description: "Identity confirmed. Please provide your name to complete the registration." });
+      toast({ title: "Verified", description: "Identity confirmed." });
     } else {
       toast({ variant: "destructive", title: "Invalid Code", description: "The verification code does not match." });
     }
@@ -128,7 +115,7 @@ export default function StayTunedPage() {
       setStep('success');
       toast({
         title: "Registration Successful",
-        description: "Om Sai Ram. You will receive updates about our upcoming events.",
+        description: "Om Sai Ram. You will receive updates.",
       });
     } catch (error) {
       toast({ variant: "destructive", title: "Registration Failed", description: "Please try again later." });
@@ -146,8 +133,8 @@ export default function StayTunedPage() {
           </div>
           <div className="space-y-2">
             <h2 className="text-3xl font-headline font-bold text-foreground">Stay Tuned!</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              Om Sai Ram. Your details have been verified. You will be the first to know about upcoming spiritual gatherings.
+            <p className="text-muted-foreground">
+              Om Sai Ram. You will be the first to know about upcoming spiritual gatherings.
             </p>
           </div>
           <Button asChild className="w-full bg-primary h-12 rounded-full">
@@ -167,8 +154,7 @@ export default function StayTunedPage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">Stay Tuned</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            "I shall draw my devotees from the ends of the earth." — Shri Sai Baba<br />
-            Register to receive alerts for our future spiritual gatherings.
+            "I shall draw my devotees from the ends of the earth." — Shri Sai Baba
           </p>
         </div>
 
@@ -182,7 +168,7 @@ export default function StayTunedPage() {
                   <Mail className="h-8 w-8 text-primary" />
                 </div>
                 <CardTitle className="text-2xl font-headline">Step 1: Information</CardTitle>
-                <CardDescription>Enter your details to receive a sacred code</CardDescription>
+                <CardDescription>Enter details to receive a divine code</CardDescription>
               </CardHeader>
               <CardContent className="px-8 space-y-6">
                 <div className="space-y-2">
@@ -210,7 +196,7 @@ export default function StayTunedPage() {
               <CardFooter className="px-8 pb-10 pt-4">
                 <Button type="submit" disabled={isLoading} className="w-full bg-primary h-14 text-lg font-bold shadow-lg rounded-full">
                   {isLoading ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
-                  Send Divine Code
+                  {isLoading ? "Processing..." : "Send Divine Code"}
                 </Button>
               </CardFooter>
             </form>
@@ -223,7 +209,7 @@ export default function StayTunedPage() {
                   <ShieldCheck className="h-8 w-8 text-primary" />
                 </div>
                 <CardTitle className="text-2xl font-headline">Step 2: Verify Code</CardTitle>
-                <CardDescription>Enter the 6-digit code sent to {email}</CardDescription>
+                <CardDescription>Enter the code sent to {email}</CardDescription>
               </CardHeader>
               <CardContent className="px-8 space-y-4">
                 <div className="space-y-2 text-center">
@@ -238,7 +224,7 @@ export default function StayTunedPage() {
                   />
                   <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-muted/50 rounded-xl text-[10px] text-muted-foreground font-medium">
                     <Info className="h-3 w-3 text-primary" />
-                    <span>Didn't receive the code? Please check your <strong>spam/junk folder</strong>.</span>
+                    <span>Check your <strong>spam/junk folder</strong> if not received.</span>
                   </div>
                 </div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => setStep('email')} className="text-xs text-muted-foreground w-full">
@@ -260,7 +246,7 @@ export default function StayTunedPage() {
                   <BellRing className="h-8 w-8 text-primary" />
                 </div>
                 <CardTitle className="text-2xl font-headline">Final Step: Complete Profile</CardTitle>
-                <CardDescription>Verification successful for {email}</CardDescription>
+                <CardDescription>Verified: {email}</CardDescription>
               </CardHeader>
               <CardContent className="px-8 space-y-6">
                 <div className="space-y-2">
