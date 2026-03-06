@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,7 +98,7 @@ export default function AdminPanel() {
   // Blessing states
   const [blessingImg, setBlessingImg] = useState("");
   const [blessingCaption, setBlessingCaption] = useState("");
-  const [blessingDate, setBlessingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [blessingDate, setBlessingDate] = useState("");
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
   // Donor states
@@ -120,6 +120,10 @@ export default function AdminPanel() {
       setLiveUrl(config.liveDarshanYoutubeLink || "");
     }
   }, [config]);
+
+  useEffect(() => {
+    setBlessingDate(new Date().toISOString().split('T')[0]);
+  }, []);
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();

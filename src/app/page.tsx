@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { 
@@ -32,9 +34,17 @@ export default function Home() {
   const { data: latestBlessings, isLoading: isBlessingLoading } = useCollection(blessingsQuery);
   const todayBlessing = latestBlessings?.[0];
 
+  const [eventDateFormatted, setEventDateFormatted] = useState("");
+  const [eventYear, setEventYear] = useState("");
+  
   const eventName = config?.eventName || "Sai Paduka Mahotsav";
-  const eventDateRaw = config?.eventDate || "2026-03-09";
-  const eventDateFormatted = new Date(eventDateRaw).toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
+
+  useEffect(() => {
+    const raw = config?.eventDate || "2026-03-09";
+    const date = new Date(raw);
+    setEventDateFormatted(date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' }));
+    setEventYear(date.getFullYear().toString());
+  }, [config]);
 
   return (
     <div className="flex flex-col bg-background">
@@ -57,7 +67,7 @@ export default function Home() {
           <div className="flex flex-wrap justify-center gap-4 mt-12 mb-12">
             <div className="flex items-center gap-3 bg-white border border-border px-8 py-4 rounded-2xl shadow-sm">
               <Calendar className="h-6 w-6 text-primary" />
-              <span className="font-bold text-foreground text-lg">{eventDateFormatted}, {new Date(eventDateRaw).getFullYear()}</span>
+              <span className="font-bold text-foreground text-lg">{eventDateFormatted}{eventYear ? `, ${eventYear}` : ""}</span>
             </div>
             <div className="flex items-center gap-3 bg-white border border-border px-8 py-4 rounded-2xl shadow-sm">
               <MapPin className="h-6 w-6 text-primary" />
