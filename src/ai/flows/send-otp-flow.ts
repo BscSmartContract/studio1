@@ -12,9 +12,6 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
-// Vercel Server Action Timeout (60 seconds for Hobby/Pro)
-export const maxDuration = 60;
-
 // Initialize Firebase for server-side Firestore access within the flow
 function getDb() {
   const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -36,6 +33,9 @@ const SendOtpOutputSchema = z.object({
 });
 export type SendOtpOutput = z.infer<typeof SendOtpOutputSchema>;
 
+/**
+ * Server Action to initiate the OTP process.
+ */
 export async function sendOtp(input: SendOtpInput): Promise<SendOtpOutput> {
   return sendOtpFlow(input);
 }
