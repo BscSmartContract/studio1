@@ -13,8 +13,10 @@ export async function sendMail(to: string, subject: string, text: string) {
   }
 
   try {
-    console.log(`[MAIL SERVICE] Attempting to send divine email to: ${to}`);
-    
+    // Controller for request timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -27,23 +29,19 @@ export async function sendMail(to: string, subject: string, text: string) {
           name: 'Sai Parivar Ambala',
           email: 'saibabatrustambala@gmail.com', // MUST be verified in Brevo Dashboard
         },
-        to: [
-          {
-            email: to,
-          },
-        ],
+        to: [{ email: to }],
         subject: subject,
         textContent: text,
       }),
+      signal: controller.signal
     });
 
+    clearTimeout(timeoutId);
     const result = await response.json();
 
     if (response.ok) {
-      console.log('[MAIL SERVICE] Email dispatched successfully:', result.messageId || 'Success');
       return { success: true, messageId: result.messageId };
     } else {
-      console.error('[MAIL SERVICE] Brevo API Error:', result);
       return { 
         success: false, 
         error: result.message || 'Failed to send email via Brevo',
@@ -51,7 +49,9 @@ export async function sendMail(to: string, subject: string, text: string) {
       };
     }
   } catch (error: any) {
-    console.error('[MAIL SERVICE] Connection Error:', error);
+    if (error.name === 'AbortError') {
+      return { success: false, error: 'Connection timed out. Please check your internet.' };
+    }
     return { success: false, error: error.message };
   }
 }

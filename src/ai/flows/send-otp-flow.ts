@@ -2,7 +2,6 @@
 'use server';
 /**
  * @fileOverview A server-side flow to generate a sacred 6-digit verification code (OTP) and send it in Hindi via Brevo.
- * This flow executes strictly on the server, keeping the API keys secure.
  *
  * - sendOtp - Checks for duplicates, generates a code, and sends it via Brevo.
  */
@@ -14,9 +13,11 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
-// Initialize Firebase for server-side Firestore access within the flow
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Stable singleton for server-side Firebase
+function getDb() {
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  return getFirestore(app);
+}
 
 const SendOtpInputSchema = z.object({
   email: z.string().email().describe("The devotee's email address."),
@@ -46,12 +47,12 @@ const sendOtpFlow = ai.defineFlow(
   async (input) => {
     const cleanEmail = input.email.trim().toLowerCase();
     const cleanPhone = input.phone.trim();
+    const db = getDb();
 
     try {
-      // 1. Check for duplicates in Firestore (Administrative Check)
+      // 1. Check for duplicates in Firestore
       const subscribersRef = collection(db, "subscribers");
       
-      // Check Email
       const emailQ = query(subscribersRef, where("email", "==", cleanEmail), limit(1));
       const emailSnap = await getDocs(emailQ);
       if (!emailSnap.empty) {
@@ -62,7 +63,6 @@ const sendOtpFlow = ai.defineFlow(
         };
       }
 
-      // Check Phone
       const phoneQ = query(subscribersRef, where("phone", "==", cleanPhone), limit(1));
       const phoneSnap = await getDocs(phoneQ);
       if (!phoneSnap.empty) {
@@ -73,25 +73,23 @@ const sendOtpFlow = ai.defineFlow(
         };
       }
 
-      // 2. Generate a simple 6-digit code
+      // 2. Generate 6-digit code
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // 3. Generate a divine message for the email in Hindi
+      // 3. Generate message in Hindi
       const { text } = await ai.generate({
-        prompt: `Generate a short, divine email message in Hindi (Devanagari script) for a devotee requesting a verification code for upcoming event alerts. 
+        prompt: `Generate a short, divine email message in Hindi (Devanagari script) for a devotee requesting a verification code. 
         The code is ${code}. 
         Guidelines:
         1. Start with 'Om Sai Ram'.
         2. Use ONLY Hindi (Devanagari script).
-        3. The tone should be filled with grace and spiritual warmth.
-        4. Clearly include the verification code ${code}.
-        5. Mention that Baba is always with them.
-        6. Keep the message concise.`,
+        3. Clearly include the verification code ${code}.
+        4. Keep it warm and spiritual.`,
       });
 
-      const finalMessage = text || `Om Sai Ram. आगामी साईं आयोजनों के लिए आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
+      const finalMessage = text || `Om Sai Ram. आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
 
-      // 4. Real dispatch via Brevo (Strictly Server-Side)
+      // 4. Dispatch via Brevo
       const mailResult = await sendMail(
         cleanEmail,
         "Sai Parivar Ambala - Sacred Verification Code",
@@ -105,7 +103,6 @@ const sendOtpFlow = ai.defineFlow(
         error: mailResult.error
       };
     } catch (err: any) {
-      console.error("sendOtpFlow error:", err);
       return {
         success: false,
         message: "Om Sai Ram. Verification could not be initiated.",
