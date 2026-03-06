@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { useToast } from "@/hooks/use-toast";
 import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft, Info } from "lucide-react";
 import { useFirestore, setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase";
-import { doc, collection } from "firebase/firestore";
+import { doc, collection, query, where, getDocs } from "firebase/firestore";
 import { sendOtp } from "@/ai/flows/send-otp-flow";
 
 type Step = 'email' | 'otp' | 'details' | 'success';
@@ -35,13 +35,29 @@ export default function StayTunedPage() {
     
     setIsLoading(true);
     try {
-      const result = await sendOtp({ email });
+      const cleanEmail = email.trim().toLowerCase();
+      
+      // Check if already subscribed
+      const subscribersRef = collection(db, "subscribers");
+      const q = query(subscribersRef, where("email", "==", cleanEmail));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        toast({ 
+          title: "Already Registered", 
+          description: "Om Sai Ram. You are already registered for upcoming event updates." 
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await sendOtp({ email: cleanEmail });
       setGeneratedOtp(result.code);
       
       // 1. Store code in Firestore for verification
-      const otpRef = doc(db, "verification_codes", email);
+      const otpRef = doc(db, "verification_codes", cleanEmail);
       setDocumentNonBlocking(otpRef, {
-        email,
+        email: cleanEmail,
         code: result.code,
         expiresAt: new Date(Date.now() + 10 * 60000).toISOString() // 10 mins
       }, { merge: true });
@@ -49,7 +65,7 @@ export default function StayTunedPage() {
       // 2. Trigger actual email notification via the "mail" collection
       const mailColRef = collection(db, "mail");
       addDocumentNonBlocking(mailColRef, {
-        to: email,
+        to: cleanEmail,
         message: {
           subject: "Sai Parivar Ambala - Sacred Verification Code",
           text: result.message 
@@ -82,9 +98,9 @@ export default function StayTunedPage() {
     setIsLoading(true);
     try {
       const subscribersCol = collection(db, "subscribers");
-      await addDocumentNonBlocking(subscribersCol, {
+      addDocumentNonBlocking(subscribersCol, {
         ...formData,
-        email,
+        email: email.trim().toLowerCase(),
         isVerified: true,
         subscribedAt: new Date().toISOString()
       });
