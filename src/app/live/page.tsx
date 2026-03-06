@@ -5,7 +5,6 @@ import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Youtube, Sparkles, Loader2, AlertCircle } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function LiveDarshanPage() {
   const db = useFirestore();
