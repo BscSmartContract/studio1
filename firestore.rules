@@ -75,7 +75,9 @@ service cloud.firestore {
 
     match /subscribers/{subscriberId} {
       allow create: if true;
-      allow list, get, delete: if isAdmin();
+      // Allow public to check if they are already registered by email/phone
+      allow list: if true;
+      allow get, delete: if isAdmin();
     }
 
     // Support for 'Stay Tuned' OTP verification

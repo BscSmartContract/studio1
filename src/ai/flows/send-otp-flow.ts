@@ -11,10 +11,11 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { sendMail } from '@/lib/mail-service';
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
 // Initialize Firebase for server-side Firestore access within the flow
+// Note: This uses the client SDK on the server, which is fine for public querying
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -47,60 +48,69 @@ const sendOtpFlow = ai.defineFlow(
     const cleanEmail = input.email.trim().toLowerCase();
     const cleanPhone = input.phone.trim();
 
-    // 1. Check for duplicates in Firestore (Server-side bypasses security rules)
-    const subscribersRef = collection(db, "subscribers");
-    
-    // Check Email
-    const emailQ = query(subscribersRef, where("email", "==", cleanEmail));
-    const emailSnap = await getDocs(emailQ);
-    if (!emailSnap.empty) {
-      return { 
-        success: false, 
-        alreadyRegistered: true, 
-        message: "Om Sai Ram. This email is already registered for upcoming event updates." 
+    try {
+      // 1. Check for duplicates in Firestore
+      const subscribersRef = collection(db, "subscribers");
+      
+      // Check Email
+      const emailQ = query(subscribersRef, where("email", "==", cleanEmail), limit(1));
+      const emailSnap = await getDocs(emailQ);
+      if (!emailSnap.empty) {
+        return { 
+          success: false, 
+          alreadyRegistered: true, 
+          message: "Om Sai Ram. यह ईमेल पहले से ही पंजीकृत है।" 
+        };
+      }
+
+      // Check Phone
+      const phoneQ = query(subscribersRef, where("phone", "==", cleanPhone), limit(1));
+      const phoneSnap = await getDocs(phoneQ);
+      if (!phoneSnap.empty) {
+        return { 
+          success: false, 
+          alreadyRegistered: true, 
+          message: "Om Sai Ram. यह फोन नंबर पहले से ही पंजीकृत है।" 
+        };
+      }
+
+      // 2. Generate a simple 6-digit code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 3. Generate a divine message for the email in Hindi
+      const { text } = await ai.generate({
+        prompt: `Generate a short, divine email message in Hindi (Devanagari script) for a devotee requesting a verification code. 
+        The code is ${code}. 
+        Guidelines:
+        1. Start with 'Om Sai Ram'.
+        2. Use ONLY Hindi (Devanagari script).
+        3. The message should be filled with grace and spiritual warmth.
+        4. Clearly include the verification code ${code}.
+        5. Keep the message concise.`,
+      });
+
+      const finalMessage = text || `Om Sai Ram. आगामी साईं आयोजनों के लिए आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
+
+      // 4. Real dispatch via Brevo
+      const mailResult = await sendMail(
+        cleanEmail,
+        "Sai Parivar Ambala - Sacred Verification Code",
+        finalMessage
+      );
+
+      return {
+        code,
+        message: finalMessage,
+        success: mailResult.success,
+        error: mailResult.error
+      };
+    } catch (err: any) {
+      console.error("sendOtpFlow error:", err);
+      return {
+        success: false,
+        message: "Om Sai Ram. Verification could not be initiated.",
+        error: err.message
       };
     }
-
-    // Check Phone
-    const phoneQ = query(subscribersRef, where("phone", "==", cleanPhone));
-    const phoneSnap = await getDocs(phoneQ);
-    if (!phoneSnap.empty) {
-      return { 
-        success: false, 
-        alreadyRegistered: true, 
-        message: "Om Sai Ram. This phone number is already registered for upcoming event updates." 
-      };
-    }
-
-    // 2. Generate a simple 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // 3. Generate a divine message for the email in Hindi
-    const { text } = await ai.generate({
-      prompt: `Generate a short, divine email message in Hindi (Devanagari script) for a devotee requesting a verification code. 
-      The code is ${code}. 
-      Guidelines:
-      1. Start with 'Om Sai Ram'.
-      2. Use ONLY Hindi (Devanagari script).
-      3. The message should be filled with grace and spiritual warmth.
-      4. Clearly include the verification code ${code}.
-      5. Keep the message concise.`,
-    });
-
-    const finalMessage = text || `Om Sai Ram. आगामी साईं आयोजनों के लिए आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
-
-    // 4. Real dispatch via Brevo
-    const mailResult = await sendMail(
-      cleanEmail,
-      "Sai Parivar Ambala - Sacred Verification Code",
-      finalMessage
-    );
-
-    return {
-      code,
-      message: finalMessage,
-      success: mailResult.success,
-      error: mailResult.error
-    };
   }
 );

@@ -55,7 +55,7 @@ export default function StayTunedPage() {
       if (!result.success || !result.code) {
         toast({ 
           variant: "destructive", 
-          title: "Divine Message Error", 
+          title: "Delivery Error", 
           description: result.error || "Could not dispatch the verification code." 
         });
         setIsLoading(false);
@@ -72,7 +72,7 @@ export default function StayTunedPage() {
         expiresAt: new Date(Date.now() + 10 * 60000).toISOString() // 10 mins
       }, { merge: true });
 
-      // Also track in mail collection for record (optional since flow sent it)
+      // Also track in mail collection for record
       const mailColRef = collection(db, "mail");
       addDocumentNonBlocking(mailColRef, {
         to: cleanEmail,
@@ -84,8 +84,8 @@ export default function StayTunedPage() {
 
       setStep('otp');
       toast({ title: "Code Sent", description: "The divine code has been sent to your email." });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Error", description: "An unexpected error occurred. Please try again." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Error", description: error.message || "An unexpected error occurred. Please try again." });
     } finally {
       setIsLoading(false);
     }
