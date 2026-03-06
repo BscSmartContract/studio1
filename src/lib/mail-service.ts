@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview A central service to handle real-world email dispatching via Brevo (Sendinblue).
  */
@@ -23,7 +24,7 @@ export async function sendMail(to: string, subject: string, text: string) {
       body: JSON.stringify({
         sender: {
           name: 'Sai Parivar Ambala',
-          email: 'saibabatrustambala@gmail.com', // This MUST be a verified sender in Brevo
+          email: 'saibabatrustambala@gmail.com', // MUST be verified in Brevo Dashboard
         },
         to: [
           {
@@ -38,13 +39,21 @@ export async function sendMail(to: string, subject: string, text: string) {
     const result = await response.json();
 
     if (response.ok) {
-      console.log('[MAIL SERVICE] Email sent successfully:', result.messageId || 'Success');
+      console.log('[MAIL SERVICE] Email dispatched successfully:', result.messageId || 'Success');
       return { success: true, messageId: result.messageId };
     } else {
       console.error('[MAIL SERVICE] Brevo API Error:', result);
+      // Helpful hint for common Brevo errors
+      let errorMessage = result.message || 'Failed to send email via Brevo';
+      if (result.code === 'unauthorized') {
+        errorMessage = 'Invalid API Key. Please check your Brevo SMTP & API settings.';
+      } else if (result.code === 'missing_parameter') {
+        errorMessage = 'Sender email might not be verified in your Brevo account.';
+      }
+      
       return { 
         success: false, 
-        error: result.message || 'Failed to send email via Brevo',
+        error: errorMessage,
         code: result.code 
       };
     }
