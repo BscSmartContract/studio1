@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X, ChevronDown, Calendar, LogIn, LogOut, BellRing, HandHeart } from "lucide-react";
+import { Menu, X, ChevronDown, Calendar, LogIn, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,17 +73,10 @@ export function Navbar() {
                 
                 <div className="h-px bg-muted my-1" />
 
-                {user ? (
+                {user && (
                   <DropdownMenuItem onClick={handleSignOut} className="rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                    <Link href="/admin" className="flex items-center py-2">
-                      <LogIn className="w-4 h-4 mr-2" />
-                      Admin
-                    </Link>
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -124,7 +117,7 @@ export function Navbar() {
               Schedule
             </Link>
             
-            {user ? (
+            {user && (
               <button
                 className="text-lg font-medium text-destructive text-left py-2 flex items-center"
                 onClick={handleSignOut}
@@ -132,15 +125,6 @@ export function Navbar() {
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </button>
-            ) : (
-              <Link
-                href="/admin"
-                className="text-lg font-medium hover:text-primary py-2 flex items-center"
-                onClick={() => setIsOpen(false)}
-              >
-                <LogIn className="w-4 h-4 mr-2" />
-                Admin
-              </Link>
             )}
           </div>
         </div>
