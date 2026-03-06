@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview A central service to handle real-world email dispatching via Brevo (Sendinblue).
  * This service is designed to be called ONLY from server-side contexts (Genkit Flows, Server Actions).
@@ -8,8 +7,8 @@ export async function sendMail(to: string, subject: string, text: string) {
   let apiKey = process.env.BREVO_API_KEY;
 
   if (!apiKey) {
-    console.error('[MAIL SERVICE] Brevo API Key is missing. Please set BREVO_API_KEY in environment variables.');
-    return { success: false, error: 'API Key missing from server environment' };
+    console.error('[MAIL SERVICE] BREVO_API_KEY is missing from environment variables.');
+    return { success: false, error: 'Mail service configuration missing' };
   }
 
   // Handle the Base64 encoded JSON key if provided (common in some deployment flows)
@@ -22,9 +21,9 @@ export async function sendMail(to: string, subject: string, text: string) {
       
       const decodedJson = JSON.parse(decodedString);
       apiKey = decodedJson.api_key || decodedJson.apiKey || apiKey;
-      console.log('[MAIL SERVICE] Successfully parsed API Key from encoded JSON');
+      console.log('[MAIL SERVICE] Successfully parsed API Key from encoded source');
     } catch (e) {
-      console.warn('[MAIL SERVICE] Failed to parse API Key as JSON, using raw value');
+      console.warn('[MAIL SERVICE] Using raw BREVO_API_KEY value');
     }
   }
 
@@ -49,8 +48,8 @@ export async function sendMail(to: string, subject: string, text: string) {
         subject: subject,
         textContent: text,
       }),
-      // Add a signal or timeout if necessary for slow networks
-      signal: AbortSignal.timeout(15000) 
+      // Set a strict timeout to avoid hanging the server action
+      signal: AbortSignal.timeout(9000) 
     });
 
     const result = await response.json();
