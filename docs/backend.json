@@ -10,7 +10,6 @@
         "eventName": { "type": "string" },
         "eventDate": { "type": "string", "format": "date" },
         "organizerName": { "type": "string" },
-        "liveDarshanYoutubeLink": { "type": "string", "format": "uri" },
         "lastUpdatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["eventName", "organizerName", "lastUpdatedAt"]
@@ -29,22 +28,6 @@
         "registrationDate": { "type": "string", "format": "date-time" }
       },
       "required": ["externalAuthUserId", "name", "phoneNumber", "registrationDate"]
-    },
-    "DarshanRegistration": {
-      "title": "DarshanRegistration",
-      "type": "object",
-      "description": "Darshan group registration.",
-      "properties": {
-        "id": { "type": "string" },
-        "externalAuthUserId": { "type": "string" },
-        "userName": { "type": "string" },
-        "userPhone": { "type": "string" },
-        "totalPeople": { "type": "number" },
-        "devotees": { "type": "array", "items": { "type": "object" } },
-        "registrationDate": { "type": "string", "format": "date-time" },
-        "isCheckedIn": { "type": "boolean" }
-      },
-      "required": ["externalAuthUserId", "userName", "userPhone", "totalPeople", "registrationDate"]
     },
     "Donor": {
       "title": "Donor",
@@ -113,10 +96,6 @@
     "/users/{userId}/volunteers/{volunteerId}": {
       "schema": "Volunteer",
       "description": "Volunteer records."
-    },
-    "/users/{userId}/darshan_registrations/{registrationId}": {
-      "schema": "DarshanRegistration",
-      "description": "Darshan records."
     },
     "/prominent_donors/{donorId}": {
       "schema": "Donor",

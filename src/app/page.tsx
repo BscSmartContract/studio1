@@ -8,7 +8,8 @@ import {
   Calendar, 
   MapPin, 
   Sparkles, 
-  PlayCircle 
+  HandHeart,
+  BellRing
 } from "lucide-react";
 import { useFirestore, useCollection, useDoc, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy, limit, doc } from "firebase/firestore";
@@ -48,7 +49,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col bg-background">
-      {/* Hero Section - Plain Background */}
+      {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center text-center overflow-hidden bg-muted/30">
         <div className="relative z-10 container px-4 py-20 flex flex-col items-center">
           <div className="inline-block px-6 py-2 mb-8 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold tracking-[0.4em] uppercase shadow-sm">
@@ -77,19 +78,22 @@ export default function Home() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full max-w-2xl">
             <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white w-full h-16 text-xl font-bold rounded-full shadow-lg shadow-primary/20 transition-all active:scale-95">
-              <Link href="/darshan">Darshan</Link>
+              <Link href="/volunteer" className="flex items-center justify-center">
+                <HandHeart className="mr-2 h-6 w-6" />
+                Volunteer Signup
+              </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="w-full h-16 text-lg font-bold rounded-full border-primary/30 bg-white hover:bg-muted transition-all text-primary">
-              <Link href="/live" className="flex items-center justify-center">
-                <PlayCircle className="mr-2 h-6 w-6 text-accent" />
-                Live Darshan
+              <Link href="/stay-tuned" className="flex items-center justify-center">
+                <BellRing className="mr-2 h-6 w-6" />
+                Stay Tuned
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Divine Presence Section - Clean Text Only */}
+      {/* Divine Presence Section */}
       <section className="py-24 bg-white">
         <div className="container px-4">
           <div className="max-w-4xl mx-auto text-center space-y-12">
@@ -140,11 +144,11 @@ export default function Home() {
         <div className="container px-4 relative z-10 text-center">
           <h2 className="text-5xl md:text-7xl font-headline font-bold mb-8 tracking-tighter">Om Sai Ram</h2>
           <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto opacity-90 leading-relaxed font-medium">
-            Join the grand celebration. Access your digital entry pass instantly and join the divine journey.
+            Join the grand celebration. Be part of our dedicated volunteer team or stay updated for upcoming divine gatherings.
           </p>
           <div className="flex flex-col items-center gap-6">
             <Button asChild variant="secondary" size="lg" className="rounded-full px-12 h-20 text-2xl font-extrabold text-primary shadow-xl bg-white hover:scale-105 transition-transform">
-              <Link href="/darshan">Darshan</Link>
+              <Link href="/volunteer">Volunteer Now</Link>
             </Button>
             <p className="text-sm opacity-70 font-bold uppercase tracking-[0.2em] flex items-center gap-2">
               <Sparkles className="h-4 w-4" /> Shraddha • Saburi <Sparkles className="h-4 w-4" />

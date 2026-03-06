@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { Mail, Phone, MapPin, Instagram, Facebook, Sparkles } from "lucide-react";
 
@@ -55,8 +56,8 @@ export function Footer() {
             <h4 className="font-headline font-semibold text-lg">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
-              <li><Link href="/live" className="hover:text-primary transition-colors">Live Darshan</Link></li>
-              <li><Link href="/darshan" className="hover:text-primary transition-colors">Darshan</Link></li>
+              <li><Link href="/volunteer" className="hover:text-primary transition-colors">Volunteer Signup</Link></li>
+              <li><Link href="/stay-tuned" className="hover:text-primary transition-colors">Stay Tuned</Link></li>
               <li><Link href="/events" className="hover:text-primary transition-colors">Event Schedule</Link></li>
             </ul>
           </div>
@@ -88,23 +89,12 @@ export function Footer() {
             <div className="h-[1px] w-8 bg-primary/30" />
           </div>
           
-          <div className="flex justify-center">
-             <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse" />
-                <div className="relative bg-white border border-primary/20 p-3 rounded-full shadow-lg">
-                   <svg viewBox="0 0 24 24" className="w-8 h-8 text-primary fill-current" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12,22C12,22 17,18 17,12C17,9.79 15.21,8 13,8C12.71,8 12.43,8.03 12.17,8.09C12.06,7.42 12,6.72 12,6C12,3.79 13.79,2 16,2C18.21,2 20,3.79 20,6C20,11 12,22 12,22M12,22C12,22 7,18 7,12C7,9.79 8.79,8 11,8C11.29,8 11.57,8.03 11.83,8.09C11.94,7.42 12,6.72 12,6C12,3.79 10.21,2 8,2C5.79,2 4,3.79 4,6C4,11 12,22 12,22Z" />
-                   </svg>
-                </div>
-             </div>
-          </div>
-
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium">
               © {new Date().getFullYear()} Sai Parivar Ambala. All rights reserved. 
             </p>
             <p className="text-[10px] text-primary/60 font-bold uppercase tracking-widest">
-              For Sai Devotees • Made with love
+              Shraddha • Saburi
             </p>
           </div>
         </div>

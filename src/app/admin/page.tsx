@@ -11,9 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Users, 
   HandHeart, 
-  Video,
   Sparkles,
   Loader2,
   AlertCircle,
@@ -21,19 +19,14 @@ import {
   LogOut,
   Mail,
   Lock,
-  Info,
-  ScanLine,
-  QrCode,
-  ShieldCheck,
   Trash2,
-  CheckCircle2,
-  Circle,
   Star,
   Plus,
   Settings,
   Image as ImageIcon,
   Wand2,
-  BellRing
+  BellRing,
+  ShieldCheck
 } from "lucide-react";
 import { 
   useAuth,
@@ -48,14 +41,6 @@ import {
 } from "@/firebase";
 import { doc, collection, collectionGroup, query, orderBy } from "firebase/firestore";
 import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { generateBlessing } from "@/ai/flows/generate-blessing-flow";
 
 export default function AdminPanel() {
@@ -73,10 +58,6 @@ export default function AdminPanel() {
   const donorsRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "prominent_donors"), orderBy("displayOrder", "asc")) : null, [db, isActuallyAdmin]);
   const subscribersRef = useMemoFirebase(() => (db && isActuallyAdmin) ? query(collection(db, "subscribers"), orderBy("subscribedAt", "desc")) : null, [db, isActuallyAdmin]);
   
-  const allRegistrationsQuery = useMemoFirebase(() => 
-    (db && isActuallyAdmin) ? collectionGroup(db, "darshan_registrations") : null, 
-  [db, isActuallyAdmin]);
-  
   const allVolunteersQuery = useMemoFirebase(() => 
     (db && isActuallyAdmin) ? collectionGroup(db, "volunteers") : null, 
   [db, isActuallyAdmin]);
@@ -85,7 +66,6 @@ export default function AdminPanel() {
   const { data: blessings } = useCollection(blessingsRef);
   const { data: donors } = useCollection(donorsRef);
   const { data: subscribers, isLoading: subLoading } = useCollection(subscribersRef);
-  const { data: allRegistrations, isLoading: regLoading } = useCollection(allRegistrationsQuery);
   const { data: allVolunteers, isLoading: volLoading } = useCollection(allVolunteersQuery);
 
   // Site Config states
@@ -93,7 +73,6 @@ export default function AdminPanel() {
   const [eventName, setEventName] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [organizerName, setOrganizerName] = useState("");
-  const [liveUrl, setLiveUrl] = useState("");
 
   // Blessing states
   const [blessingImg, setBlessingImg] = useState("");
@@ -107,17 +86,12 @@ export default function AdminPanel() {
   const [donorCategory, setDonorCategory] = useState("Premium Contributor");
   const [donorOrder, setDonorOrder] = useState("1");
 
-  // Entry Check-in logic
-  const [passCodeInput, setPassCodeInput] = useState("");
-  const [foundRegistration, setFoundRegistration] = useState<any>(null);
-
   useEffect(() => {
     if (config) {
       setHeroUrl(config.heroImageUrl || "");
       setEventName(config.eventName || "Sai Paduka Mahotsav");
       setEventDate(config.eventDate || "2026-03-09");
       setOrganizerName(config.organizerName || "Sai Parivar Ambala");
-      setLiveUrl(config.liveDarshanYoutubeLink || "");
     }
   }, [config]);
 
@@ -146,7 +120,6 @@ export default function AdminPanel() {
       eventName,
       eventDate,
       organizerName,
-      liveDarshanYoutubeLink: liveUrl,
       lastUpdatedAt: new Date().toISOString()
     }, { merge: true });
     toast({ title: "Site Settings Updated", description: "The portal configuration has been saved successfully." });
@@ -207,43 +180,6 @@ export default function AdminPanel() {
     if (!db) return;
     deleteDocumentNonBlocking(doc(db, "prominent_donors", id));
     toast({ title: "Removed", description: "Donor removed from list." });
-  };
-
-  const handleSearchPass = async () => {
-    if (!passCodeInput || !allRegistrations) return;
-    
-    const cleanCode = passCodeInput.trim().toUpperCase();
-    const match = allRegistrations.find(r => 
-      r.id.toUpperCase().startsWith(cleanCode) || r.id === passCodeInput
-    );
-
-    if (match) {
-      setFoundRegistration(match);
-      toast({ title: "Pass Found", description: `Registration for ${match.userName} loaded.` });
-    } else {
-      setFoundRegistration(null);
-      toast({ variant: "destructive", title: "Not Found", description: "No registration matches this code." });
-    }
-  };
-
-  const handleIndividualCheckIn = (devoteeIndex: number) => {
-    if (!foundRegistration || !db) return;
-    
-    const updatedDevotees = [...foundRegistration.devotees];
-    updatedDevotees[devoteeIndex] = {
-      ...updatedDevotees[devoteeIndex],
-      isCheckedIn: true,
-      checkInTime: new Date().toISOString()
-    };
-
-    const regRef = doc(db, "users", foundRegistration.externalAuthUserId, "darshan_registrations", foundRegistration.id);
-    setDocumentNonBlocking(regRef, {
-      devotees: updatedDevotees,
-      isCheckedIn: true 
-    }, { merge: true });
-
-    setFoundRegistration({ ...foundRegistration, devotees: updatedDevotees, isCheckedIn: true });
-    toast({ title: "Check-in Successful", description: `Entry recorded for ${updatedDevotees[devoteeIndex].name}.` });
   };
 
   const handleDeleteSubscriber = (id: string) => {
@@ -318,196 +254,108 @@ export default function AdminPanel() {
           <Button variant="ghost" onClick={handleSignOut}><LogOut className="h-4 w-4 mr-2" /> Logout</Button>
         </div>
 
-        <Tabs defaultValue="entry-checkin" className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 h-auto p-1 bg-muted rounded-xl mb-8">
-            <TabsTrigger value="entry-checkin" className="py-3">
-              <ScanLine className="h-4 w-4 mr-2" /> Entry
-            </TabsTrigger>
-            <TabsTrigger value="registrations" className="py-3">
-              <Users className="h-4 w-4 mr-2" /> Darshan
-            </TabsTrigger>
-            <TabsTrigger value="donors" className="py-3">
-              <Star className="h-4 w-4 mr-2" /> Donors
+        <Tabs defaultValue="volunteers" className="w-full">
+          <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto p-1 bg-muted rounded-xl mb-8">
+            <TabsTrigger value="volunteers" className="py-3">
+              <HandHeart className="h-4 w-4 mr-2" /> Volunteers
             </TabsTrigger>
             <TabsTrigger value="subscribers" className="py-3">
               <BellRing className="h-4 w-4 mr-2" /> Stay Tuned
             </TabsTrigger>
+            <TabsTrigger value="donors" className="py-3">
+              <Star className="h-4 w-4 mr-2" /> Donors
+            </TabsTrigger>
             <TabsTrigger value="blessings" className="py-3">
               <Sparkles className="h-4 w-4 mr-2" /> Blessings
-            </TabsTrigger>
-            <TabsTrigger value="volunteers" className="py-3">
-              <HandHeart className="h-4 w-4 mr-2" /> Volunteers
             </TabsTrigger>
             <TabsTrigger value="setup" className="py-3">
               <Settings className="h-4 w-4 mr-2" /> Settings
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="entry-checkin">
-             <div className="max-w-4xl mx-auto space-y-8">
-                <Card className="shadow-lg border-primary/20">
-                  <CardHeader className="text-center">
-                    <CardTitle className="flex items-center justify-center gap-2">
-                      <ScanLine className="text-primary" /> Venue Entry Check-in
-                    </CardTitle>
-                    <CardDescription>Verify devotee passes and record individual entry</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex flex-col md:flex-row gap-4 items-end">
-                      <div className="flex-1 space-y-2">
-                        <Label>Enter Pass Code (8 characters)</Label>
-                        <Input 
-                          placeholder="e.g. 7A8B9C10" 
-                          value={passCodeInput} 
-                          onChange={(e) => setPassCodeInput(e.target.value.toUpperCase())}
-                          className="h-12 text-xl font-bold tracking-widest text-center"
-                        />
-                      </div>
-                      <Button onClick={handleSearchPass} className="h-12 px-8 bg-primary">Search</Button>
-                    </div>
-
-                    {foundRegistration && (
-                      <Card className="mt-8 border-2 bg-primary/5 border-primary/20">
-                        <div className="p-6">
-                           <div className="flex justify-between items-start mb-6">
-                              <div>
-                                <h3 className="text-2xl font-bold">{foundRegistration.userName}</h3>
-                                <p className="text-sm text-muted-foreground">{foundRegistration.userPhone}</p>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-[10px] font-bold uppercase block mb-1">Pass Code</span>
-                                <span className="text-lg font-bold font-mono text-primary">{foundRegistration.id.substring(0, 8).toUpperCase()}</span>
-                              </div>
-                           </div>
-                           
-                           <div className="space-y-4">
-                              <h4 className="font-bold text-sm uppercase text-muted-foreground border-b pb-2">Devotee Check-in List ({foundRegistration.totalPeople})</h4>
-                              <div className="grid grid-cols-1 gap-3">
-                                 {foundRegistration.devotees?.map((dev: any, i: number) => (
-                                   <div key={i} className="flex justify-between items-center p-4 bg-white rounded-2xl border shadow-sm">
-                                      <div className="flex items-center gap-3">
-                                         {dev.isCheckedIn ? (
-                                           <CheckCircle2 className="h-6 w-6 text-green-600" />
-                                         ) : (
-                                           <Circle className="h-6 w-6 text-muted-foreground" />
-                                         )}
-                                         <div>
-                                            <p className="font-bold text-lg">{dev.name}</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase">Age: {dev.age}</p>
-                                         </div>
-                                      </div>
-                                      {dev.isCheckedIn ? (
-                                        <div className="text-right">
-                                           <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">ENTERED</span>
-                                           {dev.checkInTime && <p className="text-[8px] mt-1">{new Date(dev.checkInTime).toLocaleTimeString()}</p>}
-                                        </div>
-                                      ) : (
-                                        <Button 
-                                          onClick={() => handleIndividualCheckIn(i)} 
-                                          size="sm" 
-                                          className="bg-primary hover:bg-primary/90 font-bold"
-                                        >
-                                          Confirm Entry
-                                        </Button>
-                                      )}
-                                   </div>
-                                 ))}
-                              </div>
-                           </div>
-                        </div>
-                      </Card>
-                    )}
-                  </CardContent>
-                </Card>
-             </div>
-          </TabsContent>
-
-          <TabsContent value="registrations">
+          <TabsContent value="volunteers">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>Darshan Registrations</CardTitle>
+                <CardTitle>Volunteers</CardTitle>
+                <CardDescription>List of devotees who signed up for service.</CardDescription>
               </CardHeader>
               <CardContent>
-                {regLoading ? (
+                {volLoading ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
-                ) : allRegistrations && allRegistrations.length > 0 ? (
+                ) : allVolunteers && allVolunteers.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Contact Person</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>People</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Phone</TableHead>
+                        <TableHead>Service</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allVolunteers.map((vol) => (
+                        <TableRow key={vol.id}>
+                          <TableCell className="font-bold">{vol.name}</TableCell>
+                          <TableCell>{vol.phoneNumber}</TableCell>
+                          <TableCell>
+                            <span className="text-xs bg-muted px-2 py-1 rounded font-medium">
+                              {vol.areaOfService?.join(", ")}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {vol.registrationDate ? new Date(vol.registrationDate).toLocaleDateString() : "N/A"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">No volunteers found.</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="subscribers">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle>Stay Tuned Subscribers</CardTitle>
+                <CardDescription>Devotees waiting for upcoming event alerts.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {subLoading ? (
+                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+                ) : subscribers && subscribers.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {allRegistrations.map((reg) => {
-                        const checkedCount = reg.devotees?.filter((d: any) => d.isCheckedIn).length || 0;
-                        const isFullyCheckedIn = checkedCount === reg.totalPeople;
-
-                        return (
-                          <TableRow key={reg.id}>
-                            <TableCell className="font-medium">
-                               <div>{reg.userName || "N/A"}</div>
-                               <div className="text-[10px] text-muted-foreground font-mono">{reg.id.substring(0, 8).toUpperCase()}</div>
-                            </TableCell>
-                            <TableCell>
-                              {isFullyCheckedIn ? (
-                                <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">FULL ENTRY</span>
-                              ) : checkedCount > 0 ? (
-                                <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold">{checkedCount}/{reg.totalPeople} IN</span>
-                              ) : (
-                                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">WAITING</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                               <span className="bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-xs">
-                                 {reg.totalPeople || 0}
-                               </span>
-                            </TableCell>
-                            <TableCell className="text-xs">
-                              {reg.registrationDate ? new Date(reg.registrationDate).toLocaleDateString() : "N/A"}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button size="sm" variant="outline" className="h-8">
-                                    <Info className="h-3.5 w-3.5 mr-1" /> Details
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-md">
-                                  <DialogHeader>
-                                    <DialogTitle>Devotee List</DialogTitle>
-                                    <DialogDescription>
-                                      Contact: {reg.userName} ({reg.userPhone})
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="mt-4 space-y-2">
-                                    {reg.devotees?.map((dev: any, idx: number) => (
-                                      <div key={idx} className="flex justify-between items-center p-3 bg-muted rounded-lg border">
-                                        <div>
-                                           <span className="font-medium">{dev.name}</span>
-                                           <span className="text-[10px] ml-2 opacity-60">Age: {dev.age}</span>
-                                        </div>
-                                        {dev.isCheckedIn ? (
-                                          <span className="text-[10px] bg-green-600 text-white px-2 py-0.5 rounded">CHECKED IN</span>
-                                        ) : (
-                                          <span className="text-[10px] bg-muted-foreground/20 text-muted-foreground px-2 py-0.5 rounded">PENDING</span>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                      {subscribers.map((sub) => (
+                        <TableRow key={sub.id}>
+                          <TableCell className="font-bold">{sub.name}</TableCell>
+                          <TableCell>{sub.email}</TableCell>
+                          <TableCell>{sub.phone || "-"}</TableCell>
+                          <TableCell className="text-xs">
+                            {sub.subscribedAt ? new Date(sub.subscribedAt).toLocaleDateString() : "-"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                             <Button size="icon" variant="ghost" onClick={() => handleDeleteSubscriber(sub.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                             </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 ) : (
-                  <p className="text-center text-muted-foreground py-8">No registrations found.</p>
+                  <p className="text-center text-muted-foreground py-8">No subscribers yet.</p>
                 )}
               </CardContent>
             </Card>
@@ -575,61 +423,16 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          <TabsContent value="subscribers">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle>Stay Tuned Subscribers</CardTitle>
-                <CardDescription>Devotees waiting for upcoming event alerts.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {subLoading ? (
-                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
-                ) : subscribers && subscribers.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {subscribers.map((sub) => (
-                        <TableRow key={sub.id}>
-                          <TableCell className="font-bold">{sub.name}</TableCell>
-                          <TableCell>{sub.email}</TableCell>
-                          <TableCell>{sub.phone || "-"}</TableCell>
-                          <TableCell className="text-xs">
-                            {sub.subscribedAt ? new Date(sub.subscribedAt).toLocaleDateString() : "-"}
-                          </TableCell>
-                          <TableCell className="text-right">
-                             <Button size="icon" variant="ghost" onClick={() => handleDeleteSubscriber(sub.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                             </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">No subscribers yet.</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="blessings">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="shadow-lg">
                 <CardHeader>
-                  <CardTitle>Add Today's Darshan</CardTitle>
-                  <CardDescription>Upload a photo and add a sacred teaching.</CardDescription>
+                  <CardTitle>Daily Divine Messages</CardTitle>
+                  <CardDescription>Upload photos and add sacred teachings.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Image URL (Required)</Label>
+                    <Label>Image URL</Label>
                     <Input 
                       placeholder="Enter image URL" 
                       value={blessingImg}
@@ -646,7 +449,7 @@ export default function AdminPanel() {
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center mb-1">
-                      <Label>Message/Caption (Hindi Only)</Label>
+                      <Label>Message/Caption (Hindi)</Label>
                       <Button 
                         variant="ghost" 
                         size="sm" 
@@ -665,7 +468,7 @@ export default function AdminPanel() {
                       className="min-h-[100px]"
                     />
                   </div>
-                  <Button onClick={handleAddBlessing} className="w-full bg-primary font-bold">Add to Divine Section</Button>
+                  <Button onClick={handleAddBlessing} className="w-full bg-primary font-bold">Add Blessing</Button>
                 </CardContent>
               </Card>
 
@@ -703,48 +506,6 @@ export default function AdminPanel() {
             </div>
           </TabsContent>
 
-          <TabsContent value="volunteers">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle>Volunteers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {volLoading ? (
-                  <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
-                ) : allVolunteers && allVolunteers.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Service</TableHead>
-                        <TableHead>Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {allVolunteers.map((vol) => (
-                        <TableRow key={vol.id}>
-                          <TableCell>{vol.name}</TableCell>
-                          <TableCell>{vol.phoneNumber}</TableCell>
-                          <TableCell>
-                            <span className="text-xs bg-muted px-2 py-1 rounded">
-                              {vol.areaOfService?.join(", ")}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            {vol.registrationDate ? new Date(vol.registrationDate).toLocaleDateString() : "N/A"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">No volunteers found.</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="setup">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <Card className="shadow-lg border-primary/20">
@@ -762,7 +523,6 @@ export default function AdminPanel() {
                       value={heroUrl} 
                       onChange={(e) => setHeroUrl(e.target.value)} 
                     />
-                    <p className="text-[10px] text-muted-foreground">This image appears behind the event title on the Home page.</p>
                   </div>
                   <div className="space-y-2">
                     <Label>Event Name</Label>
@@ -776,10 +536,6 @@ export default function AdminPanel() {
                     <Label>Organizer Name</Label>
                     <Input value={organizerName} onChange={(e) => setOrganizerName(e.target.value)} />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2"><Video className="h-4 w-4" /> YouTube Live Link</Label>
-                    <Input value={liveUrl} onChange={(e) => setLiveUrl(e.target.value)} />
-                  </div>
                   <Button onClick={handleUpdateConfig} className="w-full bg-primary font-bold">
                     Save Changes
                   </Button>
@@ -789,24 +545,16 @@ export default function AdminPanel() {
               <Card className="shadow-lg border-accent/20">
                 <CardHeader className="bg-accent/5">
                   <CardTitle className="flex items-center gap-2 text-accent">
-                    <ShieldCheck className="h-6 w-6" /> Platform Setup
+                    <ShieldCheck className="h-6 w-6" /> Platform Security
                   </CardTitle>
-                  <CardDescription>Instructions for enabling advanced features.</CardDescription>
+                  <CardDescription>Current administration setup status.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8 pt-6">
                   <div className="space-y-4">
                     <h3 className="font-bold text-lg border-b pb-2 flex items-center gap-2">
-                      <Mail className="h-5 w-5 text-primary" /> Automatic Email Setup
+                      <Mail className="h-5 w-5 text-primary" /> Email Service (Brevo)
                     </h3>
-                    <div className="bg-muted p-4 rounded-lg space-y-3 text-sm">
-                      <p className="text-xs text-muted-foreground mb-2">Enable the "Trigger Email" extension in Firebase Console to send registration confirmations.</p>
-                      <ol className="list-decimal pl-5 space-y-2">
-                        <li>Go to <strong>Extensions</strong> tab.</li>
-                        <li>Install <strong>Trigger Email</strong>.</li>
-                        <li>Collection: <code>mail</code>.</li>
-                        <li>Configure SMTP URI.</li>
-                      </ol>
-                    </div>
+                    <p className="text-sm text-muted-foreground">The platform is configured to send divine Hindi emails via Brevo. Ensure your sender address is verified.</p>
                   </div>
                 </CardContent>
               </Card>

@@ -30,11 +30,6 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
-    match /roles_admin/{adminUid} {
-      allow get, list: if isSignedIn();
-      allow write: if isAdmin();
-    }
-
     match /app_configuration/{configId} {
       allow get, list: if true;
       allow write: if isAdmin();
@@ -47,18 +42,7 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId) || isAdmin();
     }
 
-    match /users/{userId}/darshan_registrations/{registrationId} {
-      allow get, list: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && request.resource.data.externalAuthUserId == userId;
-      allow update: if isExistingOwner(userId) || isAdmin();
-      allow delete: if isExistingOwner(userId) || isAdmin();
-    }
-
-    // Collection Group rules (Crucial for Admin Panel)
-    match /{path=**}/darshan_registrations/{registrationId} {
-      allow list: if isAdmin();
-    }
-
+    // Collection Group rules for Admin Panel
     match /{path=**}/volunteers/{volunteerId} {
       allow list: if isAdmin();
     }
@@ -80,17 +64,13 @@ service cloud.firestore {
       allow get, delete: if isAdmin();
     }
 
-    // Support for 'Stay Tuned' OTP verification
     match /verification_codes/{email} {
       allow create, get, update: if true;
       allow list, delete: if isAdmin();
     }
 
-    // Support for 'Trigger Email' Extension
     match /mail/{mailId} {
-      // Allow authenticated users to see their own emails, or admin to see all
       allow get: if (isSignedIn() && resource.data.to == request.auth.token.email) || isAdmin();
-      // Allow public creation so unauthenticated users can trigger OTP/Confirmation emails
       allow create: if true;
       allow list, update, delete: if isAdmin();
     }

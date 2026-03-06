@@ -3,8 +3,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Menu, X, PlayCircle, ChevronDown, Calendar, LogIn, LogOut, BellRing } from "lucide-react";
+import { Menu, X, ChevronDown, Calendar, LogIn, LogOut, BellRing, HandHeart } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +29,8 @@ export function Navbar() {
 
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "Darshan", href: "/darshan" },
+    { name: "Volunteer", href: "/volunteer" },
+    { name: "Stay Tuned", href: "/stay-tuned" },
   ];
 
   return (
@@ -53,7 +53,7 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-sm font-medium hover:text-primary transition-colors duration-200 flex items-center"
+                className="text-sm font-medium hover:text-primary transition-colors duration-200"
               >
                 {link.name}
               </Link>
@@ -67,21 +67,7 @@ export function Navbar() {
                 <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
                   <Link href="/events" className="flex items-center py-2">
                     <Calendar className="w-4 h-4 mr-2" />
-                    Event Schedule
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                  <Link href="/live" className="flex items-center py-2">
-                    <PlayCircle className="w-4 h-4 mr-2 text-accent" />
-                    Live Darshan
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                  <Link href="/stay-tuned" className="flex items-center py-2">
-                    <BellRing className="w-4 h-4 mr-2 text-primary" />
-                    Stay Tuned
+                    Schedule
                   </Link>
                 </DropdownMenuItem>
                 
@@ -94,9 +80,9 @@ export function Navbar() {
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
-                    <Link href="/darshan" className="flex items-center py-2">
+                    <Link href="/admin" className="flex items-center py-2">
                       <LogIn className="w-4 h-4 mr-2" />
-                      Login
+                      Admin
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -135,25 +121,7 @@ export function Navbar() {
               onClick={() => setIsOpen(false)}
             >
               <Calendar className="w-4 h-4 mr-2" />
-              Event Schedule
-            </Link>
-            
-            <Link
-              href="/live"
-              className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
-              onClick={() => setIsOpen(false)}
-            >
-              <PlayCircle className="w-4 h-4 mr-2 text-accent" />
-              Live Darshan
-            </Link>
-
-            <Link
-              href="/stay-tuned"
-              className="text-lg font-medium hover:text-primary py-2 border-b border-border/50 flex items-center"
-              onClick={() => setIsOpen(false)}
-            >
-              <BellRing className="w-4 h-4 mr-2 text-primary" />
-              Stay Tuned
+              Schedule
             </Link>
             
             {user ? (
@@ -166,12 +134,12 @@ export function Navbar() {
               </button>
             ) : (
               <Link
-                href="/darshan"
+                href="/admin"
                 className="text-lg font-medium hover:text-primary py-2 flex items-center"
                 onClick={() => setIsOpen(false)}
               >
                 <LogIn className="w-4 h-4 mr-2" />
-                Login
+                Admin
               </Link>
             )}
           </div>
