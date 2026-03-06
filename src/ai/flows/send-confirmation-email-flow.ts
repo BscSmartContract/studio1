@@ -1,9 +1,8 @@
-
 'use server';
 /**
- * @fileOverview A flow to generate and send spiritual confirmation emails to devotees via SendGrid.
+ * @fileOverview A flow to generate and send spiritual confirmation emails in Hindi to devotees via Brevo.
  *
- * - sendConfirmationEmail - A function that drafts and sends a confirmation email.
+ * - sendConfirmationEmail - A function that drafts and sends a confirmation email in Hindi.
  * - RegistrationEmailInput - The input type for the confirmation flow.
  */
 
@@ -30,7 +29,7 @@ const prompt = ai.definePrompt({
   prompt: `You are a warm and spiritual coordinator for the Sai Parivar Ambala team. 
 A devotee has just registered for the Sai Paduka Darshan event.
 
-Please draft a professional, warm, and divine email confirmation.
+Please draft a professional, warm, and divine email confirmation in Hindi (Devanagari script).
 
 Devotee Information:
 - Primary Contact: {{userName}}
@@ -44,22 +43,23 @@ Group Members:
 
 Guidelines:
 1. Start with the sacred greeting "Om Sai Ram".
-2. Confirm that their registration is successful.
-3. List the group details clearly so they have a record.
-4. Include a blessing from Sai Parivar Ambala.
-5. Remind them to arrive at Aggarwal Bhavan by 9:00 AM.
-6. Keep the tone respectful, humble, and filled with Sai Baba's grace.
+2. Use ONLY Hindi (Devanagari script) for the entire message.
+3. Confirm that their registration is successful.
+4. List the group details clearly so they have a record.
+5. Include a blessing from Sai Parivar Ambala.
+6. Remind them to arrive at Aggarwal Bhavan by 9:00 AM.
+7. Keep the tone respectful, humble, and filled with Sai Baba's grace.
 
 Draft the email body in plain text.`,
 });
 
 /**
- * Generates a confirmation email body and sends it via SendGrid.
+ * Generates a confirmation email body and sends it via Brevo.
  */
 export async function sendConfirmationEmail(input: RegistrationEmailInput) {
   const { text } = await prompt(input);
   
-  // Real dispatch via SendGrid
+  // Real dispatch via Brevo
   const result = await sendMail(
     input.userEmail,
     "Sai Paduka Darshan - Registration Confirmation",

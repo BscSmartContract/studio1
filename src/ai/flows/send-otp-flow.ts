@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A flow to generate a sacred 6-digit verification code (OTP) and send it via Brevo.
+ * @fileOverview A flow to generate a sacred 6-digit verification code (OTP) and send it in Hindi via Brevo.
  *
  * - sendOtp - Generates a code and sends it via Brevo.
  */
@@ -36,16 +36,19 @@ const sendOtpFlow = ai.defineFlow(
     // Generate a simple 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     
-    // Generate a divine message for the email
+    // Generate a divine message for the email in Hindi
     const { text } = await ai.generate({
-      prompt: `Generate a short, divine email message for a devotee requesting a verification code. 
+      prompt: `Generate a short, divine email message in Hindi (Devanagari script) for a devotee requesting a verification code. 
       The code is ${code}. 
-      The message should start with 'Om Sai Ram' and be filled with grace.
-      The tone should be spiritual and professional. 
-      Keep the message concise.`,
+      Guidelines:
+      1. Start with 'Om Sai Ram'.
+      2. Use ONLY Hindi (Devanagari script).
+      3. The message should be filled with grace and spiritual warmth.
+      4. Clearly include the verification code ${code}.
+      5. Keep the message concise.`,
     });
 
-    const finalMessage = text || `Om Sai Ram. Your sacred verification code for upcoming Sai events is ${code}. May Baba's grace be with you.`;
+    const finalMessage = text || `Om Sai Ram. आगामी साईं आयोजनों के लिए आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
 
     // Real dispatch via Brevo
     const mailResult = await sendMail(
