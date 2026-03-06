@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A server-side flow to generate a sacred 6-digit verification code (OTP) and send it in Hindi via Brevo.
@@ -22,7 +23,6 @@ const SendOtpInputSchema = z.object({
   email: z.string().email().describe("The devotee's email address."),
   phone: z.string().describe("The devotee's phone number.")
 });
-export type SendOtpInput = z.infer<typeof SendOtpInputSchema>;
 
 const SendOtpOutputSchema = z.object({
   code: z.string().optional().describe("The generated 6-digit code."),
@@ -31,10 +31,13 @@ const SendOtpOutputSchema = z.object({
   alreadyRegistered: z.boolean().optional().describe("True if the user is already in the system."),
   error: z.string().optional().describe("Error message if delivery failed.")
 });
+
+export type SendOtpInput = z.infer<typeof SendOtpInputSchema>;
 export type SendOtpOutput = z.infer<typeof SendOtpOutputSchema>;
 
 /**
  * Server Action to initiate the OTP process.
+ * IMPORTANT: Only async functions are exported in this file to satisfy Next.js build requirements.
  */
 export async function sendOtp(input: SendOtpInput): Promise<SendOtpOutput> {
   return sendOtpFlow(input);
@@ -120,7 +123,7 @@ const sendOtpFlow = ai.defineFlow(
       console.error("[FLOW] Error in sendOtpFlow:", err);
       return {
         success: false,
-        message: "Om Sai Ram. Verification could not be initiated.",
+        message: "Om Sai Ram. Verification could not be initiated. Please check your internet connection.",
         error: err.message
       };
     }

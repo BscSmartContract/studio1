@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft, Info } from "lucide-react";
+import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft, Info, AlertTriangle } from "lucide-react";
 import { useFirestore, setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase";
 import { doc, collection } from "firebase/firestore";
 import { sendOtp } from "@/ai/flows/send-otp-flow";
@@ -33,11 +34,12 @@ export default function StayTunedPage() {
     if (!email || !phone || !db) return;
     
     setIsLoading(true);
+    console.log("[STAY-TUNED] Initiating OTP request for:", email);
     
     try {
       const cleanEmail = email.trim().toLowerCase();
       
-      // Call server-side flow
+      // Call server-side flow (Server Action)
       const result = await sendOtp({ 
         email: cleanEmail,
         phone: phone.trim()
@@ -56,7 +58,7 @@ export default function StayTunedPage() {
         toast({ 
           variant: "destructive", 
           title: "Divine Message Delayed", 
-          description: result.error || result.message || "Please check your connection." 
+          description: result.error || result.message || "Please check your internet connection." 
         });
         setIsLoading(false);
         return;
@@ -65,7 +67,7 @@ export default function StayTunedPage() {
       // Success Path
       setGeneratedOtp(result.code);
       
-      // Store code for verification
+      // Store code for verification in Firestore
       const otpRef = doc(db, "verification_codes", cleanEmail);
       setDocumentNonBlocking(otpRef, {
         email: cleanEmail,
@@ -76,11 +78,11 @@ export default function StayTunedPage() {
       setStep('otp');
       toast({ title: "Code Sent", description: "The divine code has been sent to your email." });
     } catch (error: any) {
-      console.error("Error in handleRequestOtp:", error);
+      console.error("[STAY-TUNED] Exception in handleRequestOtp:", error);
       toast({ 
         variant: "destructive", 
         title: "Connection Error", 
-        description: "Baba is testing our patience. Please check your internet and try again." 
+        description: "Baba is testing our patience. Please check your internet and try again. (Error: " + error.message + ")"
       });
     } finally {
       setIsLoading(false);
@@ -192,11 +194,15 @@ export default function StayTunedPage() {
                     className="h-12 rounded-xl"
                   />
                 </div>
+                <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-xl text-[10px] text-muted-foreground leading-relaxed">
+                  <Info className="h-3 w-3 text-primary shrink-0 mt-0.5" />
+                  <span>We will check if you are already registered before sending the verification code.</span>
+                </div>
               </CardContent>
               <CardFooter className="px-8 pb-10 pt-4">
-                <Button type="submit" disabled={isLoading} className="w-full bg-primary h-14 text-lg font-bold shadow-lg rounded-full">
+                <Button type="submit" disabled={isLoading} className="w-full bg-primary h-14 text-lg font-bold shadow-lg rounded-full transition-all active:scale-95">
                   {isLoading ? <Loader2 className="animate-spin mr-2" /> : <Send className="mr-2 h-4 w-4" />}
-                  {isLoading ? "Processing..." : "Send Divine Code"}
+                  {isLoading ? "Consulting with Baba..." : "Send Divine Code"}
                 </Button>
               </CardFooter>
             </form>
@@ -222,9 +228,9 @@ export default function StayTunedPage() {
                     required 
                     className="h-14 text-center text-2xl font-bold tracking-[0.5em] rounded-xl"
                   />
-                  <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-muted/50 rounded-xl text-[10px] text-muted-foreground font-medium">
-                    <Info className="h-3 w-3 text-primary" />
-                    <span>Check your <strong>spam/junk folder</strong> if not received.</span>
+                  <div className="mt-4 flex items-center justify-center gap-2 p-3 bg-primary/5 border border-primary/10 rounded-xl text-[10px] text-primary font-bold">
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>Check your <strong>Spam / Junk folder</strong> if not in Inbox.</span>
                   </div>
                 </div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => setStep('email')} className="text-xs text-muted-foreground w-full">

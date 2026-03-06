@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ["studio1-pi.vercel.app", "localhost:9002"],
+      allowedOrigins: ["https://studio1-pi.vercel.app", "studio1-pi.vercel.app", "localhost:9002"],
     },
   },
   async headers() {
