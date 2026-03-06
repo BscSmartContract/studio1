@@ -49,7 +49,7 @@ export default function AdminPanel() {
   const auth = useAuth();
   const { user, isUserLoading: authLoading } = useUser();
 
-  const ADMIN_EMAIL = "theroasterop1@gmail.com";
+  const ADMIN_EMAIL = "saibabatrustambala@gmail.com";
   const isActuallyAdmin = user?.email === ADMIN_EMAIL;
 
   // Conditional Queries

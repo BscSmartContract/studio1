@@ -6,7 +6,7 @@ service cloud.firestore {
     /**
      * SAI PADUKA PORTAL - FIREBASE SECURITY RULES
      * 
-     * Admin access is granted exclusively to theroasterop1@gmail.com
+     * Admin access is granted exclusively to saibabatrustambala@gmail.com
      */
 
     // --- GLOBAL HELPER FUNCTIONS ---
@@ -17,7 +17,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && 
-             request.auth.token.email == "theroasterop1@gmail.com";
+             request.auth.token.email == "saibabatrustambala@gmail.com";
     }
 
     function isOwner(userId) {
