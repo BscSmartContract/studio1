@@ -2,8 +2,6 @@
 'use server';
 /**
  * @fileOverview A server-side flow to generate a sacred 6-digit verification code (OTP) and send it in Hindi via Brevo.
- *
- * - sendOtp - Checks for duplicates, generates a code, and sends it via Brevo.
  */
 
 import { ai } from '@/ai/genkit';
@@ -13,9 +11,12 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
-// Stable singleton for server-side Firebase
+// Robust singleton for server-side Firebase
 function getDb() {
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  if (getApps().length > 0) {
+    return getFirestore(getApp());
+  }
+  const app = initializeApp(firebaseConfig);
   return getFirestore(app);
 }
 
@@ -83,16 +84,15 @@ const sendOtpFlow = ai.defineFlow(
         Guidelines:
         1. Start with 'Om Sai Ram'.
         2. Use ONLY Hindi (Devanagari script).
-        3. Clearly include the verification code ${code}.
-        4. Keep it warm and spiritual.`,
+        3. Include the code ${code} clearly.`,
       });
 
-      const finalMessage = text || `Om Sai Ram. आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
+      const finalMessage = text || `Om Sai Ram. आपका सत्यापन कोड ${code} है।`;
 
       // 4. Dispatch via Brevo
       const mailResult = await sendMail(
         cleanEmail,
-        "Sai Parivar Ambala - Sacred Verification Code",
+        "Sai Parivar Ambala - Verification Code",
         finalMessage
       );
 
@@ -103,6 +103,7 @@ const sendOtpFlow = ai.defineFlow(
         error: mailResult.error
       };
     } catch (err: any) {
+      console.error('[SEND OTP FLOW ERROR]', err);
       return {
         success: false,
         message: "Om Sai Ram. Verification could not be initiated.",

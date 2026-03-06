@@ -8,12 +8,11 @@ export async function sendMail(to: string, subject: string, text: string) {
   const apiKey = process.env.BREVO_API_KEY;
 
   if (!apiKey) {
-    console.error('[MAIL SERVICE] Brevo API Key is missing from environment variables.');
+    console.error('[MAIL SERVICE] Brevo API Key is missing.');
     return { success: false, error: 'API Key missing' };
   }
 
   try {
-    // Controller for request timeout to prevent hanging
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
@@ -27,7 +26,7 @@ export async function sendMail(to: string, subject: string, text: string) {
       body: JSON.stringify({
         sender: {
           name: 'Sai Parivar Ambala',
-          email: 'saibabatrustambala@gmail.com', // MUST be verified in Brevo Dashboard
+          email: 'saibabatrustambala@gmail.com', // Verified sender
         },
         to: [{ email: to }],
         subject: subject,
@@ -50,7 +49,7 @@ export async function sendMail(to: string, subject: string, text: string) {
     }
   } catch (error: any) {
     if (error.name === 'AbortError') {
-      return { success: false, error: 'Connection timed out. Please check your internet.' };
+      return { success: false, error: 'Mail delivery timed out. Please try again.' };
     }
     return { success: false, error: error.message };
   }
