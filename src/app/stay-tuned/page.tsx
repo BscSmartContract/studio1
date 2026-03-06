@@ -34,6 +34,8 @@ export default function StayTunedPage() {
     if (!email || !phone || !db) return;
     
     setIsLoading(true);
+    console.log("Initiating OTP request for:", email);
+    
     try {
       const cleanEmail = email.trim().toLowerCase();
       
@@ -42,6 +44,8 @@ export default function StayTunedPage() {
         email: cleanEmail,
         phone: phone.trim()
       });
+
+      console.log("OTP result received:", result);
 
       if (result.alreadyRegistered) {
         toast({ 
@@ -85,7 +89,12 @@ export default function StayTunedPage() {
       setStep('otp');
       toast({ title: "Code Sent", description: "The divine code has been sent to your email." });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message || "An unexpected error occurred. Please try again." });
+      console.error("Error in handleRequestOtp:", error);
+      toast({ 
+        variant: "destructive", 
+        title: "Connection Error", 
+        description: "Baba is testing our patience. Please check your internet connection and try again." 
+      });
     } finally {
       setIsLoading(false);
     }

@@ -2,7 +2,6 @@
 'use server';
 /**
  * @fileOverview A server-side flow to generate a sacred 6-digit verification code (OTP) and send it in Hindi via Brevo.
- * This flow executes strictly on the server, keeping the API keys secure.
  *
  * - sendOtp - Checks for duplicates, generates a code, and sends it via Brevo.
  */
@@ -48,13 +47,16 @@ const sendOtpFlow = ai.defineFlow(
     const cleanPhone = input.phone.trim();
 
     try {
-      // 1. Check for duplicates in Firestore (Administrative Check)
+      console.log(`[FLOW] Starting OTP process for ${cleanEmail}`);
+      
+      // 1. Check for duplicates in Firestore
       const subscribersRef = collection(db, "subscribers");
       
       // Check Email
       const emailQ = query(subscribersRef, where("email", "==", cleanEmail), limit(1));
       const emailSnap = await getDocs(emailQ);
       if (!emailSnap.empty) {
+        console.log(`[FLOW] Email ${cleanEmail} already registered`);
         return { 
           success: false, 
           alreadyRegistered: true, 
@@ -66,6 +68,7 @@ const sendOtpFlow = ai.defineFlow(
       const phoneQ = query(subscribersRef, where("phone", "==", cleanPhone), limit(1));
       const phoneSnap = await getDocs(phoneQ);
       if (!phoneSnap.empty) {
+        console.log(`[FLOW] Phone ${cleanPhone} already registered`);
         return { 
           success: false, 
           alreadyRegistered: true, 
@@ -92,6 +95,7 @@ const sendOtpFlow = ai.defineFlow(
       const finalMessage = text || `Om Sai Ram. आगामी साईं आयोजनों के लिए आपका पावन सत्यापन कोड ${code} है। बाबा की कृपा आप पर बनी रहे।`;
 
       // 4. Real dispatch via Brevo (Strictly Server-Side)
+      console.log(`[FLOW] Dispatching email to ${cleanEmail}`);
       const mailResult = await sendMail(
         cleanEmail,
         "Sai Parivar Ambala - Sacred Verification Code",
@@ -105,7 +109,7 @@ const sendOtpFlow = ai.defineFlow(
         error: mailResult.error
       };
     } catch (err: any) {
-      console.error("sendOtpFlow error:", err);
+      console.error("[FLOW] Error in sendOtpFlow:", err);
       return {
         success: false,
         message: "Om Sai Ram. Verification could not be initiated.",

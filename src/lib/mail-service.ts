@@ -5,16 +5,30 @@
  */
 
 export async function sendMail(to: string, subject: string, text: string) {
-  const apiKey = process.env.BREVO_API_KEY;
+  let apiKey = process.env.BREVO_API_KEY;
+
+  // Handle the Base64 encoded JSON key if provided
+  if (apiKey && apiKey.startsWith('ey')) {
+    try {
+      const decoded = JSON.parse(Buffer.from(apiKey, 'base64').toString());
+      apiKey = decoded.api_key;
+    } catch (e) {
+      console.error('[MAIL SERVICE] Failed to decode Brevo API Key from Base64');
+    }
+  }
 
   if (!apiKey) {
-    console.error('[MAIL SERVICE] Brevo API Key is missing from environment variables.');
-    return { success: false, error: 'API Key missing' };
+    console.error('[MAIL SERVICE] Brevo API Key is missing or invalid.');
+    return { success: false, error: 'API Key missing or invalid' };
   }
 
   try {
     console.log(`[MAIL SERVICE] Attempting to send divine email to: ${to}`);
     
+    // Add a timeout to the fetch request to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -35,8 +49,10 @@ export async function sendMail(to: string, subject: string, text: string) {
         subject: subject,
         textContent: text,
       }),
+      signal: controller.signal
     });
 
+    clearTimeout(timeoutId);
     const result = await response.json();
 
     if (response.ok) {
@@ -51,6 +67,10 @@ export async function sendMail(to: string, subject: string, text: string) {
       };
     }
   } catch (error: any) {
+    if (error.name === 'AbortError') {
+      console.error('[MAIL SERVICE] Request timed out');
+      return { success: false, error: 'Request timed out' };
+    }
     console.error('[MAIL SERVICE] Connection Error:', error);
     return { success: false, error: error.message };
   }
