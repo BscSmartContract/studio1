@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview A central service to handle real-world email dispatching via Brevo (Sendinblue).
  * This service is designed to be called ONLY from server-side contexts (Genkit Flows, Server Actions).
@@ -11,19 +12,17 @@ export async function sendMail(to: string, subject: string, text: string) {
     return { success: false, error: 'Mail service configuration missing' };
   }
 
-  // Handle the Base64 encoded JSON key if provided (common in some deployment flows)
-  if (apiKey.startsWith('ey') || apiKey.includes('{')) {
+  // Robustly handle the API key: trim whitespace and check if it's encoded (rare but handled)
+  let finalKey = apiKey.trim();
+  
+  if (finalKey.startsWith('ey') && !finalKey.startsWith('xkeysib')) {
     try {
-      let decodedString = apiKey;
-      if (apiKey.startsWith('ey')) {
-        decodedString = Buffer.from(apiKey, 'base64').toString('utf8');
-      }
-      
+      const decodedString = Buffer.from(finalKey, 'base64').toString('utf8');
       const decodedJson = JSON.parse(decodedString);
-      apiKey = decodedJson.api_key || decodedJson.apiKey || apiKey;
-      console.log('[MAIL SERVICE] Successfully parsed API Key from encoded source');
+      finalKey = (decodedJson.api_key || decodedJson.apiKey || finalKey).trim();
+      console.log('[MAIL SERVICE] Decoded API Key from source');
     } catch (e) {
-      console.warn('[MAIL SERVICE] Using raw BREVO_API_KEY value');
+      // If it fails to decode, we use the original trimmed key
     }
   }
 
@@ -32,7 +31,7 @@ export async function sendMail(to: string, subject: string, text: string) {
       method: 'POST',
       headers: {
         'accept': 'application/json',
-        'api-key': apiKey.trim(),
+        'api-key': finalKey,
         'content-type': 'application/json',
       },
       body: JSON.stringify({
@@ -48,8 +47,7 @@ export async function sendMail(to: string, subject: string, text: string) {
         subject: subject,
         textContent: text,
       }),
-      // Set a strict timeout to avoid hanging the server action
-      signal: AbortSignal.timeout(9000) 
+      signal: AbortSignal.timeout(10000) 
     });
 
     const result = await response.json();
