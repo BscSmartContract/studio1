@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft, Info } from "lucide-react";
+import { BellRing, Loader2, Sparkles, CheckCircle2, ShieldCheck, Mail, Send, ArrowLeft, Info, Phone } from "lucide-react";
 import { useFirestore, setDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase";
 import { doc, collection, query, where, getDocs } from "firebase/firestore";
 import { sendOtp } from "@/ai/flows/send-otp-flow";
@@ -21,31 +21,47 @@ export default function StayTunedPage() {
   const [step, setStep] = useState<Step>('email');
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [otpInput, setOtpInput] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
   
   const [formData, setFormData] = useState({
-    name: "",
-    phone: ""
+    name: ""
   });
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !db) return;
+    if (!email || !phone || !db) return;
     
     setIsLoading(true);
     try {
       const cleanEmail = email.trim().toLowerCase();
+      const cleanPhone = phone.trim();
       
-      // Check if already subscribed
+      // Check for duplicates (Email OR Phone)
       const subscribersRef = collection(db, "subscribers");
-      const q = query(subscribersRef, where("email", "==", cleanEmail));
-      const querySnapshot = await getDocs(q);
       
-      if (!querySnapshot.empty) {
+      // Check Email
+      const emailQ = query(subscribersRef, where("email", "==", cleanEmail));
+      const emailSnap = await getDocs(emailQ);
+      
+      if (!emailSnap.empty) {
         toast({ 
           title: "Already Registered", 
-          description: "Om Sai Ram. You are already registered for upcoming event updates." 
+          description: "Om Sai Ram. This email is already registered for upcoming event updates." 
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Check Phone
+      const phoneQ = query(subscribersRef, where("phone", "==", cleanPhone));
+      const phoneSnap = await getDocs(phoneQ);
+
+      if (!phoneSnap.empty) {
+        toast({ 
+          title: "Already Registered", 
+          description: "Om Sai Ram. This phone number is already registered for upcoming event updates." 
         });
         setIsLoading(false);
         return;
@@ -54,7 +70,7 @@ export default function StayTunedPage() {
       const result = await sendOtp({ email: cleanEmail });
       setGeneratedOtp(result.code);
       
-      // 1. Store code in Firestore for verification
+      // Store code in Firestore for verification
       const otpRef = doc(db, "verification_codes", cleanEmail);
       setDocumentNonBlocking(otpRef, {
         email: cleanEmail,
@@ -62,7 +78,7 @@ export default function StayTunedPage() {
         expiresAt: new Date(Date.now() + 10 * 60000).toISOString() // 10 mins
       }, { merge: true });
 
-      // 2. Trigger actual email notification via the "mail" collection
+      // Trigger actual email notification via the "mail" collection
       const mailColRef = collection(db, "mail");
       addDocumentNonBlocking(mailColRef, {
         to: cleanEmail,
@@ -85,7 +101,7 @@ export default function StayTunedPage() {
     e.preventDefault();
     if (otpInput === generatedOtp) {
       setStep('details');
-      toast({ title: "Verified", description: "Email confirmed. Please complete your details." });
+      toast({ title: "Verified", description: "Identity confirmed. Please provide your name to complete the registration." });
     } else {
       toast({ variant: "destructive", title: "Invalid Code", description: "The verification code does not match." });
     }
@@ -99,8 +115,9 @@ export default function StayTunedPage() {
     try {
       const subscribersCol = collection(db, "subscribers");
       addDocumentNonBlocking(subscribersCol, {
-        ...formData,
+        name: formData.name,
         email: email.trim().toLowerCase(),
+        phone: phone.trim(),
         isVerified: true,
         subscribedAt: new Date().toISOString()
       });
@@ -127,7 +144,7 @@ export default function StayTunedPage() {
           <div className="space-y-2">
             <h2 className="text-3xl font-headline font-bold text-foreground">Stay Tuned!</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Om Sai Ram. Your email <strong>{email}</strong> has been verified. You will be the first to know about upcoming spiritual gatherings.
+              Om Sai Ram. Your details have been verified. You will be the first to know about upcoming spiritual gatherings.
             </p>
           </div>
           <Button asChild className="w-full bg-primary h-12 rounded-full">
@@ -148,7 +165,7 @@ export default function StayTunedPage() {
           <h1 className="text-4xl md:text-5xl font-headline font-bold text-primary">Stay Tuned</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             "I shall draw my devotees from the ends of the earth." — Shri Sai Baba<br />
-            Verify your email to receive alerts for our future spiritual gatherings.
+            Register to receive alerts for our future spiritual gatherings.
           </p>
         </div>
 
@@ -161,10 +178,10 @@ export default function StayTunedPage() {
                 <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
                   <Mail className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-2xl font-headline">Step 1: Verification</CardTitle>
-                <CardDescription>Enter your email to receive a sacred code</CardDescription>
+                <CardTitle className="text-2xl font-headline">Step 1: Information</CardTitle>
+                <CardDescription>Enter your details to receive a sacred code</CardDescription>
               </CardHeader>
-              <CardContent className="px-8 space-y-4">
+              <CardContent className="px-8 space-y-6">
                 <div className="space-y-2">
                   <Label>Email Address</Label>
                   <Input 
@@ -172,6 +189,16 @@ export default function StayTunedPage() {
                     placeholder="devotee@example.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required 
+                    className="h-12 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone Number</Label>
+                  <Input 
+                    placeholder="98XXX XXXXX" 
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     required 
                     className="h-12 rounded-xl"
                   />
@@ -212,7 +239,7 @@ export default function StayTunedPage() {
                   </div>
                 </div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => setStep('email')} className="text-xs text-muted-foreground w-full">
-                   <ArrowLeft className="h-3 w-3 mr-1" /> Use different email
+                   <ArrowLeft className="h-3 w-3 mr-1" /> Back to details
                 </Button>
               </CardContent>
               <CardFooter className="px-8 pb-10 pt-4">
@@ -229,8 +256,8 @@ export default function StayTunedPage() {
                 <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4">
                   <BellRing className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-2xl font-headline">Final Step: Details</CardTitle>
-                <CardDescription>Verification complete for {email}</CardDescription>
+                <CardTitle className="text-2xl font-headline">Final Step: Complete Profile</CardTitle>
+                <CardDescription>Verification successful for {email}</CardDescription>
               </CardHeader>
               <CardContent className="px-8 space-y-6">
                 <div className="space-y-2">
@@ -240,16 +267,6 @@ export default function StayTunedPage() {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     required 
-                    className="h-12 rounded-xl"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Phone Number</Label>
-                  <Input 
-                    placeholder="98XXX XXXXX" 
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    required
                     className="h-12 rounded-xl"
                   />
                 </div>
